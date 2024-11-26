@@ -34,6 +34,8 @@ mul r1 r1 r2
 div r1 r1 512
 div r1 r1 r2
 
+mov r2 @.function
+
 .function
 
 halt

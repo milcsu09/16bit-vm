@@ -266,8 +266,35 @@ def pass1(lines: List[List[Token]]) -> Dict[str, int]:
     return labels
 
 
+# def get_label_value(labels: Dict[str, int], key: str) -> int:
+#     if key not in labels:
+#         report_error(f"invalid label {key}")
+#     return labels[key]
+
+
 def operands_to_types(operands: List[Token]) -> List[TokenType]:
     return [token.typ for token in operands]
+
+
+def operands_with_labels(operands: List[Token], loc: Location,
+                         labels: Dict[str, int]) -> List[Token]:
+    def get_label(key: str) -> int:
+        if key not in labels:
+            report_error(f"invalid label {key}", loc)
+            exit(1)
+        return labels[key]
+
+    def make_token(key: str, loc: Location) -> Token:
+        return Token(TokenType.IMMEDIATE, loc, get_label(key))
+
+    result = operands.copy()
+    for i, operand in enumerate(result):
+        if operand.typ == TokenType.LABEL:
+            result[i] = make_token(operand.val, operand.loc)
+        if operand.typ == TokenType.MEMORY and operand.val.typ == TokenType.LABEL:
+            result[i].val = make_token(operand.val.val, operand.val.loc)
+
+    return result
 
 
 def no_overload(operation: str, operands: List[Token],
@@ -277,8 +304,7 @@ def no_overload(operation: str, operands: List[Token],
     exit(1)
 
 
-def translate_mov(operands: List[Token], loc: Location,
-                  labels: Dict[str, int]) -> Operation:
+def translate_mov(operands: List[Token], loc: Location) -> Operation:
     """All overload for 'mov'"""
 
     match operands_to_types(operands):
@@ -355,6 +381,8 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
         operation, *operands = tokens
         loc: Location = operation.loc
 
+        operands = operands_with_labels(operands, loc, labels)
+
         # Skip non-operations
         if operation.typ != TokenType.SYMBOL:
             continue
@@ -365,7 +393,7 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
                     no_overload(operation, operands, loc)
                 operations.append(Operation(OperationType.NOP, loc, []))
             case "mov":
-                operations.append(translate_mov(operands, loc, labels))
+                operations.append(translate_mov(operands, loc))
             case "push":
                 operations.append(translate_push(operands, loc))
             case "pop":
