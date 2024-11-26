@@ -46,25 +46,26 @@ class DirectiveType(Enum):
 DIRECTIVES = {item.name.lower(): item for item in DirectiveType}
 
 
-@dataclass(frozen=True)
-class FatalError(Exception):
-    """Exception for fatal error during compilation"""
-    msg: str
-    loc: Location
+def report_message(typ: str, msg: str, loc: Location) -> None:
+    """Reports a message to stderr"""
+    file, line = loc
+    sys.stderr.write(f"{file} [{line}]: ")
+    sys.stderr.write(f"{typ}: {msg}\n")
 
 
-def report_error(error: FatalError) -> None:
-    """Reports a fatal error to stderr"""
-    file, line = error.loc
-    sys.stderr.write(f"{file} [{line}]:\n")
-    sys.stderr.write(f"fatal-error: {error.msg}\n")
+def report_error(msg: str, loc: Location) -> None:
+    """Reports an error to stderr"""
+    report_message("ERROR", msg, loc)
 
 
 def report_warning(msg: str, loc: Location) -> None:
     """Reports a warning to stderr"""
-    file, line = loc
-    sys.stderr.write(f"{file} [{line}]:\n")
-    sys.stderr.write(f"warning: {msg}\n")
+    report_message("WARNING", msg, loc)
+
+
+def report_note(msg: str, loc: Location) -> None:
+    """Reports a note to stderr"""
+    report_message("NOTE", msg, loc)
 
 
 def enumerate_lines(text: str) -> List[Line]:
@@ -83,30 +84,38 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
     def handle_macro_define(fragments: List[str], loc: Location) -> None:
         nonlocal macro_name, macro_begin
         if macro_name:
-            raise FatalError(f"{MACRO_DEFINE} inside {MACRO_DEFINE}", loc)
+            report_error(f"{MACRO_DEFINE} inside {MACRO_DEFINE}", loc)
+            exit(1)
         if len(fragments) != 2:
-            raise FatalError(f"{MACRO_DEFINE} requires 1 fragment", loc)
+            report_error(f"{MACRO_DEFINE} requires 1 fragment", loc)
+            exit(1)
         macro_name = fragments[1]
         macro_begin = loc
         if macro_name in macros:
-            raise FatalError(f"redefinition of {macro_name}", loc)
+            report_error(f"redefinition of {macro_name}", loc)
+            exit(1)
 
     def handle_macro_end(fragments: List[str], loc: Location) -> None:
         nonlocal macro_name, macro_buffer
         if not macro_name:
-            raise FatalError(f"{MACRO_END} without {MACRO_DEFINE}", loc)
+            report_error(f"{MACRO_END} without {MACRO_DEFINE}", loc)
+            exit(1)
         if len(fragments) != 1:
-            raise FatalError(f"{MACRO_END} requires 0 fragment", loc)
+            report_error(f"{MACRO_END} requires 0 fragment", loc)
+            exit(1)
         macros[macro_name] = macro_buffer
         macro_name, macro_buffer = None, []
 
     def handle_macro_expand(name: str, loc: Location) -> None:
         if macro_name:
-            raise FatalError(f"macro expansion inside {MACRO_DEFINE}", loc)
+            report_error(f"macro expansion inside {MACRO_DEFINE}", loc)
+            exit(1)
         if not name:
-            raise FatalError(f"{MACRO_PREFIX} requires 1 fragment", loc)
+            report_error(f"{MACRO_PREFIX} requires 1 fragment", loc)
+            exit(1)
         if name not in macros:
-            raise FatalError(f"undefined macro {name}", loc)
+            report_error(f"undefined macro {name}", loc)
+            exit(1)
         result.extend(macros[name])
 
     for i, line in lines:
@@ -126,8 +135,9 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
             result.append((i, line))
 
     if macro_name:
-        raise FatalError(f"{MACRO_DEFINE} without {MACRO_END}",
-                         cast(Location, macro_begin))
+        report_error(f"{MACRO_DEFINE} without {MACRO_END}",
+                     cast(Location, macro_begin))
+        exit(1)
 
     return result
 
@@ -142,7 +152,8 @@ def fragment_to_immediate(fragment: str, loc: Location) -> int:
             base = int(base)
         return int(value, base) & 0xffff
     except ValueError:
-        raise FatalError(f"invalid immediate value {fragment}", loc)
+        report_error(f"invalid immediate value {fragment}", loc)
+        exit(1)
 
 
 def fragment_to_token(fragment: str, loc: Location) -> Token:
@@ -191,15 +202,16 @@ def pass1(lines: List[List[Token]]) -> Dict[str, int]:
 
         if operation.typ == TokenType.LABEL:
             if operands != []:
-                raise FatalError(f"label requires 0 operands", loc)
+                report_error(f"label requires 0 operands", loc)
+                exit(1)
             if operation.val in labels:
-                raise FatalError(f"redefinition of {operation.val}", loc)
+                report_error(f"redefinition of {operation.val}", loc)
+                exit(1)
             labels[cast(str, operation.val)] = ip
             continue
 
         ip += sum([token_expand_amount(token) for token in tokens])
 
-    print (labels)
     return labels
 
 
@@ -210,15 +222,13 @@ def main() -> None:
     with open(path, 'r') as f:
         text = f.read()
 
-    try:
-        lines = enumerate_lines(text)
-        lines = preprocess_lines(lines, path)
-        tokens = tokenize_lines(lines, path)
-        # print(*tokens, sep='\n')
+    lines = enumerate_lines(text)
+    lines = preprocess_lines(lines, path)
+    tokens = tokenize_lines(lines, path)
+    # print(*tokens, sep='\n')
 
-        labels = pass1(tokens)
-    except FatalError as error:
-        report_error(error)
+    labels = pass1(tokens)
+    print(*[(key, value) for key, value in labels.items()], sep='\n')
 
 
 if __name__ == "__main__":
