@@ -1,12 +1,12 @@
 
 %define stack-frame-create
-  push %bp
-  mov %bp %sp
+  push bp
+  mov bp sp
 %end
 
 %define stack-frame-destroy
-  mov %sp %bp
-  pop %bp
+  mov sp bp
+  pop bp
 %end
 
 .function
