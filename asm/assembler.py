@@ -3,7 +3,7 @@
 import sys
 from typing import *
 from dataclasses import dataclass
-from enum import Enum, auto, unique
+from enum import IntEnum, Enum, auto, unique
 
 # Type aliases for clarity
 Location = Tuple[str, int]
@@ -35,7 +35,10 @@ class Token:
     val: Any  # Value depends on token type (int, str, etc.)
 
     def __repr__(self) -> str:
-        return f"({self.typ}: {self.val})"
+        if not isinstance(self.val, Token):
+            return f"{self.val}"
+        return f"{self.typ.name} -> {self.val}"
+        # return f"({self.typ}: {self.val})"
 
 
 @unique
@@ -44,6 +47,54 @@ class DirectiveType(Enum):
 
 
 DIRECTIVES = {item.name.lower(): item for item in DirectiveType}
+
+
+@unique
+class OperationType(IntEnum):
+    NOP = 0
+
+    MOV_R_I = 1
+    MOV_R_R = 2
+    MOV_R_IM = 3
+    MOV_R_RM = 4
+
+    MOV_IM_I = 5
+    MOV_IM_R = 6
+    MOV_IM_IM = 7
+    MOV_IM_RM = 8
+
+    MOV_RM_I = 9
+    MOV_RM_R = 10
+    MOV_RM_IM = 11
+    MOV_RM_RM = 12
+
+    PUSH_I = 13
+    PUSH_R = 14
+    POP = 15
+
+    ADD_I = 16
+    ADD_R = 17
+    SUB_I = 18
+    SUB_R = 19
+    MUL_I = 20
+    MUL_R = 21
+    DIV_I = 22
+    DIV_R = 23
+
+    HALT = 24
+
+    # Custom OperationType, not present withing byte-code
+    DIRECTIVE = -1
+
+
+@dataclass
+class Operation:
+    typ: OperationType
+    loc: Location
+    val: List[Any]  # Operands
+
+    def __repr__(self) -> str:
+        return f"({self.typ}: {self.val})"
 
 
 def report_message(typ: str, msg: str, loc: Location) -> None:
@@ -192,7 +243,7 @@ def token_expand_amount(token: Token) -> int:
 
 
 def pass1(lines: List[List[Token]]) -> Dict[str, int]:
-    """Generate labels"""
+    """Traverse lines, generate labels"""
     labels: Dict[str, int] = {}
     ip = 0
 
@@ -215,6 +266,138 @@ def pass1(lines: List[List[Token]]) -> Dict[str, int]:
     return labels
 
 
+def operands_to_types(operands: List[Token]) -> List[TokenType]:
+    return [token.typ for token in operands]
+
+
+def no_overload(operation: str, operands: List[Token],
+                loc: Location) -> NoReturn:
+    report_error(f"no possible overload for {operation}", loc)
+    report_note(f"got {', '.join([str(item) for item in operands])}", loc)
+    exit(1)
+
+
+def translate_mov(operands: List[Token], loc: Location,
+                  labels: Dict[str, int]) -> Operation:
+    """All overload for 'mov'"""
+
+    match operands_to_types(operands):
+        case [TokenType.SYMBOL, TokenType.IMMEDIATE]:
+            return Operation(OperationType.MOV_R_I, loc, operands)
+        case [TokenType.SYMBOL, TokenType.SYMBOL]:
+            return Operation(OperationType.MOV_R_R, loc, operands)
+        case [TokenType.SYMBOL, TokenType.MEMORY]:
+            match operands[1].val.typ:
+                case TokenType.IMMEDIATE:
+                    return Operation(OperationType.MOV_R_IM, loc, operands)
+                case TokenType.SYMBOL:
+                    return Operation(OperationType.MOV_R_RM, loc, operands)
+        case [TokenType.MEMORY, TokenType.IMMEDIATE]:
+            match operands[0].val.typ:
+                case TokenType.IMMEDIATE:
+                    return Operation(OperationType.MOV_IM_I, loc, operands)
+                case TokenType.SYMBOL:
+                    return Operation(OperationType.MOV_RM_I, loc, operands)
+        case [TokenType.MEMORY, TokenType.SYMBOL]:
+            match operands[0].val.typ:
+                case TokenType.IMMEDIATE:
+                    return Operation(OperationType.MOV_IM_R, loc, operands)
+                case TokenType.SYMBOL:
+                    return Operation(OperationType.MOV_RM_R, loc, operands)
+        case [TokenType.MEMORY, TokenType.MEMORY]:
+            match (operands[0].val.typ, operands[1].val.typ):
+                case (TokenType.IMMEDIATE, TokenType.IMMEDIATE):
+                    return Operation(OperationType.MOV_IM_IM, loc, operands)
+                case (TokenType.SYMBOL, TokenType.IMMEDIATE):
+                    return Operation(OperationType.MOV_RM_IM, loc, operands)
+                case (TokenType.IMMEDIATE, TokenType.SYMBOL):
+                    return Operation(OperationType.MOV_IM_RM, loc, operands)
+                case (TokenType.SYMBOL, TokenType.SYMBOL):
+                    return Operation(OperationType.MOV_RM_RM, loc, operands)
+
+    no_overload("mov", operands, loc)
+
+
+def translate_push(operands: List[Token], loc: Location) -> Operation:
+    match operands_to_types(operands):
+        case [TokenType.IMMEDIATE]:
+            return Operation(OperationType.PUSH_I, loc, operands)
+        case [TokenType.SYMBOL]:
+            return Operation(OperationType.PUSH_R, loc, operands)
+
+    no_overload("push", operands, loc)
+
+
+def translate_pop(operands: List[Token], loc: Location) -> Operation:
+    match operands_to_types(operands):
+        case [TokenType.SYMBOL]:
+            return Operation(OperationType.POP, loc, operands)
+
+    no_overload("pop", operands, loc)
+
+
+def translate_binary(operands: List[Token], loc: Location, operation: str,
+                     types: List[OperationType]) -> Operation:
+    match operands_to_types(operands):
+        case [TokenType.SYMBOL, TokenType.SYMBOL, TokenType.IMMEDIATE]:
+            return Operation(types[0], loc, operands)
+        case [TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL]:
+            return Operation(types[1], loc, operands)
+
+    no_overload(operation, operands, loc)
+
+
+def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
+    """Translate lines, generate operations"""
+    operations: List[Operation] = []
+
+    for tokens in lines:
+        operation, *operands = tokens
+        loc: Location = operation.loc
+
+        # Skip non-operations
+        if operation.typ != TokenType.SYMBOL:
+            continue
+
+        match operation.val:
+            case "nop":
+                if len(operands) != 0:
+                    no_overload(operation, operands, loc)
+                operations.append(Operation(OperationType.NOP, loc, []))
+            case "mov":
+                operations.append(translate_mov(operands, loc, labels))
+            case "push":
+                operations.append(translate_push(operands, loc))
+            case "pop":
+                operations.append(translate_pop(operands, loc))
+            case "add":
+                operations.append(
+                    translate_binary(
+                        operands, loc, "add",
+                        [OperationType.ADD_I, OperationType.ADD_R]))
+            case "sub":
+                operations.append(
+                    translate_binary(
+                        operands, loc, "sub",
+                        [OperationType.SUB_I, OperationType.SUB_R]))
+            case "mul":
+                operations.append(
+                    translate_binary(
+                        operands, loc, "mul",
+                        [OperationType.MUL_I, OperationType.MUL_R]))
+            case "div":
+                operations.append(
+                    translate_binary(
+                        operands, loc, "div",
+                        [OperationType.DIV_I, OperationType.DIV_R]))
+            case "halt":
+                if len(operands) != 0:
+                    no_overload(operation, operands, loc)
+                operations.append(Operation(OperationType.HALT, loc, []))
+
+    return operations
+
+
 def main() -> None:
     args: List[str] = sys.argv
 
@@ -228,7 +411,11 @@ def main() -> None:
     # print(*tokens, sep='\n')
 
     labels = pass1(tokens)
-    print(*[(key, value) for key, value in labels.items()], sep='\n')
+    # print(*[(key, value) for key, value in labels.items()], sep='\n')
+
+    operations = pass2(tokens, labels)
+    for op in operations:
+        print(f"{op.typ.name}: {op.val}")
 
 
 if __name__ == "__main__":
