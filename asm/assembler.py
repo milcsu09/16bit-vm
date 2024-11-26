@@ -89,7 +89,7 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
         macro_name = fragments[1]
         macro_begin = loc
         if macro_name in macros:
-            raise FatalError(f"redefinition of macro {macro_name}", loc)
+            raise FatalError(f"redefinition of {macro_name}", loc)
 
     def handle_macro_end(fragments: List[str], loc: Location) -> None:
         nonlocal macro_name, macro_buffer
@@ -103,6 +103,8 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
     def handle_macro_expand(name: str, loc: Location) -> None:
         if macro_name:
             raise FatalError(f"macro expansion inside {MACRO_DEFINE}", loc)
+        if not name:
+            raise FatalError(f"{MACRO_PREFIX} requires 1 fragment", loc)
         if name not in macros:
             raise FatalError(f"undefined macro {name}", loc)
         result.extend(macros[name])
@@ -160,10 +162,46 @@ def fragment_to_token(fragment: str, loc: Location) -> Token:
 
 def tokenize_lines(lines: List[Line], file: str) -> List[List[Token]]:
     """Tokenize lines"""
-    return [
-        [fragment_to_token(fragment, (file, i)) for fragment in line.split()]
-        for i, line in lines
-    ]
+    return [[
+        fragment_to_token(fragment, (file, i)) for fragment in line.split()
+    ] for i, line in lines if line]
+
+
+def token_expand_amount(token: Token) -> int:
+    """Amount of bytes a token will expand to during pass3"""
+    match token.typ:
+        case TokenType.DIRECTIVE:
+            return 0
+        case TokenType.SYMBOL:
+            return 1
+        case TokenType.IMMEDIATE | TokenType.LABEL:
+            return 2
+        case TokenType.MEMORY:  # MEMORY stores a token; expand that
+            return token_expand_amount(cast(Token, token.val))
+
+
+def pass1(lines: List[List[Token]]) -> Dict[str, int]:
+    """Generate labels"""
+    labels: Dict[str, int] = {}
+    ip = 0
+
+    for tokens in lines:
+        operation, *operands = tokens
+        loc: Location = operation.loc
+
+        if operation.typ == TokenType.LABEL:
+            if operands != []:
+                raise FatalError(f"label requires 0 operands", loc)
+            if operation.val in labels:
+                raise FatalError(f"redefinition of {operation.val}", loc)
+            labels[cast(str, operation.val)] = ip
+            continue
+
+        ip += sum([token_expand_amount(token) for token in tokens])
+
+    print (labels)
+    return labels
+
 
 def main() -> None:
     args: List[str] = sys.argv
@@ -176,7 +214,9 @@ def main() -> None:
         lines = enumerate_lines(text)
         lines = preprocess_lines(lines, path)
         tokens = tokenize_lines(lines, path)
-        print(*tokens, sep='\n')
+        # print(*tokens, sep='\n')
+
+        labels = pass1(tokens)
     except FatalError as error:
         report_error(error)
 
