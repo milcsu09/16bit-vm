@@ -84,6 +84,9 @@ typedef enum
   VM_OPERATION_DIV_I,
   VM_OPERATION_DIV_R,
 
+  VM_OPERATION_CMP_R_I,
+  VM_OPERATION_CMP_R_R,
+
   VM_OPERATION_HALT,
 
   VM_OPERATION_COUNT,
@@ -114,6 +117,8 @@ static const char *const VM_OPERATION_NAME[] = {
   "mul(r)",
   "div(i)",
   "div(r)",
+  "cmp(r, i)",
+  "cmp(r, r)",
   "halt",
 };
 
@@ -155,6 +160,8 @@ word *vm_next_register (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
+
+void vm_compare (VM *vm, word left, word right);
 
 void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);

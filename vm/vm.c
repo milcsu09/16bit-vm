@@ -104,6 +104,13 @@ vm_store_word (VM *vm, word address, word value)
 }
 
 void
+vm_compare (VM *vm, word left, word right)
+{
+  vm->flags.z = (left == right);
+  vm->flags.c = (left < right);
+}
+
+void
 vm_execute (VM *vm, VM_Operation operation)
 {
   switch (operation)
@@ -279,6 +286,20 @@ vm_execute (VM *vm, VM_Operation operation)
         word *src1 = vm_next_register (vm);
         word *src2 = vm_next_register (vm);
         *dest = *src1 / *src2;
+      }
+      break;
+    case VM_OPERATION_CMP_R_I:
+      {
+        word *left = vm_next_register (vm);
+        word right = vm_next_word (vm);
+        vm_compare (vm, *left, right);
+      }
+      break;
+    case VM_OPERATION_CMP_R_R:
+      {
+        word *left = vm_next_register (vm);
+        word *right = vm_next_register (vm);
+        vm_compare (vm, *left, *right);
       }
       break;
     case VM_OPERATION_HALT:

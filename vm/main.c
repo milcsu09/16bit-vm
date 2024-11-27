@@ -47,9 +47,23 @@ main (int argc, char *argv[])
     }
 
   VM *vm = malloc (sizeof (VM));
-
   vm_create (vm, 0xffff);
+
+#define FROM_FILE 0
+
+#if FROM_FILE
   load_file (vm, argv[1]);
+#else
+  byte program[] = {
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, 0x12, 0xAB,
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R2, 0x12, 0xAB,
+    VM_OPERATION_CMP_R_R, VM_REGISTER_R1, VM_REGISTER_R2,
+
+    VM_OPERATION_HALT,
+  };
+
+  memcpy (vm->memory, program, sizeof program);
+#endif
 
   view_debug (vm);
 
