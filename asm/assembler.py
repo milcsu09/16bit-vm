@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+import argparse as ap
 from typing import *
 from dataclasses import dataclass
 from enum import IntEnum, Enum, auto, unique
@@ -390,9 +391,6 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
 
         if operation.typ == TokenType.DIRECTIVE:
             if operation.val == DirectiveType.DW:
-                # if len(operands) != 1:
-                # a = [operation, *operands]
-                # operations.append(Operation(OperationType.DIRECTIVE, loc, a))
                 operations.append(translate_dw(operands, loc))
                 continue
 
@@ -549,9 +547,15 @@ def pass3(operations: List[Operation]) -> bytearray:
 
 
 def main() -> None:
-    args: List[str] = sys.argv
+    parser = ap.ArgumentParser(description="Assemble ASM into VM bytecode")
 
-    path = args[1]
+    parser.add_argument("input", type=str, help="Path to input file")
+    parser.add_argument("output", type=str, help="Path to output file")
+
+    args = parser.parse_args()
+    # args: List[str] = sys.argv
+
+    path = args.input
     with open(path, 'r') as f:
         text = f.read()
 
@@ -567,8 +571,11 @@ def main() -> None:
     # print(*operations, sep='\n')
 
     bytecode = pass3(operations)
-    fmt = ' '.join(f'{byte:02x}' for byte in bytecode)
-    print(fmt)
+    # fmt = ' '.join(f'{byte:02x}' for byte in bytecode)
+    # print(fmt)
+
+    with open(args.output, "wb") as f:
+        f.write(bytecode)
 
 
 if __name__ == "__main__":
