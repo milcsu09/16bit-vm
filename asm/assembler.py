@@ -418,7 +418,7 @@ def translate_cmp(operands: List[Token], loc: Location) -> Operation:
 
 
 def is_control_flow(operation: Operation):
-    if operation.typ == OperationType.HALT:
+    if operation.typ in [OperationType.HALT] or 26 <= operation.typ <= 42:
         return True
     if operation.val and operation.val[0]:
         return operation.val[0].val == "ip"
@@ -438,10 +438,11 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
 
         if operation.typ == TokenType.DIRECTIVE:
             if operation.val == DirectiveType.DW:
-                if previous and not is_control_flow(previous):
+                if previous and previous.typ != OperationType.DIRECTIVE and not is_control_flow(previous):
                     report_warning("non-control-flow operation followed by dw", loc)
                     report_note(f"previous {previous.typ.name}", loc)
                 operations.append(translate_dw(operands, loc))
+                previous = operations[-1] if operations else None
                 continue
 
         # Skip non-operations

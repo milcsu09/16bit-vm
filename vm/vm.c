@@ -106,31 +106,32 @@ vm_store_word (VM *vm, word address, word value)
 void
 vm_push_byte (VM *vm, byte value)
 {
-  vm_store_byte (vm, *vm->sp - 1, value);
+  vm_store_byte (vm, *vm->sp, value);
   *vm->sp -= sizeof (byte);
 }
 
 void
 vm_push_word (VM *vm, word value)
 {
-  vm_store_word (vm, *vm->sp - 1, value);
-  *vm->sp -= sizeof (word);
+  const byte H = VM_WORD_H (value);
+  const byte L = VM_WORD_L (value);
+  vm_push_byte (vm, L);
+  vm_push_byte (vm, H);
 }
 
 byte
 vm_pop_byte (VM *vm)
 {
-  byte value = vm_load_byte (vm, *vm->sp + 1);
   *vm->sp += sizeof (byte);
-  return value;
+  return vm_load_byte (vm, *vm->sp);
 }
 
 word
 vm_pop_word (VM *vm)
 {
-  word value = vm_load_word (vm, *vm->sp + 1);
-  *vm->sp += sizeof (word);
-  return value;
+  const byte H = vm_pop_byte (vm);
+  const byte L = vm_pop_byte (vm);
+  return VM_WORD_PACK (H, L);
 }
 
 void

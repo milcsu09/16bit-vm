@@ -43,9 +43,7 @@ main (int argc, char *argv[])
   VM *vm = malloc (sizeof (VM));
   vm_create (vm, 0xff);
 
-#define FROM_FILE 1
-
-#if FROM_FILE
+#if 0
   if (argc != 2)
     {
       fprintf (stderr, "ERROR: Provide input binary file\n");
@@ -60,6 +58,12 @@ main (int argc, char *argv[])
 
     // VM_OPERATION_CMP_R_I, VM_REGISTER_R1, 0x00, 0x10,
     // VM_OPERATION_JLT_I, 0x00, 0x04,
+
+    VM_OPERATION_PUSH_I, 0xAB, 0xCD,
+    VM_OPERATION_PUSH_I, 0x69, 0x69,
+
+    VM_OPERATION_POP, VM_REGISTER_R1,
+    VM_OPERATION_POP, VM_REGISTER_R2,
 
     VM_OPERATION_HALT,
   };
