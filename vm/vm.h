@@ -87,6 +87,27 @@ typedef enum
   VM_OPERATION_CMP_R_I,
   VM_OPERATION_CMP_R_R,
 
+  VM_OPERATION_JMP_I,
+  VM_OPERATION_JMP_R,
+
+  VM_OPERATION_JEQ_I,
+  VM_OPERATION_JEQ_R,
+
+  VM_OPERATION_JNE_I,
+  VM_OPERATION_JNE_R,
+
+  VM_OPERATION_JLT_I,
+  VM_OPERATION_JLT_R,
+
+  VM_OPERATION_JGT_I,
+  VM_OPERATION_JGT_R,
+
+  VM_OPERATION_JLE_I,
+  VM_OPERATION_JLE_R,
+
+  VM_OPERATION_JGE_I,
+  VM_OPERATION_JGE_R,
+
   VM_OPERATION_HALT,
 
   VM_OPERATION_COUNT,
@@ -119,6 +140,20 @@ static const char *const VM_OPERATION_NAME[] = {
   "div(r)",
   "cmp(r, i)",
   "cmp(r, r)",
+  "jmp(i)",
+  "jmp(r)",
+  "jeq(i)",
+  "jeq(r)",
+  "jne(i)",
+  "jne(r)",
+  "jlt(i)",
+  "jlt(r)",
+  "jgt(i)",
+  "jgt(r)",
+  "jle(i)",
+  "jle(r)",
+  "jge(i)",
+  "jge(r)",
   "halt",
 };
 
@@ -162,6 +197,7 @@ void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
 
 void vm_compare (VM *vm, word left, word right);
+void vm_jump (VM *vm, word address, byte condition);
 
 void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);

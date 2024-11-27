@@ -111,6 +111,13 @@ vm_compare (VM *vm, word left, word right)
 }
 
 void
+vm_jump (VM *vm, word address, byte condition)
+{
+  if (condition)
+    *vm->ip = address;
+}
+
+void
 vm_execute (VM *vm, VM_Operation operation)
 {
   switch (operation)
@@ -300,6 +307,90 @@ vm_execute (VM *vm, VM_Operation operation)
         word *left = vm_next_register (vm);
         word *right = vm_next_register (vm);
         vm_compare (vm, *left, *right);
+      }
+      break;
+    case VM_OPERATION_JMP_I:
+      {
+        word address = vm_next_word (vm);
+        *vm->ip = address;
+      }
+      break;
+    case VM_OPERATION_JMP_R:
+      {
+        word *address = vm_next_register (vm);
+        *vm->ip = *address;
+      }
+      break;
+    case VM_OPERATION_JEQ_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.z == 1);
+      }
+      break;
+    case VM_OPERATION_JEQ_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.z == 1);
+      }
+      break;
+    case VM_OPERATION_JNE_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.z == 0);
+      }
+      break;
+    case VM_OPERATION_JNE_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.z == 0);
+      }
+      break;
+    case VM_OPERATION_JLT_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.c == 1);
+      }
+      break;
+    case VM_OPERATION_JLT_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.c == 1);
+      }
+      break;
+    case VM_OPERATION_JGT_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.z == 0 && vm->flags.c == 0);
+      }
+      break;
+    case VM_OPERATION_JGT_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.z == 0 && vm->flags.c == 0);
+      }
+      break;
+    case VM_OPERATION_JLE_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.c == 1 || vm->flags.z == 1);
+      }
+      break;
+    case VM_OPERATION_JLE_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.c == 1 || vm->flags.z == 1);
+      }
+      break;
+    case VM_OPERATION_JGE_I:
+      {
+        word address = vm_next_word (vm);
+        vm_jump (vm, address, vm->flags.c == 0);
+      }
+      break;
+    case VM_OPERATION_JGE_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_jump (vm, *address, vm->flags.c == 0);
       }
       break;
     case VM_OPERATION_HALT:
