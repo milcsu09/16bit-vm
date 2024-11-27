@@ -41,7 +41,7 @@ int
 main (int argc, char *argv[])
 {
   VM *vm = malloc (sizeof (VM));
-  vm_create (vm, 0xffff);
+  vm_create (vm, 0xff);
 
 #define FROM_FILE 1
 

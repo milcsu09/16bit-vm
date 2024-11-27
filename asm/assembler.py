@@ -100,7 +100,13 @@ class OperationType(IntEnum):
     JLE_R = 37,
     JGE_I = 38,
     JGE_R = 39,
-    HALT = 40
+
+    CALL_I = 40,
+    CALL_R = 41,
+
+    RET = 42,
+
+    HALT = 43
 
     # Custom OperationType, not present withing bytecode
     DIRECTIVE = -1
@@ -467,16 +473,22 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
                 operations.append(translate_i_r(operands, loc, "jmp", [OperationType.JMP_I, OperationType.JMP_R]))
             case "jeq":
                 operations.append(translate_i_r(operands, loc, "jeq", [OperationType.JEQ_I, OperationType.JEQ_R]))
-            case "jne":                                                                 
+            case "jne":
                 operations.append(translate_i_r(operands, loc, "jne", [OperationType.JNE_I, OperationType.JNE_R]))
-            case "jlt":                                                                 
+            case "jlt":
                 operations.append(translate_i_r(operands, loc, "jlt", [OperationType.JLT_I, OperationType.JLT_R]))
-            case "jgt":                                                                 
+            case "jgt":
                 operations.append(translate_i_r(operands, loc, "jgt", [OperationType.JGT_I, OperationType.JGT_R]))
-            case "jle":                                                                 
+            case "jle":
                 operations.append(translate_i_r(operands, loc, "jle", [OperationType.JLE_I, OperationType.JLE_R]))
-            case "jge":                                                                 
+            case "jge":
                 operations.append(translate_i_r(operands, loc, "jge", [OperationType.JGE_I, OperationType.JGE_R]))
+            case "call":
+                operations.append(translate_i_r(operands, loc, "call", [OperationType.CALL_I, OperationType.CALL_R]))
+            case "ret":
+                if len(operands) != 0:
+                    no_overload("ret", operands, loc)
+                operations.append(Operation(OperationType.RET, loc, []))
             case "halt":
                 if len(operands) != 0:
                     no_overload("halt", operands, loc)
@@ -538,7 +550,7 @@ def pass3(operations: List[Operation]) -> bytearray:
                 bytecode.extend([dest] + word_split(int(operands[1].val)))
             case OperationType.MOV_R_R:
                 dest = get_register(operands[0].val, loc)
-                bytecode.extend([dest, get_register(operands[0].val, loc)])
+                bytecode.extend([dest, get_register(operands[1].val, loc)])
             case OperationType.MOV_R_IM:
                 dest = get_register(operands[0].val, loc)
                 bytecode.extend([dest] + word_split(int(operands[1].val.val)))
@@ -603,6 +615,14 @@ def pass3(operations: List[Operation]) -> bytearray:
             case (OperationType.JMP_R | OperationType.JEQ_R | OperationType.JNE_R | OperationType.JLT_R | OperationType.JGT_R | OperationType.JLE_R | OperationType.JGE_R):
                 address = get_register(operands[0].val, loc)
                 bytecode.extend([address])
+            case OperationType.CALL_I:
+                address = word_split(int(operands[0].val))
+                bytecode.extend(address)
+            case OperationType.CALL_R:
+                address = get_register(operands[0].val, loc)
+                bytecode.extend([address])
+            case OperationType.RET:
+                pass  # Nothing
             case OperationType.HALT:
                 pass  # Nothing
 
