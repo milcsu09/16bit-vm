@@ -104,6 +104,36 @@ vm_store_word (VM *vm, word address, word value)
 }
 
 void
+vm_push_byte (VM *vm, byte value)
+{
+  vm_store_byte (vm, *vm->sp - 1, value);
+  *vm->sp -= sizeof (byte);
+}
+
+void
+vm_push_word (VM *vm, word value)
+{
+  vm_store_word (vm, *vm->sp - 1, value);
+  *vm->sp -= sizeof (word);
+}
+
+byte
+vm_pop_byte (VM *vm)
+{
+  byte value = vm_load_byte (vm, *vm->sp + 1);
+  *vm->sp += sizeof (byte);
+  return value;
+}
+
+word
+vm_pop_word (VM *vm)
+{
+  word value = vm_load_word (vm, *vm->sp + 1);
+  *vm->sp += sizeof (word);
+  return value;
+}
+
+void
 vm_compare (VM *vm, word left, word right)
 {
   vm->flags.z = (left == right);
@@ -213,22 +243,19 @@ vm_execute (VM *vm, VM_Operation operation)
     case VM_OPERATION_PUSH_I:
       {
         word value = vm_next_word (vm);
-        vm_store_word (vm, *vm->sp - 1, value);
-        *vm->sp -= sizeof (word);
+        vm_push_word (vm, value);
       }
       break;
     case VM_OPERATION_PUSH_R:
       {
         word *value = vm_next_register (vm);
-        vm_store_word (vm, *vm->sp - 1, *value);
-        *vm->sp -= sizeof (word);
+        vm_push_word (vm, *value);
       }
       break;
     case VM_OPERATION_POP:
       {
         word *dest = vm_next_register (vm);
-        *dest = vm_load_word (vm, *vm->sp + 1);
-        *vm->sp += sizeof (word);
+        *dest = vm_pop_word (vm);
       }
       break;
     case VM_OPERATION_ADD_I:
@@ -392,6 +419,23 @@ vm_execute (VM *vm, VM_Operation operation)
         word *address = vm_next_register (vm);
         vm_jump (vm, *address, vm->flags.c == 0);
       }
+      break;
+    case VM_OPERATION_CALL_I:
+      {
+        word address = vm_next_word (vm);
+        vm_push_word (vm, *vm->ip);
+        *vm->ip = address;
+      }
+      break;
+    case VM_OPERATION_CALL_R:
+      {
+        word *address = vm_next_register (vm);
+        vm_push_word (vm, *vm->ip);
+        *vm->ip = *address;
+      }
+      break;
+    case VM_OPERATION_RET:
+      *vm->ip = vm_pop_word (vm);
       break;
     case VM_OPERATION_HALT:
       vm->halt = true;

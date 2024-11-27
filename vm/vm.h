@@ -108,6 +108,11 @@ typedef enum
   VM_OPERATION_JGE_I,
   VM_OPERATION_JGE_R,
 
+  VM_OPERATION_CALL_I,
+  VM_OPERATION_CALL_R,
+
+  VM_OPERATION_RET,
+
   VM_OPERATION_HALT,
 
   VM_OPERATION_COUNT,
@@ -154,6 +159,9 @@ static const char *const VM_OPERATION_NAME[] = {
   "jle(r)",
   "jge(i)",
   "jge(r)",
+  "call(i)",
+  "call(r)",
+  "ret",
   "halt",
 };
 
@@ -195,6 +203,12 @@ word *vm_next_register (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
+
+void vm_push_byte (VM *vm, byte value);
+void vm_push_word (VM *vm, word value);
+
+byte vm_pop_byte (VM *vm);
+word vm_pop_word (VM *vm);
 
 void vm_compare (VM *vm, word left, word right);
 void vm_jump (VM *vm, word address, byte condition);
