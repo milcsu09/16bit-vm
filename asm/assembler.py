@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import sys
+import sys, os
 import argparse as ap
 from typing import *
 from dataclasses import dataclass
@@ -550,7 +550,6 @@ def main() -> None:
     parser = ap.ArgumentParser(description="Assemble ASM into VM bytecode")
 
     parser.add_argument("input", type=str, help="Path to input file")
-    parser.add_argument("output", type=str, help="Path to output file")
 
     args = parser.parse_args()
     # args: List[str] = sys.argv
@@ -574,8 +573,10 @@ def main() -> None:
     # fmt = ' '.join(f'{byte:02x}' for byte in bytecode)
     # print(fmt)
 
-    with open(args.output, "wb") as f:
+    output = os.path.splitext(args.input)[0] + ".bin"
+    with open(output, "wb") as f:
         f.write(bytecode)
+    print(f"{len(bytecode)} bytes saved to {output}")
 
 
 if __name__ == "__main__":
