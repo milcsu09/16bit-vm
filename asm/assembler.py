@@ -16,6 +16,8 @@ MACRO_PREFIX = "%"
 MACRO_DEFINE = MACRO_PREFIX + "define"
 MACRO_END = MACRO_PREFIX + "end"
 
+COMMENT = ";"
+
 FRAGMENT_LABEL = "."
 FRAGMENT_MEMORY = "@"
 
@@ -144,7 +146,7 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
         macro_name = fragments[1]
         macro_begin = loc
         if macro_name in macros:
-            report_error(f"redefinition of {macro_name}", loc)
+            report_error(f"redefinition of `{macro_name}`", loc)
             exit(1)
 
     def handle_macro_end(fragments: List[str], loc: Location) -> None:
@@ -166,7 +168,7 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
             report_error(f"{MACRO_PREFIX} requires 1 fragment", loc)
             exit(1)
         if name not in macros:
-            report_error(f"undefined macro {name}", loc)
+            report_error(f"undefined `{name}`", loc)
             exit(1)
         result.extend(macros[name])
 
@@ -202,9 +204,11 @@ def fragment_to_immediate(fragment: str, loc: Location) -> int:
         if "#" in fragment:
             base, value = fragment.split("#", maxsplit=1)
             base = int(base)
-        return int(value, base) & 0xffff
+        if (value := int(value, base)) > 0xffff:
+            report_warning(f"immediate `{fragment}` exceeds 16-bit limit", loc)
+        return value & 0xffff
     except ValueError:
-        report_error(f"invalid immediate value {fragment}", loc)
+        report_error(f"invalid immediate value `{fragment}`", loc)
         exit(1)
 
 
@@ -225,9 +229,18 @@ def fragment_to_token(fragment: str, loc: Location) -> Token:
 
 def tokenize_lines(lines: List[Line], file: str) -> List[List[Token]]:
     """Tokenize lines"""
-    return [[
-        fragment_to_token(fragment, (file, i)) for fragment in line.split()
-    ] for i, line in lines if line]
+    result: List[List[Token]] = []
+    for i, line in lines:
+        if COMMENT in line:
+            line = line.split(COMMENT)[0]
+
+        if not line:
+            continue
+
+        result.append([fragment_to_token(fragment, (file, i))
+                       for fragment in line.split()])
+
+    return result
 
 
 def token_expand_amount(token: Token) -> int:
@@ -257,7 +270,7 @@ def pass1(lines: List[List[Token]]) -> Dict[str, int]:
                 report_error(f"label requires 0 operands", loc)
                 exit(1)
             if operation.val in labels:
-                report_error(f"redefinition of {operation.val}", loc)
+                report_error(f"redefinition of `{operation.val}`", loc)
                 exit(1)
             labels[cast(str, operation.val)] = ip
             continue
@@ -276,7 +289,7 @@ def operands_with_labels(operands: List[Token], loc: Location,
 
     def get_label(key: str) -> int:
         if key not in labels:
-            report_error(f"invalid label {key}", loc)
+            report_error(f"undefined `{key}`", loc)
             exit(1)
         return labels[key]
 
@@ -295,7 +308,7 @@ def operands_with_labels(operands: List[Token], loc: Location,
 
 def no_overload(operation: str, operands: List[Token],
                 loc: Location) -> NoReturn:
-    report_error(f"no possible overload for {operation}", loc)
+    report_error(f"no possible overload for `{operation}`", loc)
     if operands:
         report_note(f"got {', '.join([str(item) for item in operands])}", loc)
     exit(1)
@@ -379,9 +392,18 @@ def translate_binary(operands: List[Token], loc: Location, operation: str,
     no_overload(operation, operands, loc)
 
 
+def is_control_flow(operation: Operation):
+    if operation.typ == OperationType.HALT:
+        return True
+    if operation.val and operation.val[0]:
+        return operation.val[0].val == "ip"
+    return False
+
+
 def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
     """Translate lines, generate operations"""
     operations: List[Operation] = []
+    previous: Optional[Operation] = None
 
     for tokens in lines:
         operation, *operands = tokens
@@ -391,6 +413,10 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
 
         if operation.typ == TokenType.DIRECTIVE:
             if operation.val == DirectiveType.DW:
+                if previous and not is_control_flow(previous):
+                    report_warning("non-control-flow operation followed by dw",
+                                   loc)
+                    report_note(f"previous {previous.typ.name}", loc)
                 operations.append(translate_dw(operands, loc))
                 continue
 
@@ -433,6 +459,9 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
                 if len(operands) != 0:
                     no_overload("halt", operands, loc)
                 operations.append(Operation(OperationType.HALT, loc, []))
+            case _:
+                no_overload(operation.val, operands, loc)
+        previous = operations[-1] if operations else None
 
     return operations
 
@@ -455,7 +484,7 @@ REGISTERS = {
 
 def get_register(key: str, loc: Location) -> int:
     if key not in REGISTERS:
-        report_error(f"unknown register {key}", loc)
+        report_error(f"undefined `{key}`", loc)
         report_note(f"{', '.join(REGISTERS.keys())}", loc)
         exit(1)
     return REGISTERS[key]
