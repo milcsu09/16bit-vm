@@ -38,7 +38,6 @@ class Token:
         if not isinstance(self.val, Token):
             return f"{self.val}"
         return f"{self.typ.name} -> {self.val}"
-        # return f"({self.typ}: {self.val})"
 
 
 @unique
@@ -46,7 +45,8 @@ class DirectiveType(Enum):
     DW = auto()
 
 
-DIRECTIVES = {item.name.lower(): item for item in DirectiveType}
+DIRECTIVE_NAMES = {item.name.lower(): item for item in DirectiveType}
+DIRECTIVE_TYPES = {item: item.name.lower() for item in DirectiveType}
 
 
 @unique
@@ -83,7 +83,7 @@ class OperationType(IntEnum):
 
     HALT = 24
 
-    # Custom OperationType, not present withing byte-code
+    # Custom OperationType, not present withing bytecode
     DIRECTIVE = -1
 
 
@@ -209,8 +209,8 @@ def fragment_to_immediate(fragment: str, loc: Location) -> int:
 
 def fragment_to_token(fragment: str, loc: Location) -> Token:
     """Converts a fragment to a token."""
-    if fragment in DIRECTIVES:
-        return Token(TokenType.DIRECTIVE, loc, DIRECTIVES[fragment])
+    if fragment in DIRECTIVE_NAMES:
+        return Token(TokenType.DIRECTIVE, loc, DIRECTIVE_NAMES[fragment])
     if fragment[0].isdigit():
         return Token(TokenType.IMMEDIATE, loc,
                      fragment_to_immediate(fragment, loc))
@@ -266,18 +266,13 @@ def pass1(lines: List[List[Token]]) -> Dict[str, int]:
     return labels
 
 
-# def get_label_value(labels: Dict[str, int], key: str) -> int:
-#     if key not in labels:
-#         report_error(f"invalid label {key}")
-#     return labels[key]
-
-
 def operands_to_types(operands: List[Token]) -> List[TokenType]:
     return [token.typ for token in operands]
 
 
 def operands_with_labels(operands: List[Token], loc: Location,
                          labels: Dict[str, int]) -> List[Token]:
+
     def get_label(key: str) -> int:
         if key not in labels:
             report_error(f"invalid label {key}", loc)
@@ -300,8 +295,18 @@ def operands_with_labels(operands: List[Token], loc: Location,
 def no_overload(operation: str, operands: List[Token],
                 loc: Location) -> NoReturn:
     report_error(f"no possible overload for {operation}", loc)
-    report_note(f"got {', '.join([str(item) for item in operands])}", loc)
+    if operands:
+        report_note(f"got {', '.join([str(item) for item in operands])}", loc)
     exit(1)
+
+
+def translate_dw(operands: List[Token], loc: Location) -> Operation:
+    match operands_to_types(operands):
+        case [TokenType.IMMEDIATE]:
+            a = [DirectiveType.DW, *operands]
+            return Operation(OperationType.DIRECTIVE, loc, a)
+
+    no_overload("dw", operands, loc)
 
 
 def translate_mov(operands: List[Token], loc: Location) -> Operation:
@@ -383,6 +388,14 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
 
         operands = operands_with_labels(operands, loc, labels)
 
+        if operation.typ == TokenType.DIRECTIVE:
+            if operation.val == DirectiveType.DW:
+                # if len(operands) != 1:
+                # a = [operation, *operands]
+                # operations.append(Operation(OperationType.DIRECTIVE, loc, a))
+                operations.append(translate_dw(operands, loc))
+                continue
+
         # Skip non-operations
         if operation.typ != TokenType.SYMBOL:
             continue
@@ -390,7 +403,7 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
         match operation.val:
             case "nop":
                 if len(operands) != 0:
-                    no_overload(operation, operands, loc)
+                    no_overload("nop", operands, loc)
                 operations.append(Operation(OperationType.NOP, loc, []))
             case "mov":
                 operations.append(translate_mov(operands, loc))
@@ -420,10 +433,119 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
                         [OperationType.DIV_I, OperationType.DIV_R]))
             case "halt":
                 if len(operands) != 0:
-                    no_overload(operation, operands, loc)
+                    no_overload("halt", operands, loc)
                 operations.append(Operation(OperationType.HALT, loc, []))
 
     return operations
+
+
+REGISTERS = {
+    "ip": 0,
+    "sp": 1,
+    "bp": 2,
+    "ac": 3,
+    "r1": 4,
+    "r2": 5,
+    "r3": 6,
+    "r4": 7,
+    "r5": 8,
+    "r6": 9,
+    "r7": 10,
+    "r8": 11
+}
+
+
+def get_register(key: str, loc: Location) -> int:
+    if key not in REGISTERS:
+        report_error(f"unknown register {key}", loc)
+        report_note(f"{', '.join(REGISTERS.keys())}", loc)
+        exit(1)
+    return REGISTERS[key]
+
+
+def pass3(operations: List[Operation]) -> bytearray:
+    """Compile the operations into bytecode"""
+    bytecode = bytearray()
+
+    def word_split(w) -> Tuple[int, int]:
+        return [(w >> 8), (w & 0xFF)]
+
+    for operation in operations:
+        loc: Location = operation.loc
+        operands = operation.val
+
+        if operation.typ == OperationType.DIRECTIVE:
+            if operation.val[0] == DirectiveType.DW:
+                bytecode.extend(word_split(int(operands[1].val)))
+            continue  # Directive not present in bytecode
+
+        bytecode.append(operation.typ)
+
+        match operation.typ:
+            case OperationType.NOP:
+                pass  # Nothing
+            case OperationType.MOV_R_I:
+                dest = get_register(operands[0].val, loc)
+                bytecode.extend([dest] + word_split(int(operands[1].val)))
+            case OperationType.MOV_R_R:
+                dest = get_register(operands[0].val, loc)
+                bytecode.extend([dest, get_register(operands[0].val, loc)])
+            case OperationType.MOV_R_IM:
+                dest = get_register(operands[0].val, loc)
+                bytecode.extend([dest] + word_split(int(operands[1].val.val)))
+            case OperationType.MOV_R_RM:
+                dest = get_register(operands[0].val, loc)
+                bytecode.extend([dest, get_register(operands[1].val.val, loc)])
+            case OperationType.MOV_IM_I:
+                dest = word_split(int(operands[0].val.val))
+                bytecode.extend(dest + word_split(int(operands[1].val)))
+            case OperationType.MOV_IM_R:
+                dest = word_split(int(operands[0].val.val))
+                bytecode.extend(dest + [get_register(operands[1].val, loc)])
+            case OperationType.MOV_IM_IM:
+                dest = word_split(int(operands[0].val.val))
+                address = word_split(int(operands[1].val.val))
+                bytecode.extend(dest + address)
+            case OperationType.MOV_IM_RM:
+                dest = word_split(int(operands[0].val.val))
+                address = get_register(operands[1].val.val, loc)
+                bytecode.extend(dest + [address])
+            case OperationType.MOV_RM_I:
+                dest = get_register(operands[0].val.val, loc)
+                bytecode.extend([dest] + word_split(int(operands[1].val)))
+            case OperationType.MOV_RM_R:
+                dest = get_register(operands[0].val.val, loc)
+                bytecode.extend([dest, get_register(operands[1].val, loc)])
+            case OperationType.MOV_RM_IM:
+                dest = get_register(operands[0].val.val, loc)
+                address = word_split(int(operands[1].val.val))
+                bytecode.extend([dest] + address)
+            case OperationType.MOV_RM_RM:
+                dest = get_register(operands[0].val.val, loc)
+                address = get_register(operands[1].val.val, loc)
+                bytecode.extend([dest, address])
+            case OperationType.PUSH_I:
+                bytecode.extend(word_split(int(operands[0].val)))
+            case OperationType.PUSH_R:
+                bytecode.extend([get_register(operands[0].val, loc)])
+            case OperationType.POP:
+                bytecode.extend([get_register(operands[0].val, loc)])
+            case (OperationType.ADD_I | OperationType.SUB_I
+                  | OperationType.MUL_I | OperationType.DIV_I):
+                dest = get_register(operands[0].val, loc)
+                src1 = get_register(operands[1].val, loc)
+                src2 = word_split(int(operands[2].val))
+                bytecode.extend([dest, src1] + src2)
+            case (OperationType.ADD_R | OperationType.SUB_R
+                  | OperationType.MUL_R | OperationType.DIV_R):
+                dest = get_register(operands[0].val, loc)
+                src1 = get_register(operands[1].val, loc)
+                src2 = get_register(operands[2].val, loc)
+                bytecode.extend([dest, src1, src2])
+            case OperationType.HALT:
+                pass  # Nothing
+
+    return bytecode
 
 
 def main() -> None:
@@ -442,8 +564,11 @@ def main() -> None:
     # print(*[(key, value) for key, value in labels.items()], sep='\n')
 
     operations = pass2(tokens, labels)
-    for op in operations:
-        print(f"{op.typ.name}: {op.val}")
+    # print(*operations, sep='\n')
+
+    bytecode = pass3(operations)
+    fmt = ' '.join(f'{byte:02x}' for byte in bytecode)
+    print(fmt)
 
 
 if __name__ == "__main__":
