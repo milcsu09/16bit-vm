@@ -84,7 +84,23 @@ class OperationType(IntEnum):
     DIV_I = 22
     DIV_R = 23
 
-    HALT = 24
+    CMP_R_I = 24,
+    CMP_R_R = 25,
+    JMP_I = 26,
+    JMP_R = 27,
+    JEQ_I = 28,
+    JEQ_R = 29,
+    JNE_I = 30,
+    JNE_R = 31,
+    JLT_I = 32,
+    JLT_R = 33,
+    JGT_I = 34,
+    JGT_R = 35,
+    JLE_I = 36,
+    JLE_R = 37,
+    JGE_I = 38,
+    JGE_R = 39,
+    HALT = 40
 
     # Custom OperationType, not present withing bytecode
     DIRECTIVE = -1
@@ -97,7 +113,7 @@ class Operation:
     val: List[Any]  # Operands
 
     def __repr__(self) -> str:
-        return f"({self.typ}: {self.val})"
+        return f"({self.typ}: {repr(self.val)})"
 
 
 def report_message(typ: str, msg: str, loc: Location) -> None:
@@ -189,8 +205,7 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
             result.append((i, line))
 
     if macro_name:
-        report_error(f"{MACRO_DEFINE} without {MACRO_END}",
-                     cast(Location, macro_begin))
+        report_error(f"{MACRO_DEFINE} without {MACRO_END}", cast(Location, macro_begin))
         exit(1)
 
     return result
@@ -217,13 +232,11 @@ def fragment_to_token(fragment: str, loc: Location) -> Token:
     if fragment in DIRECTIVE_NAMES:
         return Token(TokenType.DIRECTIVE, loc, DIRECTIVE_NAMES[fragment])
     if fragment[0].isdigit():
-        return Token(TokenType.IMMEDIATE, loc,
-                     fragment_to_immediate(fragment, loc))
+        return Token(TokenType.IMMEDIATE, loc, fragment_to_immediate(fragment, loc))
     if fragment.startswith(FRAGMENT_LABEL):
         return Token(TokenType.LABEL, loc, fragment[1:])
     if fragment.startswith(FRAGMENT_MEMORY):
-        return Token(TokenType.MEMORY, loc,
-                     fragment_to_token(fragment[1:], loc))
+        return Token(TokenType.MEMORY, loc, fragment_to_token(fragment[1:], loc))
     return Token(TokenType.SYMBOL, loc, fragment)
 
 
@@ -237,8 +250,7 @@ def tokenize_lines(lines: List[Line], file: str) -> List[List[Token]]:
         if not line:
             continue
 
-        result.append([fragment_to_token(fragment, (file, i))
-                       for fragment in line.split()])
+        result.append([fragment_to_token(fragment, (file, i)) for fragment in line.split()])
 
     return result
 
@@ -284,8 +296,7 @@ def operands_to_types(operands: List[Token]) -> List[TokenType]:
     return [token.typ for token in operands]
 
 
-def operands_with_labels(operands: List[Token], loc: Location,
-                         labels: Dict[str, int]) -> List[Token]:
+def operands_with_labels(operands: List[Token], loc: Location, labels: Dict[str, int]) -> List[Token]:
 
     def get_label(key: str) -> int:
         if key not in labels:
@@ -306,8 +317,7 @@ def operands_with_labels(operands: List[Token], loc: Location,
     return result
 
 
-def no_overload(operation: str, operands: List[Token],
-                loc: Location) -> NoReturn:
+def no_overload(operation: str, operands: List[Token], loc: Location) -> NoReturn:
     report_error(f"no possible overload for `{operation}`", loc)
     if operands:
         report_note(f"got {', '.join([str(item) for item in operands])}", loc)
@@ -363,14 +373,14 @@ def translate_mov(operands: List[Token], loc: Location) -> Operation:
     no_overload("mov", operands, loc)
 
 
-def translate_push(operands: List[Token], loc: Location) -> Operation:
+def translate_i_r(operands: List[Token], loc: Location, operation: str, types: List[OperationType]) -> Operation:
     match operands_to_types(operands):
         case [TokenType.IMMEDIATE]:
-            return Operation(OperationType.PUSH_I, loc, operands)
+            return Operation(types[0], loc, operands)
         case [TokenType.SYMBOL]:
-            return Operation(OperationType.PUSH_R, loc, operands)
+            return Operation(types[1], loc, operands)
 
-    no_overload("push", operands, loc)
+    no_overload(operation, operands, loc)
 
 
 def translate_pop(operands: List[Token], loc: Location) -> Operation:
@@ -381,8 +391,7 @@ def translate_pop(operands: List[Token], loc: Location) -> Operation:
     no_overload("pop", operands, loc)
 
 
-def translate_binary(operands: List[Token], loc: Location, operation: str,
-                     types: List[OperationType]) -> Operation:
+def translate_binary(operands: List[Token], loc: Location, operation: str, types: List[OperationType]) -> Operation:
     match operands_to_types(operands):
         case [TokenType.SYMBOL, TokenType.SYMBOL, TokenType.IMMEDIATE]:
             return Operation(types[0], loc, operands)
@@ -390,6 +399,16 @@ def translate_binary(operands: List[Token], loc: Location, operation: str,
             return Operation(types[1], loc, operands)
 
     no_overload(operation, operands, loc)
+
+
+def translate_cmp(operands: List[Token], loc: Location) -> Operation:
+    match operands_to_types(operands):
+        case [TokenType.SYMBOL, TokenType.IMMEDIATE]:
+            return Operation(OperationType.CMP_R_I, loc, operands)
+        case [TokenType.SYMBOL, TokenType.SYMBOL]:
+            return Operation(OperationType.CMP_R_R, loc, operands)
+
+    no_overload("cmp", operands, loc)
 
 
 def is_control_flow(operation: Operation):
@@ -414,8 +433,7 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
         if operation.typ == TokenType.DIRECTIVE:
             if operation.val == DirectiveType.DW:
                 if previous and not is_control_flow(previous):
-                    report_warning("non-control-flow operation followed by dw",
-                                   loc)
+                    report_warning("non-control-flow operation followed by dw", loc)
                     report_note(f"previous {previous.typ.name}", loc)
                 operations.append(translate_dw(operands, loc))
                 continue
@@ -432,29 +450,33 @@ def pass2(lines: List[List[Token]], labels: Dict[str, int]) -> List[Operation]:
             case "mov":
                 operations.append(translate_mov(operands, loc))
             case "push":
-                operations.append(translate_push(operands, loc))
+                operations.append(translate_i_r(operands, loc, "push", [OperationType.PUSH_I, OperationType.PUSH_R]))
             case "pop":
                 operations.append(translate_pop(operands, loc))
             case "add":
-                operations.append(
-                    translate_binary(
-                        operands, loc, "add",
-                        [OperationType.ADD_I, OperationType.ADD_R]))
+                operations.append(translate_binary(operands, loc, "add", [OperationType.ADD_I, OperationType.ADD_R]))
             case "sub":
-                operations.append(
-                    translate_binary(
-                        operands, loc, "sub",
-                        [OperationType.SUB_I, OperationType.SUB_R]))
+                operations.append(translate_binary(operands, loc, "sub", [OperationType.SUB_I, OperationType.SUB_R]))
             case "mul":
-                operations.append(
-                    translate_binary(
-                        operands, loc, "mul",
-                        [OperationType.MUL_I, OperationType.MUL_R]))
+                operations.append(translate_binary(operands, loc, "mul", [OperationType.MUL_I, OperationType.MUL_R]))
             case "div":
-                operations.append(
-                    translate_binary(
-                        operands, loc, "div",
-                        [OperationType.DIV_I, OperationType.DIV_R]))
+                operations.append(translate_binary(operands, loc, "div", [OperationType.DIV_I, OperationType.DIV_R]))
+            case "cmp":
+                operations.append(translate_cmp(operands, loc))
+            case "jmp":
+                operations.append(translate_i_r(operands, loc, "jmp", [OperationType.JMP_I, OperationType.JMP_R]))
+            case "jeq":
+                operations.append(translate_i_r(operands, loc, "jeq", [OperationType.JEQ_I, OperationType.JEQ_R]))
+            case "jne":                                                                 
+                operations.append(translate_i_r(operands, loc, "jne", [OperationType.JNE_I, OperationType.JNE_R]))
+            case "jlt":                                                                 
+                operations.append(translate_i_r(operands, loc, "jlt", [OperationType.JLT_I, OperationType.JLT_R]))
+            case "jgt":                                                                 
+                operations.append(translate_i_r(operands, loc, "jgt", [OperationType.JGT_I, OperationType.JGT_R]))
+            case "jle":                                                                 
+                operations.append(translate_i_r(operands, loc, "jle", [OperationType.JLE_I, OperationType.JLE_R]))
+            case "jge":                                                                 
+                operations.append(translate_i_r(operands, loc, "jge", [OperationType.JGE_I, OperationType.JGE_R]))
             case "halt":
                 if len(operands) != 0:
                     no_overload("halt", operands, loc)
@@ -557,18 +579,30 @@ def pass3(operations: List[Operation]) -> bytearray:
                 bytecode.extend([get_register(operands[0].val, loc)])
             case OperationType.POP:
                 bytecode.extend([get_register(operands[0].val, loc)])
-            case (OperationType.ADD_I | OperationType.SUB_I
-                  | OperationType.MUL_I | OperationType.DIV_I):
+            case (OperationType.ADD_I | OperationType.SUB_I | OperationType.MUL_I | OperationType.DIV_I):
                 dest = get_register(operands[0].val, loc)
                 src1 = get_register(operands[1].val, loc)
                 src2 = word_split(int(operands[2].val))
                 bytecode.extend([dest, src1] + src2)
-            case (OperationType.ADD_R | OperationType.SUB_R
-                  | OperationType.MUL_R | OperationType.DIV_R):
+            case (OperationType.ADD_R | OperationType.SUB_R | OperationType.MUL_R | OperationType.DIV_R):
                 dest = get_register(operands[0].val, loc)
                 src1 = get_register(operands[1].val, loc)
                 src2 = get_register(operands[2].val, loc)
                 bytecode.extend([dest, src1, src2])
+            case OperationType.CMP_R_I:
+                left = get_register(operands[0].val, loc)
+                right = word_split(int(operands[1].val))
+                bytecode.extend([left] + right)
+            case OperationType.CMP_R_R:
+                left = get_register(operands[0].val, loc)
+                right = get_register(operands[1].val, loc)
+                bytecode.extend([left, right])
+            case (OperationType.JMP_I | OperationType.JEQ_I | OperationType.JNE_I | OperationType.JLT_I | OperationType.JGT_I | OperationType.JLE_I | OperationType.JGE_I):
+                address = word_split(int(operands[0].val))
+                bytecode.extend(address)
+            case (OperationType.JMP_R | OperationType.JEQ_R | OperationType.JNE_R | OperationType.JLT_R | OperationType.JGT_R | OperationType.JLE_R | OperationType.JGE_R):
+                address = get_register(operands[0].val, loc)
+                bytecode.extend([address])
             case OperationType.HALT:
                 pass  # Nothing
 
@@ -579,10 +613,12 @@ def main() -> None:
     parser = ap.ArgumentParser(description="Assemble ASM into VM bytecode")
 
     parser.add_argument("input", type=str, help="Path to input file")
+    parser.add_argument("-d", "--debug", action="store_true", help="Debug")
 
     args = parser.parse_args()
     # args: List[str] = sys.argv
 
+    debug = args.debug
     path = args.input
     with open(path, 'r') as f:
         text = f.read()
@@ -590,17 +626,37 @@ def main() -> None:
     lines = enumerate_lines(text)
     lines = preprocess_lines(lines, path)
     tokens = tokenize_lines(lines, path)
-    # print(*tokens, sep='\n')
+
+    if debug and tokens:
+        print("TOKENS")
+        for line in tokens:
+            for index, token in enumerate(line):
+                if index == 0:
+                    print(f"{token.loc[1]}", end=" ")
+                else:
+                    print(f"|" + (" " * len(str(line[0].loc[1]))), end="")
+                print(token)
+        print()
 
     labels = pass1(tokens)
-    # print(*[(key, value) for key, value in labels.items()], sep='\n')
+    if debug and labels:
+        print("LABELS")
+        for key, value in labels.items():
+            print(f"{key} -> {value:04X}")
+        print()
 
     operations = pass2(tokens, labels)
-    # print(*operations, sep='\n')
+    if debug and operations:
+        print("OPERATIONS")
+        for operation in operations:
+            operands = [repr(item) for item in operation.val]
+            print(f"{operation.typ.name}", ", ".join(operands))
+        print()
 
     bytecode = pass3(operations)
-    # fmt = ' '.join(f'{byte:02x}' for byte in bytecode)
-    # print(fmt)
+    if debug and bytecode:
+        print("BYTECODE")
+        print(' '.join(f'{byte:02x}' for byte in bytecode), "\n")
 
     output = os.path.splitext(args.input)[0] + ".bin"
     with open(output, "wb") as f:

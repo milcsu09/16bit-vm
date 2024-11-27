@@ -43,7 +43,7 @@ main (int argc, char *argv[])
   VM *vm = malloc (sizeof (VM));
   vm_create (vm, 0xffff);
 
-#define FROM_FILE 0
+#define FROM_FILE 1
 
 #if FROM_FILE
   if (argc != 2)
@@ -55,11 +55,11 @@ main (int argc, char *argv[])
   load_file (vm, argv[1]);
 #else
   byte program[] = {
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, 0x00, 0x00,
-    VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, 0x00, 0x01,
+    // VM_OPERATION_MOV_R_I, VM_REGISTER_R1, 0x00, 0x00,
+    // VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, 0x00, 0x01,
 
-    VM_OPERATION_CMP_R_I, VM_REGISTER_R1, 0x00, 0x10,
-    VM_OPERATION_JLT_I, 0x00, 0x04,
+    // VM_OPERATION_CMP_R_I, VM_REGISTER_R1, 0x00, 0x10,
+    // VM_OPERATION_JLT_I, 0x00, 0x04,
 
     VM_OPERATION_HALT,
   };
