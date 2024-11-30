@@ -26,16 +26,16 @@ vm_operation_name (VM_Operation operation)
 }
 
 void
-vm_create (VM *vm, word nmemb)
+vm_create (VM *vm, size_t nmemb)
 {
-  vm->registers[VM_REGISTER_SP] = nmemb;
+  vm->registers[VM_REGISTER_SP] = nmemb - sizeof (word);
   vm->registers[VM_REGISTER_BP] = vm->registers[VM_REGISTER_SP];
 
   vm->ip = &vm->registers[VM_REGISTER_IP];
   vm->sp = &vm->registers[VM_REGISTER_SP];
   vm->bp = &vm->registers[VM_REGISTER_BP];
 
-  vm->memory = calloc (nmemb + 1, sizeof (byte));
+  vm->memory = calloc (nmemb, sizeof (byte));
   vm->nmemb = nmemb;
   vm->halt = false;
 }
@@ -113,10 +113,8 @@ vm_push_byte (VM *vm, byte value)
 void
 vm_push_word (VM *vm, word value)
 {
-  const byte H = VM_WORD_H (value);
-  const byte L = VM_WORD_L (value);
-  vm_push_byte (vm, L);
-  vm_push_byte (vm, H);
+  vm_store_word (vm, *vm->sp, value);
+  *vm->sp -= sizeof (word);
 }
 
 byte
@@ -129,9 +127,8 @@ vm_pop_byte (VM *vm)
 word
 vm_pop_word (VM *vm)
 {
-  const byte H = vm_pop_byte (vm);
-  const byte L = vm_pop_byte (vm);
-  return VM_WORD_PACK (H, L);
+  *vm->sp += sizeof (word);
+  return vm_load_word (vm, *vm->sp);
 }
 
 void
@@ -467,7 +464,7 @@ void
 vm_view_memory (VM *vm, word address, word a, word b, bool decode)
 {
   const word dec = (address >= a) ? a : address;
-  const word inc = (address <= vm->nmemb - b) ? b : vm->nmemb - address;
+  const word inc = (address <= vm->nmemb - 1 - b) ? b : vm->nmemb - 1 - address;
 
   printf (VM_FMT_WORD ": ", address);
 

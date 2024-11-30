@@ -15,6 +15,7 @@ MACRO_PREFIX = "%"
 
 MACRO_DEFINE = MACRO_PREFIX + "define"
 MACRO_END = MACRO_PREFIX + "end"
+MACRO_CONST = MACRO_PREFIX + "const"
 
 COMMENT = ";"
 
@@ -155,6 +156,9 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
     macro_name: Optional[str] = None
     macro_buffer: List[Line] = []
     macro_begin: Optional[Location] = None
+    
+    constants: Dict[str, str] = {}
+
     result: List[Line] = []
 
     def handle_macro_define(fragments: List[str], loc: Location) -> None:
@@ -194,6 +198,22 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
             exit(1)
         result.extend(macros[name])
 
+    def handle_macro_const(fragments: List[str], loc: Location) -> None:
+        if macro_name:
+            report_error(f"{MACRO_CONST} inside {MACRO_DEFINE}", loc)
+            exit(1)
+        if len(fragments) != 3:
+            report_error(f"{MACRO_CONST} requires 2 fragments", loc)
+            exit(1)
+        name = fragments[1]
+        value = fragments[2]
+        if name in constants:
+            report_error(f"redefinition of `{name}`", loc)
+            report_note(f"original has value `{constants[name]}`", loc)
+            exit(1)
+        constants[name] = value
+
+
     for i, line in lines:
         loc: Location = (file, i)
         stripped = line.strip()
@@ -203,11 +223,16 @@ def preprocess_lines(lines: List[Line], file: str) -> List[Line]:
             handle_macro_end(fragments, loc)
         elif stripped.startswith(MACRO_DEFINE):
             handle_macro_define(fragments, loc)
+        elif stripped.startswith(MACRO_CONST):
+            handle_macro_const(fragments, loc)
         elif stripped.startswith(MACRO_PREFIX):
             handle_macro_expand(fragments[0][1:], loc)
         elif macro_name:
             macro_buffer.append((i, line))
         else:
+            if MACRO_PREFIX in line:
+                for const in constants.keys():
+                    line = line.replace(f"%{const}", constants[const])
             result.append((i, line))
 
     if macro_name:
@@ -235,6 +260,8 @@ def fragment_to_immediate(fragment: str, loc: Location) -> int:
 
 def fragment_to_token(fragment: str, loc: Location) -> Token:
     """Converts a fragment to a token."""
+    if fragment[0] == "'" and fragment[-1] == "'" and len(fragment) == 3:
+        return Token(TokenType.IMMEDIATE, loc, ord(fragment[1]))
     if fragment in DIRECTIVE_NAMES:
         return Token(TokenType.DIRECTIVE, loc, DIRECTIVE_NAMES[fragment])
     if fragment[0].isdigit():
@@ -253,7 +280,7 @@ def tokenize_lines(lines: List[Line], file: str) -> List[List[Token]]:
         if COMMENT in line:
             line = line.split(COMMENT)[0]
 
-        if not line:
+        if not line.strip():
             continue
 
         result.append([fragment_to_token(fragment, (file, i)) for fragment in line.split()])

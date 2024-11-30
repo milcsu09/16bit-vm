@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define VM_FMT_BYTE "%02x"
@@ -186,11 +187,11 @@ typedef struct
     byte v : 1;
   } flags;
 
-  word nmemb;
+  size_t nmemb;
   bool halt;
 } VM;
 
-void vm_create (VM *vm, word nmemb);
+void vm_create (VM *vm, size_t nmemb);
 void vm_destroy (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
