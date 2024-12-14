@@ -33,12 +33,12 @@ view_debug (VM *vm)
   vm_view_registers (vm);
   printf ("\n");
 
-  vm_view_flags (vm);
-  printf ("state=%i (%s)\n", vm->state, vm_state_name (vm->state));
+  // vm_view_flags (vm);
+  // printf ("state=%i (%s)\n", vm->state, vm_state_name (vm->state));
   printf ("\n");
 
   vm_view_memory (vm, *vm->ip, 8, 8, true);
-  vm_view_memory (vm, *vm->sp, 8, 8, false);
+  // vm_view_memory (vm, *vm->sp, 8, 8, false);
 }
 
 int
@@ -59,8 +59,10 @@ main (int argc, char *argv[])
   load_file (vm, argv[1]);
 #else
   byte program[] = {
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, ILIT(0xf0f0),
-    234,
+    VM_OPERATION_PUSH_I, ILIT (0xabcd),
+    VM_OPERATION_PUSH_I, ILIT (0x1234),
+    VM_OPERATION_POP,
+    VM_OPERATION_POP,
     VM_OPERATION_HALT,
   };
 
@@ -75,9 +77,10 @@ main (int argc, char *argv[])
         continue;
 
       vm_step (vm);
+      if (vm->state == VM_STATE_ERROR)
+        break;
     }
 
-  view_debug (vm);
 
   if (vm->state != VM_STATE_HALT)
     {
@@ -88,6 +91,8 @@ main (int argc, char *argv[])
         fprintf (stderr, "error %i (%s)\n", vm->error,
                  vm_error_name (vm->error));
     }
+  // else
+  view_debug (vm);
 
   vm_destroy (vm);
   free (vm);

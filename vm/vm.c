@@ -72,6 +72,7 @@ static_assert (VM_ARRAY_SIZE (VM_STATE_NAME) == VM_STATE_COUNT,
 static const char *const VM_ERROR_NAME[] = {
   "none",
   "invalid operation",
+  "invalid operand",
 };
 
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
@@ -150,7 +151,14 @@ vm_load_word (VM *vm, word address)
 word *
 vm_load_register (VM *vm, word address)
 {
-  return &vm->registers[vm_load_byte (vm, address)];
+  byte index = vm_load_byte (vm, address);
+  // if (index >= VM_REGISTER_COUNT)
+  //   {
+  //     vm_error (vm, VM_ERROR_INVALID_OPERAND);
+  //     return &vm->registers[VM_REGISTER_AC];
+  //   }
+
+  return &vm->registers[index];
 }
 
 byte
@@ -395,6 +403,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word *src1 = vm_next_register (vm);
         word src2 = vm_next_word (vm);
         *dest = *src1 / src2;
+        vm->registers[VM_REGISTER_AC] = *src1 % src2;
       }
       break;
     case VM_OPERATION_DIV_R:
@@ -403,6 +412,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word *src1 = vm_next_register (vm);
         word *src2 = vm_next_register (vm);
         *dest = *src1 / *src2;
+        vm->registers[VM_REGISTER_AC] = *src1 % *src2;
       }
       break;
     case VM_OPERATION_CMP_R_I:
