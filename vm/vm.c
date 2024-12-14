@@ -71,19 +71,19 @@ static const char *const VM_ERROR_NAME[] = {
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
                "insufficient items in VM_ERROR_NAME");
 
-static inline const char *const
+static inline char *
 vm_module_name (size_t index, size_t n, const char *const xs[n])
 {
-  return index < n ? xs[index] : "invalid";
+  return (char *)(index < n ? xs[index] : "invalid");
 }
 
-const char *const
+char *
 vm_operation_name (VM_Operation index)
 {
   return vm_module_name (index, VM_OPERATION_COUNT, VM_OPERATION_NAME);
 }
 
-const char *const
+char *
 vm_error_name (VM_Error index)
 {
   return vm_module_name (index, VM_ERROR_COUNT, VM_ERROR_NAME);

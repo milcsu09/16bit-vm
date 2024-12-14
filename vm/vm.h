@@ -135,8 +135,8 @@ typedef struct
   } flags;
 } VM;
 
-const char *const vm_operation_name (VM_Operation index);
-const char *const vm_error_name (VM_Error index);
+char *vm_operation_name (VM_Operation index);
+char *vm_error_name (VM_Error index);
 
 void vm_create (VM *vm, size_t nmemb);
 void vm_destroy (VM *vm);
