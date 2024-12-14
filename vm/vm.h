@@ -38,10 +38,6 @@ typedef enum
   VM_REGISTER_COUNT,
 } VM_Register;
 
-// VM_OPERATION_*
-// "I" - Immediate value (comptime)
-// "R" - Register
-// "M" - Memory address
 typedef enum
 {
   VM_OPERATION_NONE,
@@ -113,17 +109,9 @@ typedef enum
 
 typedef enum
 {
-  VM_STATE_NORMAL,
-  VM_STATE_HALT,
-  VM_STATE_ERROR,
-
-  VM_STATE_COUNT,
-} VM_State;
-
-typedef enum
-{
   VM_ERROR_NONE,
   VM_ERROR_INVALID_OPERATION,
+  VM_ERROR_INVALID_OPERAND,
 
   VM_ERROR_COUNT,
 } VM_Error;
@@ -145,13 +133,9 @@ typedef struct
     byte c : 1;
     byte v : 1;
   } flags;
-
-  VM_State state;
-  VM_Error error;
 } VM;
 
 const char *const vm_operation_name (VM_Operation index);
-const char *const vm_state_name (VM_State index);
 const char *const vm_error_name (VM_Error index);
 
 void vm_create (VM *vm, size_t nmemb);

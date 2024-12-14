@@ -3,26 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-#define ILIT(w) VM_WORD_H (w), VM_WORD_L (w)
-
-static inline void
-load_file (VM *vm, const char *path)
-{
-  FILE *file = fopen (path, "rb");
-
-  fseek(file, 0, SEEK_END);
-  long nmemb = ftell (file);
-  rewind(file);
-
-  byte *bytecode = malloc (nmemb);
-  size_t nread = fread (bytecode, 1, nmemb, file);
-
-  fclose (file);
-
-  memcpy (vm->memory, bytecode, nread);
-  free (bytecode);
-}
+#define LITERAL(w) VM_WORD_H (w), VM_WORD_L (w)
 
 static inline void
 view_debug (VM *vm)
@@ -33,66 +17,54 @@ view_debug (VM *vm)
   vm_view_registers (vm);
   printf ("\n");
 
-  // vm_view_flags (vm);
-  // printf ("state=%i (%s)\n", vm->state, vm_state_name (vm->state));
+  vm_view_flags (vm);
   printf ("\n");
 
   vm_view_memory (vm, *vm->ip, 8, 8, true);
-  // vm_view_memory (vm, *vm->sp, 8, 8, false);
+  vm_view_memory (vm, *vm->sp, 8, 8, false);
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
-  (void)argc, (void)argv;
-
   VM *vm = calloc (1, sizeof (VM));
   vm_create (vm, 256 * 256);
 
-#if 0
-  if (argc != 2)
-    {
-      fprintf (stderr, "ERROR: Provide input binary file\n");
-      exit (1);
-    }
-
-  load_file (vm, argv[1]);
-#else
   byte program[] = {
-    VM_OPERATION_PUSH_I, ILIT (0xabcd),
-    VM_OPERATION_PUSH_I, ILIT (0x1234),
-    VM_OPERATION_POP,
-    VM_OPERATION_POP,
+    VM_OPERATION_MOV_R_IM, VM_REGISTER_R1, LITERAL (0xffff),
     VM_OPERATION_HALT,
   };
 
   memcpy (vm->memory, program, sizeof program);
-#endif
 
-  while (vm->state == VM_STATE_NORMAL)
+  pid_t pid = fork ();
+  if (pid == 0)
+    while (1)
+      {
+        view_debug (vm);
+ 
+        if (getc (stdin) != '\n')
+          continue;
+
+        vm_step (vm);
+      }
+  else
     {
-      view_debug (vm);
+      int status;
+      waitpid(pid, &status, 0);
 
-      if (getc (stdin) != '\n')
-        continue;
-
-      vm_step (vm);
-      if (vm->state == VM_STATE_ERROR)
-        break;
+      if (WIFEXITED(status))
+        {
+          int code = WEXITSTATUS(status);
+          if (code != 0)
+            fprintf (stderr, "ERROR: exited with code %i (%s)\n", code,
+                     vm_error_name (code));
+          else
+            printf ("OK\n");
+        }
+      else
+        fprintf (stderr, "ERROR: exited abnormally\n");
     }
-
-
-  if (vm->state != VM_STATE_HALT)
-    {
-      fprintf (stderr, "abnormal state %i (%s)\n", vm->state,
-               vm_state_name (vm->state));
-
-      if (vm->state == VM_STATE_ERROR)
-        fprintf (stderr, "error %i (%s)\n", vm->error,
-                 vm_error_name (vm->error));
-    }
-  // else
-  view_debug (vm);
 
   vm_destroy (vm);
   free (vm);

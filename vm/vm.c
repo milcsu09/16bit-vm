@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 static const char *const VM_REGISTER_NAME[] = {
   "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
@@ -60,15 +62,6 @@ static const char *const VM_OPERATION_NAME[] = {
 static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
                "insufficient items in VM_OPERATION_NAME");
 
-static const char *const VM_STATE_NAME[] = {
-  "normal",
-  "halt",
-  "error",
-};
-
-static_assert (VM_ARRAY_SIZE (VM_STATE_NAME) == VM_STATE_COUNT,
-               "insufficient items in VM_STATE_NAME");
-
 static const char *const VM_ERROR_NAME[] = {
   "none",
   "invalid operation",
@@ -77,13 +70,6 @@ static const char *const VM_ERROR_NAME[] = {
 
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
                "insufficient items in VM_ERROR_NAME");
-
-static inline void
-vm_error (VM *vm, VM_Error error)
-{
-  vm->state = VM_STATE_ERROR;
-  vm->error = error;
-}
 
 static inline const char *const
 vm_module_name (size_t index, size_t n, const char *const xs[n])
@@ -95,12 +81,6 @@ const char *const
 vm_operation_name (VM_Operation index)
 {
   return vm_module_name (index, VM_OPERATION_COUNT, VM_OPERATION_NAME);
-}
-
-const char *const
-vm_state_name (VM_State index)
-{
-  return vm_module_name (index, VM_STATE_COUNT, VM_STATE_NAME);
 }
 
 const char *const
@@ -121,9 +101,6 @@ vm_create (VM *vm, size_t nmemb)
 
   vm->memory = calloc (nmemb, sizeof (byte));
   vm->nmemb = nmemb;
-
-  vm->state = VM_STATE_NORMAL;
-  vm->error = VM_ERROR_NONE;
 }
 
 void
@@ -152,11 +129,8 @@ word *
 vm_load_register (VM *vm, word address)
 {
   byte index = vm_load_byte (vm, address);
-  // if (index >= VM_REGISTER_COUNT)
-  //   {
-  //     vm_error (vm, VM_ERROR_INVALID_OPERAND);
-  //     return &vm->registers[VM_REGISTER_AC];
-  //   }
+  if (index >= VM_REGISTER_COUNT)
+    exit (VM_ERROR_INVALID_OPERAND);
 
   return &vm->registers[index];
 }
@@ -402,8 +376,11 @@ vm_execute (VM *vm, VM_Operation operation)
         word *dest = vm_next_register (vm);
         word *src1 = vm_next_register (vm);
         word src2 = vm_next_word (vm);
-        *dest = *src1 / src2;
+        if (src2 == 0)
+          exit (VM_ERROR_INVALID_OPERAND);
+
         vm->registers[VM_REGISTER_AC] = *src1 % src2;
+        *dest = *src1 / src2;
       }
       break;
     case VM_OPERATION_DIV_R:
@@ -411,8 +388,11 @@ vm_execute (VM *vm, VM_Operation operation)
         word *dest = vm_next_register (vm);
         word *src1 = vm_next_register (vm);
         word *src2 = vm_next_register (vm);
-        *dest = *src1 / *src2;
+        if (*src2 == 0)
+          exit (VM_ERROR_INVALID_OPERAND);
+
         vm->registers[VM_REGISTER_AC] = *src1 % *src2;
+        *dest = *src1 / *src2;
       }
       break;
     case VM_OPERATION_CMP_R_I:
@@ -531,10 +511,10 @@ vm_execute (VM *vm, VM_Operation operation)
       *vm->ip = vm_pop_word (vm);
       break;
     case VM_OPERATION_HALT:
-      vm->state = VM_STATE_HALT;
+      exit (VM_ERROR_NONE);
       break;
     default:
-      vm_error (vm, VM_ERROR_INVALID_OPERATION);
+      exit (VM_ERROR_INVALID_OPERATION);
     }
 }
 
