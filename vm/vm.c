@@ -3,24 +3,109 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void
-vm_error (VM *vm, const char *fmt, ...)
+static const char *const VM_REGISTER_NAME[] = {
+  "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
+};
+
+static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
+               "insufficient items in VM_REGISTER_NAME");
+
+static const char *const VM_OPERATION_NAME[] = {
+  "none",
+  "mov(r, i)",
+  "mov(r, r)",
+  "mov(r, im)",
+  "mov(r, rm)",
+  "mov(im, i)",
+  "mov(im, r)",
+  "mov(im, im)",
+  "mov(im, rm)",
+  "mov(rm, i)",
+  "mov(rm, r)",
+  "mov(rm, im)",
+  "mov(rm, rm)",
+  "push(i)",
+  "push(r)",
+  "pop",
+  "add(i)",
+  "add(r)",
+  "sub(i)",
+  "sub(r)",
+  "mul(i)",
+  "mul(r)",
+  "div(i)",
+  "div(r)",
+  "cmp(r, i)",
+  "cmp(r, r)",
+  "jmp(i)",
+  "jmp(r)",
+  "jeq(i)",
+  "jeq(r)",
+  "jne(i)",
+  "jne(r)",
+  "jlt(i)",
+  "jlt(r)",
+  "jgt(i)",
+  "jgt(r)",
+  "jle(i)",
+  "jle(r)",
+  "jge(i)",
+  "jge(r)",
+  "call(i)",
+  "call(r)",
+  "ret",
+  "halt",
+};
+
+static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
+               "insufficient items in VM_OPERATION_NAME");
+
+static const char *const VM_STATE_NAME[] = {
+  "normal",
+  "halt",
+  "error",
+};
+
+static_assert (VM_ARRAY_SIZE (VM_STATE_NAME) == VM_STATE_COUNT,
+               "insufficient items in VM_STATE_NAME");
+
+static const char *const VM_ERROR_NAME[] = {
+  "none",
+  "invalid operation",
+};
+
+static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
+               "insufficient items in VM_ERROR_NAME");
+
+static inline void
+vm_error (VM *vm, VM_Error error)
 {
-  va_list va;
-  va_start (va, fmt);
-
-  vsnprintf (vm->error, sizeof vm->error, fmt, va);
-  vm->halt = true;
-
-  va_end (va);
+  vm->state = VM_STATE_ERROR;
+  vm->error = error;
 }
 
-const char *
-vm_operation_name (VM_Operation operation)
+static inline const char *const
+vm_module_name (size_t index, size_t n, const char *const xs[n])
 {
-  return (operation < VM_ARRAY_SIZE (VM_OPERATION_NAME))
-             ? VM_OPERATION_NAME[operation]
-             : VM_UNKNOWN;
+  return index < n ? xs[index] : "invalid";
+}
+
+const char *const
+vm_operation_name (VM_Operation index)
+{
+  return vm_module_name (index, VM_OPERATION_COUNT, VM_OPERATION_NAME);
+}
+
+const char *const
+vm_state_name (VM_State index)
+{
+  return vm_module_name (index, VM_STATE_COUNT, VM_STATE_NAME);
+}
+
+const char *const
+vm_error_name (VM_Error index)
+{
+  return vm_module_name (index, VM_ERROR_COUNT, VM_ERROR_NAME);
 }
 
 void
@@ -35,7 +120,10 @@ vm_create (VM *vm, size_t nmemb)
 
   vm->memory = calloc (nmemb, sizeof (byte));
   vm->nmemb = nmemb;
-  vm->halt = false;
+
+  vm->state = VM_STATE_NORMAL;
+  vm->error = VM_ERROR_NONE;
+  // vm->halt = false;
 }
 
 void
@@ -46,11 +134,11 @@ vm_destroy (VM *vm)
   vm->nmemb = 0;
 }
 
-bool
-vm_success (VM *vm)
-{
-  return *vm->error == '\0';
-}
+// bool
+// vm_success (VM *vm)
+// {
+//   return *vm->error == '\0';
+// }
 
 byte
 vm_load_byte (VM *vm, word address)
@@ -154,7 +242,7 @@ vm_execute (VM *vm, VM_Operation operation)
 {
   switch (operation)
     {
-    case VM_OPERATION_NOP:
+    case VM_OPERATION_NONE:
       break;
     case VM_OPERATION_MOV_R_I:
       {
@@ -440,10 +528,12 @@ vm_execute (VM *vm, VM_Operation operation)
       *vm->ip = vm_pop_word (vm);
       break;
     case VM_OPERATION_HALT:
-      vm->halt = true;
+      vm->state = VM_STATE_HALT;
+      // vm->halt = true;
       break;
     default:
-      vm_error (vm, "unknown operation " VM_FMT_BYTE, (byte)operation);
+      vm_error (vm, VM_ERROR_INVALID_OPERATION);
+      // vm_error (vm, "unknown operation " VM_FMT_BYTE, (byte)operation);
     }
 }
 

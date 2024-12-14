@@ -8,7 +8,6 @@
 
 #define VM_FMT_BYTE "%02x"
 #define VM_FMT_WORD "%04x"
-#define VM_UNKNOWN "unknown"
 
 #define VM_WORD_PACK(H, L) ((H) << 8 | (L))
 #define VM_WORD_H(W) ((W) >> 8)
@@ -39,20 +38,13 @@ typedef enum
   VM_REGISTER_COUNT,
 } VM_Register;
 
-static const char *const VM_REGISTER_NAME[] = {
-  "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
-};
-
-static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
-               "insufficient items in VM_REGISTER_NAME");
-
 // VM_OPERATION_*
 // "I" - Immediate value (comptime)
 // "R" - Register
 // "M" - Memory address
 typedef enum
 {
-  VM_OPERATION_NOP,
+  VM_OPERATION_NONE,
 
   VM_OPERATION_MOV_R_I,
   VM_OPERATION_MOV_R_R,
@@ -119,57 +111,22 @@ typedef enum
   VM_OPERATION_COUNT,
 } VM_Operation;
 
-static const char *const VM_OPERATION_NAME[] = {
-  "nop",
-  "mov(r, i)",
-  "mov(r, r)",
-  "mov(r, im)",
-  "mov(r, rm)",
-  "mov(im, i)",
-  "mov(im, r)",
-  "mov(im, im)",
-  "mov(im, rm)",
-  "mov(rm, i)",
-  "mov(rm, r)",
-  "mov(rm, im)",
-  "mov(rm, rm)",
-  "push(i)",
-  "push(r)",
-  "pop",
-  "add(i)",
-  "add(r)",
-  "sub(i)",
-  "sub(r)",
-  "mul(i)",
-  "mul(r)",
-  "div(i)",
-  "div(r)",
-  "cmp(r, i)",
-  "cmp(r, r)",
-  "jmp(i)",
-  "jmp(r)",
-  "jeq(i)",
-  "jeq(r)",
-  "jne(i)",
-  "jne(r)",
-  "jlt(i)",
-  "jlt(r)",
-  "jgt(i)",
-  "jgt(r)",
-  "jle(i)",
-  "jle(r)",
-  "jge(i)",
-  "jge(r)",
-  "call(i)",
-  "call(r)",
-  "ret",
-  "halt",
-};
+typedef enum
+{
+  VM_STATE_NORMAL,
+  VM_STATE_HALT,
+  VM_STATE_ERROR,
 
-static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
-               "insufficient items in VM_OPERATION_NAME");
+  VM_STATE_COUNT,
+} VM_State;
 
-const char *vm_operation_name (VM_Operation operation);
+typedef enum
+{
+  VM_ERROR_NONE,
+  VM_ERROR_INVALID_OPERATION,
+
+  VM_ERROR_COUNT,
+} VM_Error;
 
 typedef struct
 {
@@ -177,7 +134,9 @@ typedef struct
   word *ip; // -> registers[VM_REGISTER_IP]
   word *sp; // -> registers[VM_REGISTER_SP]
   word *bp; // -> registers[VM_REGISTER_BP]
+
   byte *memory;
+  size_t nmemb;
 
   struct
   {
@@ -187,16 +146,16 @@ typedef struct
     byte v : 1;
   } flags;
 
-  size_t nmemb;
-  bool halt;
-
-  char error[256];
+  VM_State state;
+  VM_Error error;
 } VM;
+
+const char *const vm_operation_name (VM_Operation index);
+const char *const vm_state_name (VM_State index);
+const char *const vm_error_name (VM_Error index);
 
 void vm_create (VM *vm, size_t nmemb);
 void vm_destroy (VM *vm);
-
-bool vm_success (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);

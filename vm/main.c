@@ -1,7 +1,10 @@
 #include "vm.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#define ILIT(w) VM_WORD_H (w), VM_WORD_L (w)
 
 static inline void
 load_file (VM *vm, const char *path)
@@ -55,33 +58,16 @@ main (int argc, char *argv[])
   load_file (vm, argv[1]);
 #else
   byte program[] = {
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, 0xAB, 0xCD, 
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R2, 0x12, 0x34, 
-
-    VM_OPERATION_PUSH_R, VM_REGISTER_R1,
-    VM_OPERATION_PUSH_R, VM_REGISTER_R2,
-
-    VM_OPERATION_POP, VM_REGISTER_R1,
-    VM_OPERATION_POP, VM_REGISTER_R2,
-
+    123,
     VM_OPERATION_HALT,
   };
 
   memcpy (vm->memory, program, sizeof program);
 #endif
 
-  while (!vm->halt)
-    vm_step (vm);
-
-  if (vm_success (vm))
-    vm_view_registers (vm);
-  else
-    fprintf (stderr, "ERROR: %s\n", vm->error);
-
-  /*
   view_debug (vm);
 
-  while (!vm->halt)
+  while (vm->state == VM_STATE_NORMAL)
     {
       if (getc (stdin) != '\n')
         continue;
@@ -90,9 +76,13 @@ main (int argc, char *argv[])
       view_debug (vm);
     }
 
-  if (!vm_success (vm))
-    fprintf (stderr, "ERROR: %s\n", vm->error);
-  */
+  if (vm->state != VM_STATE_HALT)
+    fprintf (stderr, "Abnormal state: %x (%s)\n", vm->state,
+             vm_state_name (vm->state));
+
+  if (vm->state == VM_STATE_ERROR)
+    fprintf (stderr, "Error code: %x (%s)\n", vm->error,
+             vm_error_name (vm->error));
 
   vm_destroy (vm);
   free (vm);
