@@ -34,6 +34,7 @@ view_debug (VM *vm)
   printf ("\n");
 
   vm_view_flags (vm);
+  printf ("state=%i (%s)\n", vm->state, vm_state_name (vm->state));
   printf ("\n");
 
   vm_view_memory (vm, *vm->ip, 8, 8, true);
@@ -58,31 +59,35 @@ main (int argc, char *argv[])
   load_file (vm, argv[1]);
 #else
   byte program[] = {
-    123,
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, ILIT(0xf0f0),
+    234,
     VM_OPERATION_HALT,
   };
 
   memcpy (vm->memory, program, sizeof program);
 #endif
 
-  view_debug (vm);
-
   while (vm->state == VM_STATE_NORMAL)
     {
+      view_debug (vm);
+
       if (getc (stdin) != '\n')
         continue;
 
       vm_step (vm);
-      view_debug (vm);
     }
 
-  if (vm->state != VM_STATE_HALT)
-    fprintf (stderr, "Abnormal state: %x (%s)\n", vm->state,
-             vm_state_name (vm->state));
+  view_debug (vm);
 
-  if (vm->state == VM_STATE_ERROR)
-    fprintf (stderr, "Error code: %x (%s)\n", vm->error,
-             vm_error_name (vm->error));
+  if (vm->state != VM_STATE_HALT)
+    {
+      fprintf (stderr, "abnormal state %i (%s)\n", vm->state,
+               vm_state_name (vm->state));
+
+      if (vm->state == VM_STATE_ERROR)
+        fprintf (stderr, "error %i (%s)\n", vm->error,
+                 vm_error_name (vm->error));
+    }
 
   vm_destroy (vm);
   free (vm);

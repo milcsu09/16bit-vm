@@ -123,7 +123,6 @@ vm_create (VM *vm, size_t nmemb)
 
   vm->state = VM_STATE_NORMAL;
   vm->error = VM_ERROR_NONE;
-  // vm->halt = false;
 }
 
 void
@@ -133,12 +132,6 @@ vm_destroy (VM *vm)
   vm->memory = NULL;
   vm->nmemb = 0;
 }
-
-// bool
-// vm_success (VM *vm)
-// {
-//   return *vm->error == '\0';
-// }
 
 byte
 vm_load_byte (VM *vm, word address)
@@ -529,11 +522,9 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_HALT:
       vm->state = VM_STATE_HALT;
-      // vm->halt = true;
       break;
     default:
       vm_error (vm, VM_ERROR_INVALID_OPERATION);
-      // vm_error (vm, "unknown operation " VM_FMT_BYTE, (byte)operation);
     }
 }
 
