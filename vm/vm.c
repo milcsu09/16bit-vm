@@ -3,18 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-_Noreturn static void
-vm_error (const char *fmt, ...)
+static void
+vm_error (VM *vm, const char *fmt, ...)
 {
-  fprintf (stderr, "ERROR: ");
-
   va_list va;
   va_start (va, fmt);
-  vfprintf (stderr, fmt, va);
-  va_end (va);
 
-  fprintf (stderr, "\n");
-  exit (EXIT_FAILURE);
+  vsnprintf (vm->error, sizeof vm->error, fmt, va);
+  vm->halt = true;
+
+  va_end (va);
 }
 
 const char *
@@ -46,6 +44,12 @@ vm_destroy (VM *vm)
   free (vm->memory);
   vm->memory = NULL;
   vm->nmemb = 0;
+}
+
+bool
+vm_success (VM *vm)
+{
+  return *vm->error == '\0';
 }
 
 byte
@@ -139,7 +143,7 @@ vm_compare (VM *vm, word left, word right)
 }
 
 void
-vm_jump (VM *vm, word address, byte condition)
+vm_jump (VM *vm, word address, bool condition)
 {
   if (condition)
     *vm->ip = address;
@@ -439,7 +443,7 @@ vm_execute (VM *vm, VM_Operation operation)
       vm->halt = true;
       break;
     default:
-      vm_error ("unknown operation " VM_FMT_BYTE, (byte)operation);
+      vm_error (vm, "unknown operation " VM_FMT_BYTE, (byte)operation);
     }
 }
 
@@ -463,8 +467,8 @@ vm_view_registers (VM *vm)
 void
 vm_view_memory (VM *vm, word address, word a, word b, bool decode)
 {
-  const word dec = (address >= a) ? a : address;
-  const word inc = (address <= vm->nmemb - 1 - b) ? b : vm->nmemb - 1 - address;
+  size_t dec = (address >= a) ? a : address;
+  size_t inc = (address <= vm->nmemb - 1 - b) ? b : vm->nmemb - 1 - address;
 
   printf (VM_FMT_WORD ": ", address);
 

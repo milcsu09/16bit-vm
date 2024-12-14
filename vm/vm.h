@@ -189,10 +189,14 @@ typedef struct
 
   size_t nmemb;
   bool halt;
+
+  char error[256];
 } VM;
 
 void vm_create (VM *vm, size_t nmemb);
 void vm_destroy (VM *vm);
+
+bool vm_success (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);
@@ -212,7 +216,7 @@ byte vm_pop_byte (VM *vm);
 word vm_pop_word (VM *vm);
 
 void vm_compare (VM *vm, word left, word right);
-void vm_jump (VM *vm, word address, byte condition);
+void vm_jump (VM *vm, word address, bool condition);
 
 void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);
