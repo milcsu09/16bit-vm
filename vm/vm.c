@@ -134,18 +134,6 @@ vm_load_word (VM *vm, word address)
   return VM_WORD_PACK (H, L);
 }
 
-/*
-word *
-vm_load_register (VM *vm, word address)
-{
-  byte index = vm_load_byte (vm, address);
-
-  vm_assert (index < VM_REGISTER_COUNT, VM_ERROR_ILLEGAL_OPERATION);
-
-  return &vm->registers[index];
-}
-*/
-
 word
 vm_load_register_value (VM *vm, word address)
 {
@@ -180,22 +168,14 @@ vm_next_word (VM *vm)
   return VM_WORD_PACK (H, L);
 }
 
-/*
-word *
-vm_next_register (VM *vm)
-{
-  return vm_load_register (vm, (*vm->ip)++);
-}
-*/
-
 word
-vm_next_register_value (VM *vm, word address)
+vm_next_register_value (VM *vm)
 {
   return vm_load_register_value (vm, (*vm->ip)++);
 }
 
 word *
-vm_next_register_pointer (VM *vm, word address)
+vm_next_register_pointer (VM *vm)
 {
   return vm_load_register_pointer (vm, (*vm->ip)++);
 }
@@ -276,27 +256,27 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_MOV_R_I:
       {
-        word *dest = vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
         *dest = vm_next_word (vm);
       }
       break;
     case VM_OPERATION_MOV_R_R:
       {
-        word *dest = vm_next_register (vm);
-        *dest = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        *dest = vm_next_register_value (vm);
       }
       break;
     case VM_OPERATION_MOV_R_IM:
       {
-        word *dest = vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
         word address = vm_next_word (vm);
         *dest = vm_load_word (vm, address);
       }
       break;
     case VM_OPERATION_MOV_R_RM:
       {
-        word *dest = vm_next_register (vm);
-        word address = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word address = vm_next_register_value (vm);
         *dest = vm_load_word (vm, address);
       }
       break;
@@ -310,7 +290,7 @@ vm_execute (VM *vm, VM_Operation operation)
     case VM_OPERATION_MOV_IM_R:
       {
         word dest = vm_next_word (vm);
-        word value = *vm_next_register (vm);
+        word value = vm_next_register_value (vm);
         vm_store_word (vm, dest, value);
       }
       break;
@@ -325,28 +305,28 @@ vm_execute (VM *vm, VM_Operation operation)
     case VM_OPERATION_MOV_IM_RM:
       {
         word dest = vm_next_word (vm);
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         word value = vm_load_word (vm, address);
         vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_I:
       {
-        word dest = *vm_next_register (vm);
+        word dest = vm_next_register_value (vm);
         word value = vm_next_word (vm);
         vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_R:
       {
-        word dest= *vm_next_register (vm);
-        word value = *vm_next_register (vm);
+        word dest= vm_next_register_value (vm);
+        word value = vm_next_register_value (vm);
         vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_IM:
       {
-        word dest = *vm_next_register (vm);
+        word dest = vm_next_register_value (vm);
         word address = vm_next_word (vm);
         word value = vm_load_word (vm, address);
         vm_store_word (vm, dest, value);
@@ -354,8 +334,8 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_MOV_RM_RM:
       {
-        word dest = *vm_next_register (vm);
-        word address = *vm_next_register (vm);
+        word dest = vm_next_register_value (vm);
+        word address = vm_next_register_value (vm);
         word value = vm_load_word (vm, address);
         vm_store_word (vm, dest, value);
       }
@@ -368,68 +348,68 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_PUSH_R:
       {
-        word value = *vm_next_register (vm);
+        word value = vm_next_register_value (vm);
         vm_push_word (vm, value);
       }
       break;
     case VM_OPERATION_POP:
       {
-        word *dest = vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
         *dest = vm_pop_word (vm);
       }
       break;
     case VM_OPERATION_ADD_I:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
         word src2 = vm_next_word (vm);
         *dest = src1 + src2;
       }
       break;
     case VM_OPERATION_ADD_R:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
-        word src2 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
         *dest = src1 + src2;
       }
       break;
     case VM_OPERATION_SUB_I:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
         word src2 = vm_next_word (vm);
         *dest = src1 - src2;
       }
       break;
     case VM_OPERATION_SUB_R:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
-        word src2 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
         *dest = src1 - src2;
       }
       break;
     case VM_OPERATION_MUL_I:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
         word src2 = vm_next_word (vm);
         *dest = src1 * src2;
       }
       break;
     case VM_OPERATION_MUL_R:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
-        word src2 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
         *dest = src1 * src2;
       }
       break;
     case VM_OPERATION_DIV_I:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
         word src2 = vm_next_word (vm);
 
         vm_assert (src2 != 0, VM_ERROR_ILLEGAL_OPERATION);
@@ -440,9 +420,9 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_DIV_R:
       {
-        word *dest = vm_next_register (vm);
-        word src1 = *vm_next_register (vm);
-        word src2 = *vm_next_register (vm);
+        word *dest = vm_next_register_pointer (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
 
         vm_assert (src2 != 0, VM_ERROR_ILLEGAL_OPERATION);
 
@@ -452,15 +432,15 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_CMP_R_I:
       {
-        word left = *vm_next_register (vm);
+        word left = vm_next_register_value (vm);
         word right = vm_next_word (vm);
         vm_compare (vm, left, right);
       }
       break;
     case VM_OPERATION_CMP_R_R:
       {
-        word left = *vm_next_register (vm);
-        word right = *vm_next_register (vm);
+        word left = vm_next_register_value (vm);
+        word right = vm_next_register_value (vm);
         vm_compare (vm, left, right);
       }
       break;
@@ -472,7 +452,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JMP_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         *vm->ip = address;
       }
       break;
@@ -484,7 +464,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JEQ_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.z == 1);
       }
       break;
@@ -496,7 +476,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JNE_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.z == 0);
       }
       break;
@@ -508,7 +488,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JLT_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.c == 1);
       }
       break;
@@ -520,7 +500,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JGT_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.z == 0 && vm->flags.c == 0);
       }
       break;
@@ -532,7 +512,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JLE_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.c == 1 || vm->flags.z == 1);
       }
       break;
@@ -544,7 +524,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_JGE_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_jump (vm, address, vm->flags.c == 0);
       }
       break;
@@ -557,7 +537,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_CALL_R:
       {
-        word address = *vm_next_register (vm);
+        word address = vm_next_register_value (vm);
         vm_push_word (vm, *vm->ip);
         *vm->ip = address;
       }
