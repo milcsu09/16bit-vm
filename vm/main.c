@@ -27,47 +27,46 @@ view_debug (VM *vm)
 int
 main (void)
 {
-  VM *vm = calloc (1, sizeof (VM));
-  vm_create (vm, 25);
+  VM vm = { 0 };
+  vm_create (&vm, 256);
 
   byte program[] = {
+    VM_OPERATION_PUSH_I, LITERAL (512),
     VM_OPERATION_POP, VM_REGISTER_AC,
+
+    VM_OPERATION_DIV_I, VM_REGISTER_AC, VM_REGISTER_AC, LITERAL (3),
+
     VM_OPERATION_HALT,
   };
 
-  memcpy (vm->memory, program, sizeof program);
+  memcpy (vm.memory, program, sizeof program);
 
   pid_t pid = fork ();
   if (pid == 0)
     while (1)
       {
-        view_debug (vm);
- 
+        view_debug (&vm);
         if (getc (stdin) != '\n')
           continue;
-
-        vm_step (vm);
+        vm_step (&vm);
       }
   else
     {
       int status;
-      waitpid(pid, &status, 0);
-
-      if (WIFEXITED(status))
+      if (waitpid(pid, &status, 0) > 0)
         {
-          int code = WEXITSTATUS(status);
-          if (code != 0)
-            fprintf (stderr, "ERROR: exited with code %i (%s)\n", code,
-                     vm_error_name (code));
-          else
-            printf ("OK\n");
+          if (WIFEXITED(status))
+            {
+              int exit_code = WEXITSTATUS(status);
+              fprintf(stderr, "Exited with code %i (%s)\n", exit_code,
+                      vm_error_name (exit_code));
+            }
+          else if (WIFSIGNALED(status))
+            printf("ERROR: terminated by signal %d\n", WTERMSIG(status));
         }
-      else
-        fprintf (stderr, "ERROR: exited abnormally\n");
     }
 
-  vm_destroy (vm);
-  free (vm);
+  vm_destroy (&vm);
 
   return 0;
 }
