@@ -28,18 +28,27 @@ int
 main (void)
 {
   VM vm = { 0 };
-  vm_create (&vm, 256);
+  vm_create (&vm, 256 * 256);
 
   byte program[] = {
-    VM_OPERATION_PUSH_I, LITERAL (512),
-    VM_OPERATION_POP, VM_REGISTER_R1,
-
-    VM_OPERATION_DIV_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (3),
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (255),
+    VM_OPERATION_CALL_I, LITERAL (0x3000),
 
     VM_OPERATION_HALT,
   };
 
-  memcpy (vm.memory, program, sizeof program);
+  /*
+    [0x3000]
+    def square(r1) -> ac:
+      return r1 * r1
+  */
+  byte f_square[] = {
+    VM_OPERATION_MUL_R, VM_REGISTER_AC, VM_REGISTER_R1, VM_REGISTER_R1,
+    VM_OPERATION_RET,
+  };
+
+  memcpy (&vm.memory[0x0000], program, sizeof program);
+  memcpy (&vm.memory[0x3000], f_square, sizeof f_square);
 
   pid_t pid = fork ();
   if (pid == 0)

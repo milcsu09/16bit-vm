@@ -110,6 +110,7 @@ typedef enum
 typedef enum
 {
   VM_ERROR_NONE,
+
   VM_ERROR_ILLEGAL_OPERATION,
   VM_ERROR_MEMORY_ACCESS,
 
