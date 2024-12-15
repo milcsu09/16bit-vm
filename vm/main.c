@@ -28,13 +28,10 @@ int
 main (void)
 {
   VM *vm = calloc (1, sizeof (VM));
-  vm_create (vm, 256 * 256);
+  vm_create (vm, 25);
 
   byte program[] = {
-    VM_OPERATION_PUSH_I, LITERAL (0xABCD),
-    VM_OPERATION_PUSH_I, LITERAL (0x1234),
-    VM_OPERATION_POP, VM_REGISTER_R1,
-    VM_OPERATION_POP, VM_REGISTER_R2,
+    VM_OPERATION_POP, VM_REGISTER_AC,
     VM_OPERATION_HALT,
   };
 

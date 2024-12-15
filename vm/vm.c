@@ -9,9 +9,6 @@ static const char *const VM_REGISTER_NAME[] = {
   "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
 };
 
-static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
-               "insufficient items in VM_REGISTER_NAME");
-
 static const char *const VM_OPERATION_NAME[] = {
   "none",
   "mov(r, i)",
@@ -59,14 +56,17 @@ static const char *const VM_OPERATION_NAME[] = {
   "halt",
 };
 
-static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
-               "insufficient items in VM_OPERATION_NAME");
-
 static const char *const VM_ERROR_NAME[] = {
   "none",
-  "invalid operation",
-  "invalid operand",
+  "illegal operation",
+  "memory access violation",
 };
+
+static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
+               "insufficient items in VM_REGISTER_NAME");
+
+static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
+               "insufficient items in VM_OPERATION_NAME");
 
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
                "insufficient items in VM_ERROR_NAME");
@@ -114,6 +114,9 @@ vm_destroy (VM *vm)
 byte
 vm_load_byte (VM *vm, word address)
 {
+  if (address >= vm->nmemb)
+    exit (VM_ERROR_MEMORY_ACCESS_VIOLATION);
+
   return vm->memory[address];
 }
 
@@ -130,7 +133,7 @@ vm_load_register (VM *vm, word address)
 {
   byte index = vm_load_byte (vm, address);
   if (index >= VM_REGISTER_COUNT)
-    exit (VM_ERROR_INVALID_OPERAND);
+    exit (VM_ERROR_ILLEGAL_OPERATION);
 
   return &vm->registers[index];
 }
@@ -158,6 +161,9 @@ vm_next_register (VM *vm)
 void
 vm_store_byte (VM *vm, word address, byte value)
 {
+  if (address >= vm->nmemb)
+    exit (VM_ERROR_MEMORY_ACCESS_VIOLATION);
+
   vm->memory[address] = value;
 }
 
@@ -377,7 +383,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word *src1 = vm_next_register (vm);
         word src2 = vm_next_word (vm);
         if (src2 == 0)
-          exit (VM_ERROR_INVALID_OPERAND);
+          exit (VM_ERROR_ILLEGAL_OPERATION);
 
         vm->registers[VM_REGISTER_AC] = *src1 % src2;
         *dest = *src1 / src2;
@@ -389,7 +395,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word *src1 = vm_next_register (vm);
         word *src2 = vm_next_register (vm);
         if (*src2 == 0)
-          exit (VM_ERROR_INVALID_OPERAND);
+          exit (VM_ERROR_ILLEGAL_OPERATION);
 
         vm->registers[VM_REGISTER_AC] = *src1 % *src2;
         *dest = *src1 / *src2;
@@ -514,7 +520,7 @@ vm_execute (VM *vm, VM_Operation operation)
       exit (VM_ERROR_NONE);
       break;
     default:
-      exit (VM_ERROR_INVALID_OPERATION);
+      exit (VM_ERROR_ILLEGAL_OPERATION);
     }
 }
 
