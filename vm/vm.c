@@ -63,13 +63,13 @@ static const char *const VM_ERROR_NAME[] = {
 };
 
 static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
-               "insufficient items in VM_REGISTER_NAME");
+               "items not aligned in VM_REGISTER_NAME");
 
 static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
-               "insufficient items in VM_OPERATION_NAME");
+               "items not aligned in VM_OPERATION_NAME");
 
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
-               "insufficient items in VM_ERROR_NAME");
+               "items not aligned in VM_ERROR_NAME");
 
 static inline void
 vm_assert (bool condition, VM_Error error)
