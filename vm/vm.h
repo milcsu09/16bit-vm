@@ -112,7 +112,7 @@ typedef enum
   VM_ERROR_NONE,
 
   VM_ERROR_ILLEGAL_OPERATION,
-  VM_ERROR_MEMORY_ACCESS,
+  VM_ERROR_MEMORY_VIOLATION,
 
   VM_ERROR_COUNT,
 } VM_Error;
@@ -146,13 +146,13 @@ byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);
 
 word vm_load_register_value (VM *vm, word address);
-word *vm_load_register_pointer (VM *vm, word address);
+word *vm_load_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
 
 word vm_next_register_value (VM *vm);
-word *vm_next_register_pointer (VM *vm);
+word *vm_next_register_address (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);

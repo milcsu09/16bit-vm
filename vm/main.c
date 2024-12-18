@@ -28,27 +28,16 @@ int
 main (void)
 {
   VM vm = { 0 };
-  vm_create (&vm, 256 * 256);
+  vm_create (&vm, 256);
 
   byte program[] = {
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (255),
-    VM_OPERATION_CALL_I, LITERAL (0x3000),
+    // VM_OPERATION_PUSH_I, LITERAL (512),
+    // VM_OPERATION_POP, VM_REGISTER_R1,
 
     VM_OPERATION_HALT,
   };
 
-  /*
-    [0x3000]
-    def square(r1) -> ac:
-      return r1 * r1
-  */
-  byte f_square[] = {
-    VM_OPERATION_MUL_R, VM_REGISTER_AC, VM_REGISTER_R1, VM_REGISTER_R1,
-    VM_OPERATION_RET,
-  };
-
   memcpy (&vm.memory[0x0000], program, sizeof program);
-  memcpy (&vm.memory[0x3000], f_square, sizeof f_square);
 
   pid_t pid = fork ();
   if (pid == 0)
@@ -62,16 +51,21 @@ main (void)
   else
     {
       int status;
-      if (waitpid(pid, &status, 0) > 0)
+      if (waitpid (pid, &status, 0) > 0)
         {
-          if (WIFEXITED(status))
+          if (WIFEXITED (status))
             {
-              int exit_code = WEXITSTATUS(status);
-              fprintf(stderr, "Exited with code %i (%s)\n", exit_code,
-                      vm_error_name (exit_code));
+              int exit_code = WEXITSTATUS (status);
+              if (exit_code != 0)
+                fprintf (stderr, "error: process exited with code %i (%s)\n",
+                         exit_code,
+                         vm_error_name (exit_code));
+              else
+                printf ("OK.\n");
             }
-          else if (WIFSIGNALED(status))
-            printf("ERROR: terminated by signal %d\n", WTERMSIG(status));
+          else if (WIFSIGNALED (status))
+            printf ("error: process terminated by signal %d\n",
+                    WTERMSIG (status));
         }
     }
 
