@@ -130,9 +130,7 @@ typedef struct
   struct
   {
     byte z : 1;
-    byte n : 1;
     byte c : 1;
-    byte v : 1;
   } flags;
 } VM;
 
