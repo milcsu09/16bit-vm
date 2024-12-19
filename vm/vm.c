@@ -598,7 +598,6 @@ vm_view_memory (VM *vm, word address, word a, word b, bool decode)
 void
 vm_view_flags (VM *vm)
 {
-  printf ("z=%d n=%d c=%d v=%d\n", vm->flags.z, vm->flags.n, vm->flags.c,
-          vm->flags.v);
+  printf ("z=%d c=%d\n", vm->flags.z, vm->flags.c);
 }
 
