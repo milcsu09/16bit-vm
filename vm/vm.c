@@ -136,15 +136,6 @@ vm_load_word (VM *vm, word address)
   const byte L = vm_load_byte (vm, address + 0);
   const byte H = vm_load_byte (vm, address + 1);
   return VM_WORD_PACK (H, L);
-
-  // if (vm->width == VM_WIDTH_8)
-  //   return vm_load_byte (vm, address);
-  // else
-  //   {
-  //     const byte L = vm_load_byte (vm, address + 0);
-  //     const byte H = vm_load_byte (vm, address + 1);
-  //     return VM_WORD_PACK (H, L);
-  //   }
 }
 
 word
@@ -219,17 +210,6 @@ vm_store_word (VM *vm, word address, word value)
 
   vm_store_byte (vm, address + 0, L);
   vm_store_byte (vm, address + 1, H);
-
-  // const byte L = VM_WORD_L (value);
-  // const byte H = VM_WORD_H (value);
-
-  // if (vm->width == VM_WIDTH_8)
-  //   vm_store_byte (vm, address, L);
-  // else
-  //   {
-  //     vm_store_byte (vm, address + 0, L);
-  //     vm_store_byte (vm, address + 1, H);
-  //   }
 }
 
 void
