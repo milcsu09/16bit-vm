@@ -24,8 +24,9 @@ typedef enum
   VM_REGISTER_SP,
   VM_REGISTER_BP,
 
-  VM_REGISTER_AC,
+  ////////////////////////////////
 
+  VM_REGISTER_AC,
   VM_REGISTER_R1,
   VM_REGISTER_R2,
   VM_REGISTER_R3,
@@ -35,37 +36,62 @@ typedef enum
   VM_REGISTER_R7,
   VM_REGISTER_R8,
 
+  ////////////////////////////////
+
   VM_REGISTER_COUNT,
 } VM_Register;
 
 typedef enum
 {
-  VM_WIDTH_8,
-  VM_WIDTH_16,
-} VM_Width;
-
-typedef enum
-{
   VM_OPERATION_NONE,
 
-  VM_OPERATION_MOV_R_I,
-  VM_OPERATION_MOV_R_R,
-  VM_OPERATION_MOV_R_IM,
-  VM_OPERATION_MOV_R_RM,
+  ////////////////////////////////
 
-  VM_OPERATION_MOV_IM_I,
-  VM_OPERATION_MOV_IM_R,
-  VM_OPERATION_MOV_IM_IM,
-  VM_OPERATION_MOV_IM_RM,
+  VM_OPERATION_MOV8_R_I,
+  VM_OPERATION_MOV8_R_R,
+  VM_OPERATION_MOV8_R_IM,
+  VM_OPERATION_MOV8_R_RM,
 
-  VM_OPERATION_MOV_RM_I,
-  VM_OPERATION_MOV_RM_R,
-  VM_OPERATION_MOV_RM_IM,
-  VM_OPERATION_MOV_RM_RM,
+  VM_OPERATION_MOV8_IM_I,
+  VM_OPERATION_MOV8_IM_R,
+  VM_OPERATION_MOV8_IM_IM,
+  VM_OPERATION_MOV8_IM_RM,
 
-  VM_OPERATION_PUSH_I,
-  VM_OPERATION_PUSH_R,
-  VM_OPERATION_POP_R,
+  VM_OPERATION_MOV8_RM_I,
+  VM_OPERATION_MOV8_RM_R,
+  VM_OPERATION_MOV8_RM_IM,
+  VM_OPERATION_MOV8_RM_RM,
+
+  ////////////////////////////////
+
+  VM_OPERATION_MOV16_R_I,
+  VM_OPERATION_MOV16_R_R,
+  VM_OPERATION_MOV16_R_IM,
+  VM_OPERATION_MOV16_R_RM,
+
+  VM_OPERATION_MOV16_IM_I,
+  VM_OPERATION_MOV16_IM_R,
+  VM_OPERATION_MOV16_IM_IM,
+  VM_OPERATION_MOV16_IM_RM,
+
+  VM_OPERATION_MOV16_RM_I,
+  VM_OPERATION_MOV16_RM_R,
+  VM_OPERATION_MOV16_RM_IM,
+  VM_OPERATION_MOV16_RM_RM,
+
+  ////////////////////////////////
+
+  VM_OPERATION_PUSH8_I,
+  VM_OPERATION_PUSH8_R,
+  VM_OPERATION_POP8_R,
+
+  ////////////////////////////////
+
+  VM_OPERATION_PUSH16_I,
+  VM_OPERATION_PUSH16_R,
+  VM_OPERATION_POP16_R,
+
+  ////////////////////////////////
 
   VM_OPERATION_ADD_I,
   VM_OPERATION_ADD_R,
@@ -81,6 +107,8 @@ typedef enum
 
   VM_OPERATION_CMP_R_I,
   VM_OPERATION_CMP_R_R,
+
+  ////////////////////////////////
 
   VM_OPERATION_JMP_I,
   VM_OPERATION_JMP_R,
@@ -103,15 +131,18 @@ typedef enum
   VM_OPERATION_JGE_I,
   VM_OPERATION_JGE_R,
 
+  ////////////////////////////////
+
   VM_OPERATION_CALL_I,
   VM_OPERATION_CALL_R,
 
   VM_OPERATION_RET,
 
-  VM_OPERATION_WIDTH_8,
-  VM_OPERATION_WIDTH_16,
+  ////////////////////////////////
 
   VM_OPERATION_HALT,
+
+  ////////////////////////////////
 
   VM_OPERATION_COUNT,
 } VM_Operation;
@@ -141,8 +172,6 @@ typedef struct
     byte z : 1;
     byte c : 1;
   } flags;
-
-  VM_Width width;
 } VM;
 
 char *vm_operation_name (VM_Operation index);
@@ -153,21 +182,18 @@ void vm_destroy (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);
-word vm_load_width (VM *vm, word address);
 
 word vm_load_register_value (VM *vm, word address);
 word *vm_load_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
-word vm_next_width (VM *vm);
 
 word vm_next_register_value (VM *vm);
 word *vm_next_register_address (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
-void vm_store_width (VM *vm, word address, word value);
 
 void vm_push_byte (VM *vm, byte value);
 void vm_push_word (VM *vm, word value);

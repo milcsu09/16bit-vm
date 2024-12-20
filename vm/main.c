@@ -17,7 +17,6 @@ view_debug (VM *vm)
   vm_view_registers (vm);
   printf ("\n");
 
-  printf ("width=%i\n", (vm->width == VM_WIDTH_8) ? 8 : 16);
   vm_view_flags (vm);
   printf ("\n");
 
@@ -40,22 +39,18 @@ main (void)
   VM vm = { 0 };
   vm_create (&vm, 0x10000);
 
-  char *message = "abcd1234";
+  char *message = "Hello, world!";
 
   byte program[] = {
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (0x3000),
+    VM_OPERATION_MOV16_R_I, VM_REGISTER_R1, LITERAL (0x3000),
     VM_OPERATION_ADD_R, VM_REGISTER_R1, VM_REGISTER_R1, VM_REGISTER_R2,
 
-    VM_OPERATION_WIDTH_8,
-    VM_OPERATION_MOV_R_RM, VM_REGISTER_R1, VM_REGISTER_R1,
-    VM_OPERATION_WIDTH_16,
+    VM_OPERATION_MOV8_R_RM, VM_REGISTER_R1, VM_REGISTER_R1,
 
-    VM_OPERATION_MOV_R_I, VM_REGISTER_R4, LITERAL (0x7000),
+    VM_OPERATION_MOV16_R_I, VM_REGISTER_R4, LITERAL (0x7000),
     VM_OPERATION_ADD_R, VM_REGISTER_R4, VM_REGISTER_R4, VM_REGISTER_R2,
 
-    VM_OPERATION_WIDTH_8,
-    VM_OPERATION_MOV_RM_R, VM_REGISTER_R4, VM_REGISTER_R1,
-    VM_OPERATION_WIDTH_16,
+    VM_OPERATION_MOV8_RM_R, VM_REGISTER_R4, VM_REGISTER_R1,
 
     VM_OPERATION_ADD_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
 

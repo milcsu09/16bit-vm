@@ -6,27 +6,44 @@
 #include <string.h>
 #include <unistd.h>
 
+#define VM_STACK_POINTER_DELTA sizeof (word)
+
 static const char *const VM_REGISTER_NAME[] = {
   "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
 };
 
 static const char *const VM_OPERATION_NAME[] = {
   "none",
-  "mov(r, i)",
-  "mov(r, r)",
-  "mov(r, im)",
-  "mov(r, rm)",
-  "mov(im, i)",
-  "mov(im, r)",
-  "mov(im, im)",
-  "mov(im, rm)",
-  "mov(rm, i)",
-  "mov(rm, r)",
-  "mov(rm, im)",
-  "mov(rm, rm)",
-  "push(i)",
-  "push(r)",
-  "pop",
+  "mov8(r, i)",
+  "mov8(r, r)",
+  "mov8(r, im)",
+  "mov8(r, rm)",
+  "mov8(im, i)",
+  "mov8(im, r)",
+  "mov8(im, im)",
+  "mov8(im, rm)",
+  "mov8(rm, i)",
+  "mov8(rm, r)",
+  "mov8(rm, im)",
+  "mov8(rm, rm)",
+  "mov16(r, i)",
+  "mov16(r, r)",
+  "mov16(r, im)",
+  "mov16(r, rm)",
+  "mov16(im, i)",
+  "mov16(im, r)",
+  "mov16(im, im)",
+  "mov16(im, rm)",
+  "mov16(rm, i)",
+  "mov16(rm, r)",
+  "mov16(rm, im)",
+  "mov16(rm, rm)",
+  "push8(i)",
+  "push8(r)",
+  "pop8(r)",
+  "push16(i)",
+  "push16(r)",
+  "pop16(r)",
   "add(i)",
   "add(r)",
   "sub(i)",
@@ -54,8 +71,6 @@ static const char *const VM_OPERATION_NAME[] = {
   "call(i)",
   "call(r)",
   "ret",
-  "width8",
-  "width16",
   "halt",
 };
 
@@ -78,14 +93,6 @@ static inline char *
 vm_module_name (size_t index, size_t n, const char *const xs[n])
 {
   return (char *)(index < n ? xs[index] : "invalid");
-}
-
-static inline word
-vm_as_width (VM *vm, word value)
-{
-  if (vm->width == VM_WIDTH_8)
-    return VM_WORD_L (value);
-  return value;
 }
 
 char *
@@ -112,8 +119,6 @@ vm_create (VM *vm, size_t nmemb)
 
   vm->memory = calloc (nmemb, sizeof (byte));
   vm->nmemb = nmemb;
-
-  vm->width = VM_WIDTH_16;
 }
 
 void
@@ -136,15 +141,6 @@ vm_load_word (VM *vm, word address)
   const byte L = vm_load_byte (vm, address + 0);
   const byte H = vm_load_byte (vm, address + 1);
   return VM_WORD_PACK (H, L);
-}
-
-word
-vm_load_width (VM *vm, word address)
-{
-  if (vm->width == VM_WIDTH_8)
-    return vm_load_byte (vm, address);
-  else
-    return vm_load_word (vm, address);
 }
 
 word
@@ -176,15 +172,6 @@ vm_next_word (VM *vm)
 }
 
 word
-vm_next_width (VM *vm)
-{
-  if (vm->width == VM_WIDTH_8)
-    return vm_next_byte (vm);
-  else
-    return vm_next_word (vm);
-}
-
-word
 vm_next_register_value (VM *vm)
 {
   return vm_load_register_value (vm, (*vm->ip)++);
@@ -213,39 +200,30 @@ vm_store_word (VM *vm, word address, word value)
 }
 
 void
-vm_store_width (VM *vm, word address, word value)
-{
-  if (vm->width == VM_WIDTH_8)
-    vm_store_byte (vm, address, value);
-  else
-    vm_store_word (vm, address, value);
-}
-
-void
 vm_push_byte (VM *vm, byte value)
 {
   vm_store_byte (vm, *vm->sp, value);
-  *vm->sp -= sizeof (byte);
+  *vm->sp -= VM_STACK_POINTER_DELTA;
 }
 
 void
 vm_push_word (VM *vm, word value)
 {
   vm_store_word (vm, *vm->sp, value);
-  *vm->sp -= sizeof (word);
+  *vm->sp -= VM_STACK_POINTER_DELTA;
 }
 
 byte
 vm_pop_byte (VM *vm)
 {
-  *vm->sp += sizeof (byte);
+  *vm->sp += VM_STACK_POINTER_DELTA;
   return vm_load_byte (vm, *vm->sp);
 }
 
 word
 vm_pop_word (VM *vm)
 {
-  *vm->sp += sizeof (word);
+  *vm->sp += VM_STACK_POINTER_DELTA;
   return vm_load_word (vm, *vm->sp);
 }
 
@@ -270,106 +248,214 @@ vm_execute (VM *vm, VM_Operation operation)
     {
     case VM_OPERATION_NONE:
       break;
-    case VM_OPERATION_MOV_R_I:
+    case VM_OPERATION_MOV8_R_I:
       {
         word *dest = vm_next_register_address (vm);
-        word value = vm_next_word (vm);
-        *dest = vm_as_width (vm, value);
+        byte value = vm_next_byte (vm);
+        *dest = value;
       }
       break;
-    case VM_OPERATION_MOV_R_R:
+    case VM_OPERATION_MOV8_R_R:
       {
         word *dest = vm_next_register_address (vm);
-        *dest = vm_next_register_value (vm);
+        byte value = vm_next_register_value (vm);
+        *dest = value;
       }
       break;
-    case VM_OPERATION_MOV_R_IM:
+    case VM_OPERATION_MOV8_R_IM:
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_word (vm);
-        *dest = vm_load_width (vm, address);
+        *dest = vm_load_byte (vm, address);
       }
       break;
-    case VM_OPERATION_MOV_R_RM:
+    case VM_OPERATION_MOV8_R_RM:
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_register_value (vm);
-        *dest = vm_load_width (vm, address);
+        *dest = vm_load_byte (vm, address);
       }
       break;
-    case VM_OPERATION_MOV_IM_I:
+    case VM_OPERATION_MOV8_IM_I:
       {
         word dest = vm_next_word (vm);
-        word value = vm_next_word (vm);
-        vm_store_width (vm, dest, value);
+        byte value = vm_next_byte (vm);
+        vm_store_byte (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_IM_R:
+    case VM_OPERATION_MOV8_IM_R:
       {
         word dest = vm_next_word (vm);
         word value = vm_next_register_value (vm);
-        vm_store_width (vm, dest, value);
+        vm_store_byte (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_IM_IM:
+    case VM_OPERATION_MOV8_IM_IM:
       {
         word dest = vm_next_word (vm);
         word address = vm_next_word (vm);
-        word value = vm_load_width (vm, address);
-        vm_store_width (vm, dest, value);
+        word value = vm_load_byte (vm, address);
+        vm_store_byte (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_IM_RM:
+    case VM_OPERATION_MOV8_IM_RM:
+      {
+        word dest = vm_next_word (vm);
+        word address = vm_next_register_value (vm);
+        word value = vm_load_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV8_RM_I:
+      {
+        word dest = vm_next_register_value (vm);
+        byte value = vm_next_byte (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV8_RM_R:
+      {
+        word dest = vm_next_register_value (vm);
+        word value = vm_next_register_value (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV8_RM_IM:
+      {
+        word dest = vm_next_register_value (vm);
+        word address = vm_next_word (vm);
+        word value = vm_load_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV8_RM_RM:
+      {
+        word dest = vm_next_register_value (vm);
+        word address = vm_next_register_value (vm);
+        word value = vm_load_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV16_R_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word value = vm_next_word (vm);
+        *dest = value;
+      }
+      break;
+    case VM_OPERATION_MOV16_R_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word value = vm_next_register_value (vm);
+        *dest = value;
+      }
+      break;
+    case VM_OPERATION_MOV16_R_IM:
+      {
+        word *dest = vm_next_register_address (vm);
+        word address = vm_next_word (vm);
+        *dest = vm_load_word (vm, address);
+      }
+      break;
+    case VM_OPERATION_MOV16_R_RM:
+      {
+        word *dest = vm_next_register_address (vm);
+        word address = vm_next_register_value (vm);
+        *dest = vm_load_word (vm, address);
+      }
+      break;
+    case VM_OPERATION_MOV16_IM_I:
+      {
+        word dest = vm_next_word (vm);
+        word value = vm_next_word (vm);
+        vm_store_word (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV16_IM_R:
+      {
+        word dest = vm_next_word (vm);
+        word value = vm_next_register_value (vm);
+        vm_store_word (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV16_IM_IM:
+      {
+        word dest = vm_next_word (vm);
+        word address = vm_next_word (vm);
+        word value = vm_load_word (vm, address);
+        vm_store_word (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOV16_IM_RM:
       {
         word dest = vm_next_word (vm);
         word address = vm_next_register_value (vm);
         word value = vm_load_word (vm, address);
-        vm_store_width (vm, dest, value);
+        vm_store_word (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_RM_I:
+    case VM_OPERATION_MOV16_RM_I:
       {
         word dest = vm_next_register_value (vm);
         word value = vm_next_word (vm);
-        vm_store_width (vm, dest, value);
+        vm_store_word (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_RM_R:
+    case VM_OPERATION_MOV16_RM_R:
       {
-        word dest= vm_next_register_value (vm);
+        word dest = vm_next_register_value (vm);
         word value = vm_next_register_value (vm);
-        vm_store_width (vm, dest, value);
+        vm_store_word (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_RM_IM:
+    case VM_OPERATION_MOV16_RM_IM:
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_word (vm);
-        word value = vm_load_width (vm, address);
-        vm_store_width (vm, dest, value);
+        word value = vm_load_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
-    case VM_OPERATION_MOV_RM_RM:
+    case VM_OPERATION_MOV16_RM_RM:
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_register_value (vm);
-        word value = vm_load_width (vm, address);
-        vm_store_width (vm, dest, value);
+        word value = vm_load_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
-    case VM_OPERATION_PUSH_I:
+    case VM_OPERATION_PUSH8_I:
+      {
+        word value = vm_next_byte (vm);
+        vm_push_byte (vm, value);
+      }
+      break;
+    case VM_OPERATION_PUSH8_R:
+      {
+        word value = vm_next_register_value (vm);
+        vm_push_byte (vm, value);
+      }
+      break;
+    case VM_OPERATION_POP8_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        *dest = vm_pop_byte (vm);
+      }
+      break;
+
+    case VM_OPERATION_PUSH16_I:
       {
         word value = vm_next_word (vm);
         vm_push_word (vm, value);
       }
       break;
-    case VM_OPERATION_PUSH_R:
+    case VM_OPERATION_PUSH16_R:
       {
         word value = vm_next_register_value (vm);
         vm_push_word (vm, value);
       }
       break;
-    case VM_OPERATION_POP_R:
+    case VM_OPERATION_POP16_R:
       {
         word *dest = vm_next_register_address (vm);
         *dest = vm_pop_word (vm);
@@ -555,12 +641,6 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_RET:
       *vm->ip = vm_pop_word (vm);
-      break;
-    case VM_OPERATION_WIDTH_8:
-      vm->width = VM_WIDTH_8;
-      break;
-    case VM_OPERATION_WIDTH_16:
-      vm->width = VM_WIDTH_16;
       break;
     case VM_OPERATION_HALT:
       exit (VM_ERROR_NONE);
