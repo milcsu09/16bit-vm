@@ -24,8 +24,6 @@ typedef enum
   VM_REGISTER_SP,
   VM_REGISTER_BP,
 
-  ////////////////////////////////
-
   VM_REGISTER_AC,
   VM_REGISTER_R1,
   VM_REGISTER_R2,
@@ -36,16 +34,12 @@ typedef enum
   VM_REGISTER_R7,
   VM_REGISTER_R8,
 
-  ////////////////////////////////
-
   VM_REGISTER_COUNT,
 } VM_Register;
 
 typedef enum
 {
   VM_OPERATION_NONE,
-
-  ////////////////////////////////
 
   VM_OPERATION_MOV8_R_I,
   VM_OPERATION_MOV8_R_R,
@@ -62,8 +56,6 @@ typedef enum
   VM_OPERATION_MOV8_RM_IM,
   VM_OPERATION_MOV8_RM_RM,
 
-  ////////////////////////////////
-
   VM_OPERATION_MOV16_R_I,
   VM_OPERATION_MOV16_R_R,
   VM_OPERATION_MOV16_R_IM,
@@ -79,19 +71,13 @@ typedef enum
   VM_OPERATION_MOV16_RM_IM,
   VM_OPERATION_MOV16_RM_RM,
 
-  ////////////////////////////////
-
   VM_OPERATION_PUSH8_I,
   VM_OPERATION_PUSH8_R,
   VM_OPERATION_POP8_R,
 
-  ////////////////////////////////
-
   VM_OPERATION_PUSH16_I,
   VM_OPERATION_PUSH16_R,
   VM_OPERATION_POP16_R,
-
-  ////////////////////////////////
 
   VM_OPERATION_ADD_I,
   VM_OPERATION_ADD_R,
@@ -105,10 +91,11 @@ typedef enum
   VM_OPERATION_DIV_I,
   VM_OPERATION_DIV_R,
 
-  VM_OPERATION_CMP_R_I,
-  VM_OPERATION_CMP_R_R,
+  VM_OPERATION_CMP8_R_I,
+  VM_OPERATION_CMP8_R_R,
 
-  ////////////////////////////////
+  VM_OPERATION_CMP16_R_I,
+  VM_OPERATION_CMP16_R_R,
 
   VM_OPERATION_JMP_I,
   VM_OPERATION_JMP_R,
@@ -131,18 +118,12 @@ typedef enum
   VM_OPERATION_JGE_I,
   VM_OPERATION_JGE_R,
 
-  ////////////////////////////////
-
   VM_OPERATION_CALL_I,
   VM_OPERATION_CALL_R,
 
   VM_OPERATION_RET,
 
-  ////////////////////////////////
-
   VM_OPERATION_HALT,
-
-  ////////////////////////////////
 
   VM_OPERATION_COUNT,
 } VM_Operation;

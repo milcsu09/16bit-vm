@@ -52,8 +52,10 @@ static const char *const VM_OPERATION_NAME[] = {
   "mul(r)",
   "div(i)",
   "div(r)",
-  "cmp(r, i)",
-  "cmp(r, r)",
+  "cmp8(r, i)",
+  "cmp8(r, r)",
+  "cmp16(r, i)",
+  "cmp16(r, r)",
   "jmp(i)",
   "jmp(r)",
   "jeq(i)",
@@ -527,14 +529,28 @@ vm_execute (VM *vm, VM_Operation operation)
         *dest = src1 / src2;
       }
       break;
-    case VM_OPERATION_CMP_R_I:
+    case VM_OPERATION_CMP8_R_I:
+      {
+        word left = vm_next_register_value (vm);
+        byte right = vm_next_byte (vm);
+        vm_compare (vm, left, right);
+      }
+      break;
+    case VM_OPERATION_CMP8_R_R:
+      {
+        word left = vm_next_register_value (vm);
+        byte right = vm_next_register_value (vm);
+        vm_compare (vm, left, right);
+      }
+      break;
+    case VM_OPERATION_CMP16_R_I:
       {
         word left = vm_next_register_value (vm);
         word right = vm_next_word (vm);
         vm_compare (vm, left, right);
       }
       break;
-    case VM_OPERATION_CMP_R_R:
+    case VM_OPERATION_CMP16_R_R:
       {
         word left = vm_next_register_value (vm);
         word right = vm_next_register_value (vm);

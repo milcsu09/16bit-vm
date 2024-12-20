@@ -28,9 +28,6 @@ view_debug (VM *vm)
   for (word i = 0x7000; vm->memory[i] != 0; ++i)
     printf ("%c", vm->memory[i]);
   printf ("\n");
-
-  // Sandbox
-  // vm_view_memory (vm, 0x3000, 8, 8, false);
 }
 
 int
@@ -39,10 +36,10 @@ main (void)
   VM vm = { 0 };
   vm_create (&vm, 0x10000);
 
-  char *message = "Hello, world!";
+  // char *message = "abcdefghijklmnopqrstuvwxyz";
 
   byte program[] = {
-    VM_OPERATION_MOV16_R_I, VM_REGISTER_R1, LITERAL (0x3000),
+    /*VM_OPERATION_MOV16_R_I, VM_REGISTER_R1, LITERAL (0x3000),
     VM_OPERATION_ADD_R, VM_REGISTER_R1, VM_REGISTER_R1, VM_REGISTER_R2,
 
     VM_OPERATION_MOV8_R_RM, VM_REGISTER_R1, VM_REGISTER_R1,
@@ -54,14 +51,25 @@ main (void)
 
     VM_OPERATION_ADD_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
 
-    VM_OPERATION_CMP_R_I, VM_REGISTER_R1, LITERAL (0),
-    VM_OPERATION_JNE_I, LITERAL (0),
+    VM_OPERATION_CMP8_R_I, VM_REGISTER_R1, LITERAL (0),
+    VM_OPERATION_JNE_I, LITERAL (0),*/
+
+    VM_OPERATION_MOV8_R_I, VM_REGISTER_R1, 'a',
+    VM_OPERATION_MOV16_R_I, VM_REGISTER_R2, LITERAL (0x7000),
+
+    VM_OPERATION_MOV8_RM_R, VM_REGISTER_R2, VM_REGISTER_R3,
+
+    VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (1),
+    VM_OPERATION_ADD_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
+
+    VM_OPERATION_CMP8_R_I, VM_REGISTER_R1, 'z',
+    VM_OPERATION_JLE_I, LITERAL (7),
 
     VM_OPERATION_HALT,
   };
 
   memcpy (&vm.memory[0x0000], program, sizeof program);
-  memcpy (&vm.memory[0x3000], message, strlen (message));
+  // memcpy (&vm.memory[0x3000], message, strlen (message));
 
   pid_t pid = fork ();
   if (pid == 0)
