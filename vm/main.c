@@ -36,27 +36,21 @@ main (void)
   VM vm = { 0 };
   vm_create (&vm, 0x10000);
 
-  // char *message = "abcdefghijklmnopqrstuvwxyz";
-
   byte program[] = {
-    /*VM_OPERATION_MOV16_R_I, VM_REGISTER_R1, LITERAL (0x3000),
-    VM_OPERATION_ADD_R, VM_REGISTER_R1, VM_REGISTER_R1, VM_REGISTER_R2,
-
-    VM_OPERATION_MOV8_R_RM, VM_REGISTER_R1, VM_REGISTER_R1,
-
-    VM_OPERATION_MOV16_R_I, VM_REGISTER_R4, LITERAL (0x7000),
-    VM_OPERATION_ADD_R, VM_REGISTER_R4, VM_REGISTER_R4, VM_REGISTER_R2,
-
-    VM_OPERATION_MOV8_RM_R, VM_REGISTER_R4, VM_REGISTER_R1,
-
-    VM_OPERATION_ADD_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
-
-    VM_OPERATION_CMP8_R_I, VM_REGISTER_R1, LITERAL (0),
-    VM_OPERATION_JNE_I, LITERAL (0),*/
-
     VM_OPERATION_MOV8_R_I, VM_REGISTER_R1, 'a',
     VM_OPERATION_MOV16_R_I, VM_REGISTER_R2, LITERAL (0x7000),
 
+// 0x0007 - .loop:
+    VM_OPERATION_MOV16_R_R, VM_REGISTER_R3, VM_REGISTER_R1,
+
+    VM_OPERATION_DIV_I, VM_REGISTER_R8, VM_REGISTER_R3, LITERAL (2),
+
+    VM_OPERATION_CMP8_R_I, VM_REGISTER_AC, 1,
+    VM_OPERATION_JEQ_I, LITERAL (26),
+
+    VM_OPERATION_SUB_I, VM_REGISTER_R3, VM_REGISTER_R3, LITERAL (32),
+
+// - .skip
     VM_OPERATION_MOV8_RM_R, VM_REGISTER_R2, VM_REGISTER_R3,
 
     VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (1),
@@ -69,16 +63,18 @@ main (void)
   };
 
   memcpy (&vm.memory[0x0000], program, sizeof program);
-  // memcpy (&vm.memory[0x3000], message, strlen (message));
 
   pid_t pid = fork ();
   if (pid == 0)
     while (1)
       {
-        view_debug (&vm);
-        if (getc (stdin) != '\n')
-          continue;
+        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
+          view_debug (&vm);
+        // if (getc (stdin) != '\n')
+        //   continue;
+
         vm_step (&vm);
+        usleep (50000);
       }
   else
     {
