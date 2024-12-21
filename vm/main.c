@@ -25,8 +25,9 @@ view_debug (VM *vm)
   vm_view_memory (vm, 0x7000, 8, 8, false);
 
   printf ("\n");
-  for (word i = 0x7000; vm->memory[i] != 0; ++i)
-    printf ("%c", vm->memory[i]);
+  for (word i = 0x7000; i < 0x70ff; ++i)
+    if (vm->memory[i])
+      printf ("%c", vm->memory[i]);
   printf ("\n");
 }
 
@@ -36,12 +37,12 @@ main (void)
   VM vm = { 0 };
   vm_create (&vm, 0x10000);
 
-  byte program[] = {
+  byte alphabet[] = {
     VM_OPERATION_MOV8_R_I, VM_REGISTER_R1, 'a',
-    VM_OPERATION_MOV16_R_I, VM_REGISTER_R2, LITERAL (0x7000),
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R2, LITERAL (0x7000),
 
-// 0x0007 - .loop:
-    VM_OPERATION_MOV16_R_R, VM_REGISTER_R3, VM_REGISTER_R1,
+// .loop:
+    VM_OPERATION_MOV_R_R, VM_REGISTER_R3, VM_REGISTER_R1,
 
     VM_OPERATION_DIV_I, VM_REGISTER_R8, VM_REGISTER_R3, LITERAL (2),
 
@@ -50,7 +51,7 @@ main (void)
 
     VM_OPERATION_SUB_I, VM_REGISTER_R3, VM_REGISTER_R3, LITERAL (32),
 
-// - .skip
+// .skip
     VM_OPERATION_MOV8_RM_R, VM_REGISTER_R2, VM_REGISTER_R3,
 
     VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (1),
@@ -62,14 +63,64 @@ main (void)
     VM_OPERATION_HALT,
   };
 
-  memcpy (&vm.memory[0x0000], program, sizeof program);
+  byte collatz[] = {
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (15),
+
+    VM_OPERATION_ADD_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
+    VM_OPERATION_DIV_I, VM_REGISTER_R8, VM_REGISTER_R1, LITERAL (2),
+    VM_OPERATION_CMP8_R_I, VM_REGISTER_AC, 0,
+    VM_OPERATION_JEQ_I, LITERAL (32),
+
+    VM_OPERATION_MUL_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (3),
+    VM_OPERATION_ADD_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (1),
+    VM_OPERATION_JMP_I, LITERAL (4),
+
+    VM_OPERATION_DIV_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (2),
+    VM_OPERATION_JMP_I, LITERAL (4),
+
+    VM_OPERATION_HALT
+  };
+
+  byte main[] = {
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (0xffff),
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R2, LITERAL (0x7004),
+    VM_OPERATION_CALL_I, LITERAL (0x2000),
+
+    VM_OPERATION_MOV8_IM_I, LITERAL (0x7005), ' ',
+
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R1, LITERAL (1234),
+    VM_OPERATION_MOV_R_I, VM_REGISTER_R2, LITERAL (0x7009),
+    VM_OPERATION_CALL_I, LITERAL (0x2000),
+
+    VM_OPERATION_HALT,
+  };
+
+  // putd (r1 n, r2 address) -> void
+  byte putd[] = {
+    VM_OPERATION_DIV_I, VM_REGISTER_R1, VM_REGISTER_R1, LITERAL (10),
+    VM_OPERATION_ADD_I, VM_REGISTER_AC, VM_REGISTER_AC, '0', 0x00,
+
+    VM_OPERATION_MOV8_RM_R, VM_REGISTER_R2, VM_REGISTER_AC,
+    VM_OPERATION_SUB_I, VM_REGISTER_R2, VM_REGISTER_R2, LITERAL (1),
+
+    VM_OPERATION_CMP_R_I, VM_REGISTER_R1, LITERAL (0),
+    VM_OPERATION_JNE_I, LITERAL (0x2000),
+
+    VM_OPERATION_RET,
+  };
+
+  memcpy (&vm.memory[0x0000], main, sizeof main);
+  memcpy (&vm.memory[0x2000], putd, sizeof putd);
+  // memcpy (&vm.memory[0x0000], alphabet, sizeof alphabet);
 
   pid_t pid = fork ();
   if (pid == 0)
     while (1)
       {
         // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-          view_debug (&vm);
+        //   view_debug (&vm);
+
+        view_debug (&vm);
         // if (getc (stdin) != '\n')
         //   continue;
 
