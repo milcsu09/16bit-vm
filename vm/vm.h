@@ -81,7 +81,6 @@ typedef enum
   VM_OPERATION_CALL_R,
   VM_OPERATION_RET,
   VM_OPERATION_HALT,
-  VM_OPERATION_HALF,
   VM_OPERATION_COUNT,
 } VM_Operation;
 
@@ -118,21 +117,18 @@ void vm_destroy (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);
-word vm_load_byte_word (VM *vm, word address);
 
 word vm_load_register_value (VM *vm, word address);
 word *vm_load_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
-word vm_next_byte_word (VM *vm);
 
 word vm_next_register_value (VM *vm);
 word *vm_next_register_address (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
-void vm_store_byte_word (VM *vm, word address, word value);
 
 void vm_push_byte (VM *vm, byte value);
 void vm_push_word (VM *vm, word value);

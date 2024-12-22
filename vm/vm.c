@@ -57,7 +57,6 @@ static const char *const VM_OPERATION_NAME[] = {
   "call(r)",
   "ret",
   "halt",
-  "half",
 };
 
 static const char *const VM_ERROR_NAME[] = {
@@ -135,12 +134,6 @@ vm_load_word (VM *vm, word address)
 }
 
 word
-vm_load_byte_word (VM *vm, word address)
-{
-  return (word) vm_load_byte (vm, address);
-}
-
-word
 vm_load_register_value (VM *vm, word address)
 {
   byte index = vm_load_byte (vm, address);
@@ -169,12 +162,6 @@ vm_next_word (VM *vm)
 }
 
 word
-vm_next_byte_word (VM *vm)
-{
-  return (word) vm_next_byte (vm);
-}
-
-word
 vm_next_register_value (VM *vm)
 {
   return vm_load_register_value (vm, (*vm->ip)++);
@@ -200,12 +187,6 @@ vm_store_word (VM *vm, word address, word value)
 
   vm_store_byte (vm, address + 0, L);
   vm_store_byte (vm, address + 1, H);
-}
-
-void
-vm_store_byte_word (VM *vm, word address, word value)
-{
-  vm_store_byte (vm, address, (byte) value);
 }
 
 void
@@ -253,25 +234,25 @@ vm_jump (VM *vm, word address, bool condition)
 void
 vm_execute (VM *vm, VM_Operation operation)
 {
-  word (*vm_load_width)(VM *, word);
-  word (*vm_next_width)(VM *);
-  void (*vm_store_width)(VM *, word, word);
+  typedef word (*vm_load_width_t) (VM *, word);
+  typedef word (*vm_next_width_t) (VM *);
+  typedef void (*vm_store_width_t) (VM *, word, word);
 
-  if (operation == VM_OPERATION_HALF)
+  byte half = operation & 0x80;
+  byte data = operation & 0x7F;
+
+  vm_load_width_t vm_load_width = vm_load_word;
+  vm_next_width_t vm_next_width = vm_next_word;
+  vm_store_width_t vm_store_width = vm_store_word;
+
+  if (half)
     {
-      vm_load_width = vm_load_byte_word;
-      vm_next_width = vm_next_byte_word;
-      vm_store_width = vm_store_byte_word;
-      operation = vm_next_byte (vm);
-    }
-  else
-    {
-      vm_load_width = vm_load_word;
-      vm_next_width = vm_next_word;
-      vm_store_width = vm_store_word;
+      vm_load_width = (vm_load_width_t) vm_load_byte;
+      vm_next_width = (vm_next_width_t) vm_next_byte;
+      vm_store_width = (vm_store_width_t) vm_store_byte;
     }
 
-  switch (operation)
+  switch (data)
     {
     case VM_OPERATION_NONE:
       break;
@@ -564,7 +545,6 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_HALT:
       exit (VM_ERROR_NONE);
-    case VM_OPERATION_HALF:
     default:
       exit (VM_ERROR_ILLEGAL_OPERATION);
     }
@@ -575,7 +555,6 @@ vm_step (VM *vm)
 {
   vm_execute (vm, vm_next_byte (vm));
 }
-
 
 void
 vm_view_register (VM *vm, VM_Register index)
@@ -620,11 +599,9 @@ vm_view_memory (VM *vm, word address, word a, word b, bool decode)
   if (decode)
     {
       VM_Operation operation = vm->memory[address];
-      if (operation == VM_OPERATION_HALF)
-        printf ("~ ~~ %s %s", vm_operation_name (operation),
-                vm_operation_name(vm->memory[address + 1]));
-      else
-        printf ("~ %s", vm_operation_name (operation));
+      byte half = operation & 0x80;
+      byte data = operation & 0x7F;
+      printf ("~ %s%s", vm_operation_name (data), half ? "'" : "");
     }
 
   printf ("\n");
