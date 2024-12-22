@@ -14,21 +14,20 @@ view_debug (VM *vm)
   printf ("\033[2J\033[H");
   printf ("\n");
 
-  vm_view_registers (vm);
+  for (size_t i = 0; i < VM_REGISTER_COUNT; ++i)
+    vm_view_register (vm, i);
   printf ("\n");
 
-  vm_view_flags (vm);
-  printf ("\n");
+  vm_view_memory (vm, *vm->ip, 12, 4, true);
+  vm_view_memory (vm, *vm->sp, 12, 4, false);
 
-  vm_view_memory (vm, *vm->ip, 8, 8, true);
-  vm_view_memory (vm, *vm->sp, 8, 8, false);
-  vm_view_memory (vm, 0x7000, 8, 8, false);
-
+#if 0
   printf ("\n");
   for (word i = 0x7000; i < 0x70ff; ++i)
     if (vm->memory[i])
       printf ("%c", vm->memory[i]);
   printf ("\n");
+#endif
 }
 
 int
@@ -39,13 +38,12 @@ main (void)
 
   byte program[] = {
     VM_OPERATION_HALF,
-    VM_OPERATION_MOV_IM_I, LITERAL (0x7000), '_',
+    VM_OPERATION_PUSH_I,  'A',
+
+    VM_OPERATION_POP,      VM_REGISTER_R1,
 
     VM_OPERATION_HALF,
-    VM_OPERATION_MOV_IM_I, LITERAL (0x7001), 'B',
-
-    VM_OPERATION_HALF,
-    VM_OPERATION_MOV_IM_I, LITERAL (0x7000), 'A',
+    VM_OPERATION_MOV_R_RM, VM_REGISTER_R2,  VM_REGISTER_SP,
 
     VM_OPERATION_HALT,
   };

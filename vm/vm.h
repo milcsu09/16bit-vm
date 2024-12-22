@@ -109,6 +109,7 @@ typedef struct
   } flags;
 } VM;
 
+char *vm_register_name (VM_Register index);
 char *vm_operation_name (VM_Operation index);
 char *vm_error_name (VM_Error index);
 
@@ -145,9 +146,8 @@ void vm_jump (VM *vm, word address, bool condition);
 void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);
 
-void vm_view_registers (VM *vm);
+void vm_view_register (VM *vm, VM_Register index);
 void vm_view_memory (VM *vm, word address, word a, word b, bool decode);
-void vm_view_flags (VM *vm);
 
 #endif // VM_H
 
