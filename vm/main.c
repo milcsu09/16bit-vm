@@ -37,14 +37,6 @@ main (void)
   vm_create (&vm, 0x10000);
 
   byte program[] = {
-    VM_OPERATION_HALF,
-    VM_OPERATION_PUSH_I,  'A',
-
-    VM_OPERATION_POP,      VM_REGISTER_R1,
-
-    VM_OPERATION_HALF,
-    VM_OPERATION_MOV_R_RM, VM_REGISTER_R2,  VM_REGISTER_SP,
-
     VM_OPERATION_HALT,
   };
 
@@ -58,6 +50,7 @@ main (void)
         if (getc (stdin) != '\n')
           continue;
         vm_step (&vm);
+        // usleep (500);
       }
   else
     {

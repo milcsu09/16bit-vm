@@ -28,7 +28,7 @@ static const char *const VM_OPERATION_NAME[] = {
   "mov(rm, rm)",
   "push(i)",
   "push(r)",
-  "pop(r)",
+  "pop",
   "add(i)",
   "add(r)",
   "sub(i)",
@@ -37,8 +37,8 @@ static const char *const VM_OPERATION_NAME[] = {
   "mul(r)",
   "div(i)",
   "div(r)",
-  "cmp(r, i)",
-  "cmp(r, r)",
+  "cmp(i)",
+  "cmp(r)",
   "jmp(i)",
   "jmp(r)",
   "jeq(i)",
@@ -253,7 +253,7 @@ vm_jump (VM *vm, word address, bool condition)
 void
 vm_execute (VM *vm, VM_Operation operation)
 {
-  word (*vm_load_width)(VM *a, word b);
+  word (*vm_load_width)(VM *, word);
   word (*vm_next_width)(VM *);
   void (*vm_store_width)(VM *, word, word);
 
@@ -614,7 +614,7 @@ vm_view_memory (VM *vm, word address, word a, word b, bool decode)
   for (size_t i = 0; i < a - above; ++i)
     printf (".. ");
 
-  // 5 = len(VM_FMT_WORD " ") 3 = len(VM_FMT_BYTE " ")
+  // (VM_FMT_WORD " ") + b * (VM_FMT_BYTE " ")
   printf ("\n%*s^", 5 + b * 3, "");
 
   if (decode)
