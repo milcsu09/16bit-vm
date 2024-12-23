@@ -28,7 +28,9 @@ static const char *const VM_OPERATION_NAME[] = {
   "mov(rm, rm)",
   "push(i)",
   "push(r)",
+  "pusha",
   "pop",
+  "popa",
   "add(i)",
   "add(r)",
   "sub(i)",
@@ -247,9 +249,9 @@ vm_execute (VM *vm, VM_Operation operation)
 
   if (half)
     {
-      vm_load_width = (vm_load_width_t) vm_load_byte;
-      vm_next_width = (vm_next_width_t) vm_next_byte;
-      vm_store_width = (vm_store_width_t) vm_store_byte;
+      vm_load_width = (void *) vm_load_byte;
+      vm_next_width = (void *) vm_next_byte;
+      vm_store_width = (void *) vm_store_byte;
     }
 
   switch (data)
@@ -356,11 +358,19 @@ vm_execute (VM *vm, VM_Operation operation)
         vm_push_word (vm, value);
       }
       break;
+    case VM_OPERATION_PUSHA:
+      for (size_t i = VM_REGISTER_R1; i <= VM_REGISTER_R8; ++i)
+        vm_push_word (vm, vm->registers[i]);
+      break;
     case VM_OPERATION_POP:
       {
         word *dest = vm_next_register_address (vm);
         *dest = vm_pop_word (vm);
       }
+      break;
+    case VM_OPERATION_POPA:
+      for (size_t i = VM_REGISTER_R8; i >= VM_REGISTER_R1; --i)
+        vm->registers[i] = vm_pop_word (vm);
       break;
     case VM_OPERATION_ADD_I:
       {

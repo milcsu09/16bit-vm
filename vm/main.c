@@ -65,11 +65,11 @@ main (int argc, char *argv[argc])
   if (pid == 0)
     while (1)
       {
-        if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-          view_io (&vm);
-        // view_debug (&vm);
-        // if (getc (stdin) != '\n')
-        //   continue;
+        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
+        //   view_io (&vm);
+        view_debug (&vm);
+        if (getc (stdin) != '\n')
+          continue;
         vm_step (&vm);
         // usleep (5000);
       }
