@@ -28,8 +28,8 @@ static const char *const VM_OPERATION_NAME[] = {
   "mov(rm, rm)",
   "push(i)",
   "push(r)",
-  "pusha",
   "pop",
+  "pusha",
   "popa",
   "add(i)",
   "add(r)",
@@ -358,15 +358,15 @@ vm_execute (VM *vm, VM_Operation operation)
         vm_push_word (vm, value);
       }
       break;
-    case VM_OPERATION_PUSHA:
-      for (size_t i = VM_REGISTER_R1; i <= VM_REGISTER_R8; ++i)
-        vm_push_word (vm, vm->registers[i]);
-      break;
     case VM_OPERATION_POP:
       {
         word *dest = vm_next_register_address (vm);
         *dest = vm_pop_word (vm);
       }
+      break;
+    case VM_OPERATION_PUSHA:
+      for (size_t i = VM_REGISTER_R1; i <= VM_REGISTER_R8; ++i)
+        vm_push_word (vm, vm->registers[i]);
       break;
     case VM_OPERATION_POPA:
       for (size_t i = VM_REGISTER_R8; i >= VM_REGISTER_R1; --i)
