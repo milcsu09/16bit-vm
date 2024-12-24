@@ -119,18 +119,21 @@ void vm_destroy (VM *vm);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);
+word vm_load_width (VM *vm, word address, bool half);
 
 word vm_load_register_value (VM *vm, word address);
 word *vm_load_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
+word vm_next_width (VM *vm, bool half);
 
 word vm_next_register_value (VM *vm);
 word *vm_next_register_address (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
+void vm_store_width (VM *vm, word address, word value, bool half);
 
 void vm_push_byte (VM *vm, byte value);
 void vm_push_word (VM *vm, word value);

@@ -28,6 +28,7 @@ view_io (VM *vm)
 {
   for (word i = 0x7000; vm->memory[i] != 0; ++i)
     printf ("%c", vm->memory[i]);
+  printf ("\n");
 }
 
 static inline void
@@ -42,6 +43,8 @@ view_debug (VM *vm)
 
   vm_view_memory (vm, *vm->ip, 12, 4, true);
   vm_view_memory (vm, *vm->sp, 12, 4, false);
+
+  printf ("\n");
   vm_view_memory (vm, 0x7000, 12, 4, false);
 
   view_io (vm);
@@ -65,11 +68,11 @@ main (int argc, char *argv[argc])
   if (pid == 0)
     while (1)
       {
-        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-        //   view_io (&vm);
-        view_debug (&vm);
-        if (getc (stdin) != '\n')
-          continue;
+        if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
+          view_io (&vm);
+        // view_debug (&vm);
+        // if (getc (stdin) != '\n')
+        //   continue;
         vm_step (&vm);
         // usleep (5000);
       }
