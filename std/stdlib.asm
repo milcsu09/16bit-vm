@@ -59,27 +59,70 @@
 .printm // (s) -> void
   pusha
 
+  mov r2 *._printm_pointer
+
 ._printm_loop
   mov byte r1 *r5
   cmp byte r1 0
   jeq ._printm_end
 
-  mov r2 *._printm_pointer
   mov byte *r2 r1
 
   add byte r2 r2 1
   add byte r5 r5 1
 
-  mov *._printm_pointer r2
-
   jmp ._printm_loop
 
 ._printm_end
+  mov *._printm_pointer r2
+
+  popa
+  ret
+
+.ilen // (i) -> length
+  pusha
+  mov byte r1 0
+
+._ilen_loop
+  div byte r5 r5 10
+  add byte r1 r1 1
+
+  cmp byte r5 0
+  jne ._ilen_loop
+
+  mov ac r1
+  popa
+  ret
+
+.itos // (dest, i) -> length
+  pusha
+  push r5
+
+  mov r5 r6
+  call .ilen
+
+  pop r5
+  push ac
+
+  mov r1 ac
+
+._itos_loop
+  div byte r6 r6 10
+  sub byte r1 r1 1
+
+  mov byte r2 0
+  add r2 r5 r1 // Destination
+  add byte ac ac '0'
+  mov byte *r2 ac
+
+  cmp byte r1 0
+  jne ._itos_loop
+
+  pop ac
   popa
   ret
 
 // Points to the next free place to printm
 ._printm_pointer
   define 0x7000
-
 
