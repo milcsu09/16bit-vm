@@ -1,8 +1,8 @@
 
-attach "tests/stdlib.asm"
+attach "std/stdlib.asm"
 
 mov r5 .message
-call .mlen
+call .printm
 
 halt
 

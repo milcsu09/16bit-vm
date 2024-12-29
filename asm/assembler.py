@@ -652,6 +652,11 @@ def main():
     with open(output_path, "wb") as f:
         f.write(result)
 
+    print(f"{len(labels)} labels")
+    pad = len(max(labels.keys(), key=len))
+    for key, value in labels.items():
+        print(f"    {key:{pad}} {value:04X} ({value})")
+
     print(f"Success. {len(result)} bytes, '{output_path}'")
 
 if __name__ == "__main__":

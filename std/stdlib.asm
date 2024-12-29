@@ -56,4 +56,30 @@
   popa
   ret
 
+.printm // (s) -> void
+  pusha
+
+._printm_loop
+  mov byte r1 *r5
+  cmp byte r1 0
+  jeq ._printm_end
+
+  mov r2 *._printm_pointer
+  mov byte *r2 r1
+
+  add byte r2 r2 1
+  add byte r5 r5 1
+
+  mov *._printm_pointer r2
+
+  jmp ._printm_loop
+
+._printm_end
+  popa
+  ret
+
+// Points to the next free place to printm
+._printm_pointer
+  define 0x7000
+
 
