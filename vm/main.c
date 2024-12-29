@@ -47,6 +47,10 @@ view_debug (VM *vm)
   printf ("\n");
   vm_view_memory (vm, 0x7000, 12, 4, false);
 
+  printf ("\n");
+  vm_view_memory (vm, 0x2000, 12, 4, false);
+  vm_view_memory (vm, 0x3000, 12, 4, false);
+
   view_io (vm);
 }
 
@@ -69,13 +73,16 @@ main (int argc, char *argv[argc])
       {
         // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
         //   view_io (&vm);
+
         view_debug (&vm);
         if (getc (stdin) != '\n')
           continue;
     
         // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
         //  view_debug (&vm);
+
         vm_step (&vm);
+
         // usleep (5000);
       }
   else
