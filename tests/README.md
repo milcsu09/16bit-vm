@@ -1,4 +1,4 @@
 # Tests
 
-Test programs which the assembler can assemble into the VM's bytecode.
+Test programs which the [assembler](../asm/) can assemble into bytecode.
 
