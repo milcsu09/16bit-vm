@@ -1,4 +1,2 @@
-asm/
-tests/
 *.out
 *.bin
