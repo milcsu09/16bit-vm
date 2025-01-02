@@ -42,11 +42,6 @@ view_debug (VM *vm)
   printf ("\n");
 
   vm_view_memory (vm, *vm->ip, 12, 4, true);
-  vm_view_memory (vm, *vm->sp, 12, 4, false);
-
-  printf ("\n");
-  vm_view_memory (vm, 0x7000, 12, 4, false);
-
   view_io (vm);
 }
 
@@ -60,15 +55,15 @@ main (int argc, char *argv[argc])
     }
 
   VM vm = { 0 };
-  vm_create (&vm, 0x10000);
+  vm_create (&vm);
   load_file (&vm, argv[1]);
 
   pid_t pid = fork ();
   if (pid == 0)
     while (1)
       {
-        if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-          view_io (&vm);
+        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
+        //   view_io (&vm);
 
         // view_debug (&vm);
         // if (getc (stdin) != '\n')
@@ -78,8 +73,6 @@ main (int argc, char *argv[argc])
         //  view_debug (&vm);
 
         vm_step (&vm);
-
-        // usleep (5000);
       }
   else
     {

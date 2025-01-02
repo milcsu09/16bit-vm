@@ -15,8 +15,13 @@
 
 #define VM_ARRAY_SIZE(xs) (sizeof (xs) / sizeof ((xs)[0]))
 
+// Each device can be mapped to blocks of size VM_DEVICE_BLOCK_SIZE.
+#define VM_DEVICE_BLOCK_SIZE 0x100
+
 typedef uint8_t byte;
 typedef uint16_t word;
+
+typedef struct VM VM;
 
 typedef enum
 {
@@ -95,13 +100,23 @@ typedef enum
 
 typedef struct
 {
+  byte (*load) (VM *, word);
+  void (*store) (VM *, word, byte);
+  void *state;
+} VM_Device;
+
+typedef struct VM
+{
   word registers[VM_REGISTER_COUNT];
   word *ip;
   word *sp;
   word *bp;
 
   byte *memory;
-  size_t nmemb;
+  VM_Device **devices;
+
+  size_t nmemory;
+  size_t ndevice;
 
   struct
   {
@@ -114,8 +129,10 @@ char *vm_register_name (VM_Register index);
 char *vm_operation_name (VM_Operation index);
 char *vm_error_name (VM_Error index);
 
-void vm_create (VM *vm, size_t nmemb);
+void vm_create (VM *vm);
 void vm_destroy (VM *vm);
+
+void vm_map_device (VM *vm, VM_Device *device, word start, word end);
 
 byte vm_load_byte (VM *vm, word address);
 word vm_load_word (VM *vm, word address);

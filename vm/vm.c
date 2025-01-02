@@ -100,30 +100,57 @@ vm_error_name (VM_Error index)
 }
 
 void
-vm_create (VM *vm, size_t nmemb)
+vm_create (VM *vm)
 {
-  vm->registers[VM_REGISTER_SP] = nmemb - sizeof (word);
+  vm->nmemory = 0x10000; // Default to 64kB
+  vm->ndevice = vm->nmemory / VM_DEVICE_BLOCK_SIZE;
+
+  vm->registers[VM_REGISTER_SP] = vm->nmemory - sizeof (word);
   vm->registers[VM_REGISTER_BP] = vm->registers[VM_REGISTER_SP];
 
   vm->ip = &vm->registers[VM_REGISTER_IP];
   vm->sp = &vm->registers[VM_REGISTER_SP];
   vm->bp = &vm->registers[VM_REGISTER_BP];
 
-  vm->memory = calloc (nmemb, sizeof (byte));
-  vm->nmemb = nmemb;
+  vm->memory = calloc (vm->nmemory, sizeof (byte));
+  vm->devices = calloc (vm->ndevice, sizeof (VM_Device *));
 }
 
 void
 vm_destroy (VM *vm)
 {
   free (vm->memory);
+  free (vm->devices);
+
   vm->memory = NULL;
-  vm->nmemb = 0;
+  vm->devices = NULL;
+
+  vm->nmemory = 0;
+  vm->ndevice = 0;
+}
+
+void
+vm_map_device (VM *vm, VM_Device *device, word start, word end)
+{
+  start /= VM_DEVICE_BLOCK_SIZE;
+  end /= VM_DEVICE_BLOCK_SIZE;
+
+  for (word i = start; i <= end; ++i)
+    vm->devices[i] = device;
+}
+
+static inline VM_Device *
+vm_find_device (VM *vm, word address)
+{
+  return vm->devices[address / VM_DEVICE_BLOCK_SIZE];
 }
 
 byte
 vm_load_byte (VM *vm, word address)
 {
+  VM_Device *device = vm_find_device (vm, address);
+  if (device)
+    return device->load (vm, address);
   return vm->memory[address];
 }
 
@@ -196,7 +223,11 @@ vm_next_register_address (VM *vm)
 void
 vm_store_byte (VM *vm, word address, byte value)
 {
-  vm->memory[address] = value;
+  VM_Device *device = vm_find_device (vm, address);
+  if (device)
+    device->store (vm, address, value);
+  else
+    vm->memory[address] = value;
 }
 
 void
@@ -601,7 +632,7 @@ vm_view_register (VM *vm, VM_Register index)
 void
 vm_view_memory (VM *vm, word address, word a, word b, bool decode)
 {
-  size_t above = (address <= vm->nmemb - 1 - a) ? a : vm->nmemb - 1 - address;
+  size_t above = (address <= vm->nmemory - 1 - a) ? a : vm->nmemory - 1 - address;
   size_t below = (address >= b) ? b : address;
 
   printf (VM_FMT_WORD " ", address);
