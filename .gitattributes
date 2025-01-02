@@ -1,3 +1,2 @@
 asm/* linguist-vendored
-examples/* linguist-vendored
-std/* linguist-vendored
+tests/* linguist-vendored
