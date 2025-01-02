@@ -15,12 +15,13 @@
 
 #define VM_ARRAY_SIZE(xs) (sizeof (xs) / sizeof ((xs)[0]))
 
-// Each device can be mapped to blocks of size VM_DEVICE_BLOCK_SIZE.
+// Each device can be mapped to blocks of size VM_DEVICE_BLOCK_SIZE bytes.
 #define VM_DEVICE_BLOCK_SIZE 0x100
 
 typedef uint8_t byte;
 typedef uint16_t word;
 
+typedef struct VM_Device VM_Device;
 typedef struct VM VM;
 
 typedef enum
@@ -98,10 +99,15 @@ typedef enum
   VM_ERROR_COUNT,
 } VM_Error;
 
+// Devices have their own load / store operations, this allows for custom
+// behavior on that operation. State is a pointer to a utility value that the
+// load / store function can work with!
 typedef struct VM_Device
 {
-  byte (*load) (VM *, struct VM_Device *, word);
-  void (*store) (VM *, struct VM_Device *, word, byte);
+  byte (*load_byte) (VM *, VM_Device *, word);
+  word (*load_word) (VM *, VM_Device *, word);
+  void (*store_byte) (VM *, VM_Device *, word, byte);
+  void (*store_word) (VM *, VM_Device *, word, word);
   void *state;
 } VM_Device;
 

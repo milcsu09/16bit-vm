@@ -152,16 +152,23 @@ vm_load_byte (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
-    return device->load (vm, device, address);
-  return vm->memory[address];
+    return device->load_byte (vm, device, address);
+  else
+    return vm->memory[address];
 }
 
 word
 vm_load_word (VM *vm, word address)
 {
-  const byte L = vm_load_byte (vm, address + 0);
-  const byte H = vm_load_byte (vm, address + 1);
-  return VM_WORD_PACK (H, L);
+  VM_Device *device = vm_find_device (vm, address);
+  if (device)
+    return device->load_word (vm, device, address);
+  else
+    {
+      const byte L = vm_load_byte (vm, address + 0);
+      const byte H = vm_load_byte (vm, address + 1);
+      return VM_WORD_PACK (H, L);
+    }
 }
 
 word
@@ -227,7 +234,7 @@ vm_store_byte (VM *vm, word address, byte value)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
-    device->store (vm, device, address, value);
+    device->store_byte (vm, device, address, value);
   else
     vm->memory[address] = value;
 }
@@ -235,11 +242,16 @@ vm_store_byte (VM *vm, word address, byte value)
 void
 vm_store_word (VM *vm, word address, word value)
 {
-  const byte L = VM_WORD_L (value);
-  const byte H = VM_WORD_H (value);
-
-  vm_store_byte (vm, address + 0, L);
-  vm_store_byte (vm, address + 1, H);
+  VM_Device *device = vm_find_device (vm, address);
+  if (device)
+    device->store_word (vm, device, address, value);
+  else
+    {
+      const byte L = VM_WORD_L (value);
+      const byte H = VM_WORD_H (value);
+      vm_store_byte (vm, address + 0, L);
+      vm_store_byte (vm, address + 1, H);
+    }
 }
 
 void
