@@ -114,6 +114,8 @@ vm_create (VM *vm)
 
   vm->memory = calloc (vm->nmemory, sizeof (byte));
   vm->devices = calloc (vm->ndevice, sizeof (VM_Device *));
+
+  vm->halt = false;
 }
 
 void
@@ -150,7 +152,7 @@ vm_load_byte (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
-    return device->load (vm, address);
+    return device->load (vm, device, address);
   return vm->memory[address];
 }
 
@@ -225,7 +227,7 @@ vm_store_byte (VM *vm, word address, byte value)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
-    device->store (vm, address, value);
+    device->store (vm, device, address, value);
   else
     vm->memory[address] = value;
 }
@@ -597,7 +599,8 @@ vm_execute (VM *vm, VM_Operation operation)
       *vm->ip = vm_pop_word (vm);      
       break;
     case VM_OPERATION_HALT:
-      exit (VM_ERROR_NONE);
+      vm->halt = true;
+      break;
     default:
       exit (VM_ERROR_ILLEGAL_OPERATION);
     }

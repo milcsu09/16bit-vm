@@ -98,10 +98,10 @@ typedef enum
   VM_ERROR_COUNT,
 } VM_Error;
 
-typedef struct
+typedef struct VM_Device
 {
-  byte (*load) (VM *, word);
-  void (*store) (VM *, word, byte);
+  byte (*load) (VM *, struct VM_Device *, word);
+  void (*store) (VM *, struct VM_Device *, word, byte);
   void *state;
 } VM_Device;
 
@@ -123,6 +123,8 @@ typedef struct VM
     byte z : 1;
     byte c : 1;
   } flags;
+
+  bool halt;
 } VM;
 
 char *vm_register_name (VM_Register index);

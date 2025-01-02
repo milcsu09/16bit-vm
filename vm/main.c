@@ -5,6 +5,49 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <SDL2/SDL.h>
+
+uint32_t colors[] = {
+    0xFF0000, 0x00FF00, 0x0000FF,
+    0xFFFF00, 0xFF00FF, 0x00FFFF,
+    0x800000, 0x808000, 0x008000,
+    0x800080, 0x008080, 0x000080,
+    0xC0C0C0, 0x808080, 0x404040,
+    0xFFA500, 0xA52A2A, 0x8A2BE2,
+    0x5F9EA0, 0x7FFF00, 0xD2691E,
+    0xDC143C, 0x00CED1, 0x9400D3,
+    0xFF1493, 0x00BFFF, 0x696969,
+    0x1E90FF, 0xB22222, 0x228B22,
+    0xFFFAF0, 0xDCDCDC, 0xF8F8FF,
+    0xFFD700, 0xDAA520, 0xADFF2F,
+    0xF0FFF0, 0xFF69B4, 0xCD5C5C,
+    0x4B0082, 0xFFFFF0, 0xF0E68C,
+    0xE6E6FA, 0xFFF0F5, 0x7CFC00,
+    0xFFFACD, 0xADD8E6, 0xF08080,
+    0xE0FFFF, 0xFAFAD2, 0xD3D3D3,
+    0x90EE90, 0xFFB6C1, 0xFFA07A,
+    0x20B2AA, 0x87CEFA, 0x778899,
+    0xB0C4DE, 0xFFFFE0, 0x32CD32,
+    0xFAF0E6, 0x800000, 0x66CDAA,
+    0xBA55D3, 0x9370DB, 0x3CB371,
+    0x7B68EE, 0x00FA9A, 0x48D1CC,
+    0xC71585, 0x191970, 0xF5FFFA,
+    0xFFE4E1, 0xFFE4B5, 0xFFDEAD,
+    0x000080, 0xFDF5E6, 0x6B8E23,
+    0xFFA500, 0xFF4500, 0xDA70D6,
+    0xEEE8AA, 0x98FB98, 0xAFEEEE,
+    0xDB7093, 0xFFEFD5, 0xFFDAB9,
+    0xCD853F, 0xFFC0CB, 0xDDA0DD,
+    0xB0E0E6, 0xBC8F8F, 0x4169E1,
+    0x8B4513, 0xFA8072, 0xF4A460,
+    0x2E8B57, 0xFFF5EE, 0xA0522D,
+    0xC0C0C0, 0x87CEEB, 0x6A5ACD,
+    0x708090, 0xFFFAFA, 0x00FF7F,
+    0x4682B4, 0xD2B48C, 0x008080,
+    0xD8BFD8, 0xFF6347, 0x40E0D0,
+    0xEE82EE, 0xF5DEB3, 0xFFFFFF
+};
+
 static inline void
 load_file (VM *vm, const char *path)
 {
@@ -23,80 +66,156 @@ load_file (VM *vm, const char *path)
   free (bytecode);
 }
 
-static inline void
-view_io (VM *vm)
+static struct {
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  SDL_Texture *texture;
+  uint32_t *pixel_buffer;
+  uint32_t width, height;
+} state;
+
+static size_t buffer_sz;
+
+void
+render_init (const char *title, uint32_t width, uint32_t height,
+             uint32_t pixel_size)
 {
-  for (word i = 0x7000; vm->memory[i] != 0; ++i)
-    printf ("%c", vm->memory[i]);
-  printf ("\n");
+  SDL_Init (SDL_INIT_VIDEO);
+  state.window = SDL_CreateWindow (title, SDL_WINDOWPOS_CENTERED,
+                                     SDL_WINDOWPOS_CENTERED, width,
+                                     height, SDL_WINDOW_SHOWN);
+  state.renderer = SDL_CreateRenderer (state.window, -1,
+                                       SDL_RENDERER_ACCELERATED);
+
+  state.width = width / pixel_size;
+  state.height = height / pixel_size;
+
+  state.texture = SDL_CreateTexture (
+      state.renderer, SDL_PIXELFORMAT_RGB888,
+      SDL_TEXTUREACCESS_STREAMING, state.width, state.height);
+
+  buffer_sz = state.width * state.height * sizeof (uint32_t);
+  state.pixel_buffer = malloc (buffer_sz);
 }
 
-static inline void
-view_debug (VM *vm)
+void
+render_clear ()
 {
-  printf ("\033[2J\033[H");
-  printf ("\n");
-
-  for (size_t i = 0; i < VM_REGISTER_COUNT; ++i)
-    vm_view_register (vm, i);
-  printf ("\n");
-
-  vm_view_memory (vm, *vm->ip, 12, 4, true);
-  view_io (vm);
+  memset (state.pixel_buffer, 0x00, buffer_sz);
 }
+
+void
+render_present (int64_t flags)
+{
+  SDL_UpdateTexture (state.texture, NULL, state.pixel_buffer,
+                     state.width * sizeof (uint32_t));
+  SDL_RenderCopyEx (state.renderer, state.texture, NULL, NULL, 0,
+                    NULL, flags);
+  SDL_RenderPresent (state.renderer);
+}
+
+static inline uint8_t
+point_in_bounds (float x, float y)
+{
+  return (x >= 0 && x < state.width)
+         && (y >= 0 && y < state.height);
+}
+
+static inline uint32_t
+point_to_index (float x, float y, uint32_t stride)
+{
+  return (int32_t)x + (int32_t)y * stride;
+}
+
+void
+draw_point (word index, byte color)
+{
+  state.pixel_buffer[index] = colors[color];
+}
+
+byte
+renderer_load (VM *vm, VM_Device *device, word address)
+{
+  return 0;
+}
+
+void
+renderer_store (VM *vm, VM_Device *device, word address, byte value)
+{
+  word index = address - 0x3000;
+  draw_point (index, value);
+}
+
+byte
+keyboard_load (VM *vm, VM_Device *device, word address)
+{
+  return ((byte *)device->state)[address - 0x7000];
+}
+
+void
+keyboard_store (VM *vm, VM_Device *device, word address, byte value)
+{}
 
 int
 main (int argc, char *argv[argc])
 {
-  if (argc != 2)
-    {
-      fprintf (stderr, "error: Provide ROM file\n");
-      exit (1);
-    }
-
   VM vm = { 0 };
   vm_create (&vm);
+
   load_file (&vm, argv[1]);
 
-  pid_t pid = fork ();
-  if (pid == 0)
-    while (1)
-      {
-        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-        //   view_io (&vm);
+  VM_Device renderer = {};
+  renderer.load = renderer_load;
+  renderer.store = renderer_store;
+  vm_map_device (&vm, &renderer, 0x3000, 0x7000);
 
-        // view_debug (&vm);
-        // if (getc (stdin) != '\n')
-        //   continue;
-    
-        // if (vm.memory[*vm.ip] == VM_OPERATION_HALT)
-        //  view_debug (&vm);
+  VM_Device keyboard = {};
+  keyboard.load = keyboard_load;
+  keyboard.store = keyboard_store;
+  keyboard.state = (void *)SDL_GetKeyboardState(NULL);
+  vm_map_device (&vm, &keyboard, 0x7000, 0x7100);
 
-        vm_step (&vm);
-      }
-  else
+  render_init ("16bit-vm", 768, 768, 6);
+  printf ("%dx%d\n", state.width, state.height);
+  printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
+
+  // printf ("W = %d\n", SDL_SCANCODE_W);
+  // printf ("A = %d\n", SDL_SCANCODE_A);
+  // printf ("S = %d\n", SDL_SCANCODE_S);
+  // printf ("D = %d\n", SDL_SCANCODE_D);
+  // printf ("SPACE = %d\n", SDL_SCANCODE_SPACE);
+
+  while (!vm.halt)
     {
-      int status;
-      if (waitpid (pid, &status, 0) > 0)
+      SDL_Event event;
+      while (SDL_PollEvent (&event))
         {
-          if (WIFEXITED (status))
+          switch (event.type)
             {
-              int exit_code = WEXITSTATUS (status);
-              if (exit_code != 0)
-                fprintf (stderr, "error: process exited with code %i (%s)\n",
-                         exit_code,
-                         vm_error_name (exit_code));
-              else
-                printf ("OK.\n");
+            case SDL_QUIT:
+              goto quit;
+            default:
+              break;
             }
-          else if (WIFSIGNALED (status))
-            printf ("error: process terminated by signal %d\n",
-                    WTERMSIG (status));
+        }
+
+      if (vm.memory[0xFFFA])
+        {
+          render_clear ();
+          vm.memory[0xFFFA] = 0;
+        }
+
+      vm_step (&vm);
+
+      if (vm.memory[0xFFFB])
+        {
+          render_present (SDL_FLIP_NONE);
+          vm.memory[0xFFFB] = 0;
+          SDL_Delay (1000 / 60);
         }
     }
 
-  vm_destroy (&vm);
-
+quit:
   return 0;
 }
 
