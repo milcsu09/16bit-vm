@@ -211,14 +211,9 @@ main (int argc, char *argv[argc])
   vm_map_device (&vm, &keyboard, 0x7000, 0x7100);
 
   render_init ("16bit-vm", 768, 768, 6);
+
   printf ("%dx%d\n", state.width, state.height);
   printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
-
-  // printf ("W = %d\n", SDL_SCANCODE_W);
-  // printf ("A = %d\n", SDL_SCANCODE_A);
-  // printf ("S = %d\n", SDL_SCANCODE_S);
-  // printf ("D = %d\n", SDL_SCANCODE_D);
-  // printf ("SPACE = %d\n", SDL_SCANCODE_SPACE);
 
   while (!vm.halt)
     {
@@ -240,13 +235,21 @@ main (int argc, char *argv[argc])
           vm.memory[0xFFFA] = 0;
         }
 
+      // for (byte i = 0; i < VM_REGISTER_COUNT; ++i)
+      //   vm_view_register (&vm, i);
+     
+      // vm_view_memory (&vm, *vm.ip, 4, 12, true);
+
+      // if (getc (stdin) != '\n')
+      //   continue;
+
       vm_step (&vm);
 
       if (vm.memory[0xFFFB])
         {
           render_present (SDL_FLIP_NONE);
           vm.memory[0xFFFB] = 0;
-          SDL_Delay (1000 / 60);
+          // SDL_Delay (1000 / 60);
         }
     }
 

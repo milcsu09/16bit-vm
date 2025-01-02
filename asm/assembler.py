@@ -43,7 +43,7 @@ class Token:
 
 @unique
 class DirectiveType(IntEnum):
-    BYTE = auto(0)
+    WORD = auto(0)
     ATTACH = auto()
     DEFINE = auto()
     RESERVE = auto()
@@ -117,11 +117,11 @@ class OperationType(IntEnum):
 
 
 class Operation:
-    def __init__(self, loc, typ, val, half=False):
+    def __init__(self, loc, typ, val, full=False):
         self.loc = loc
         self.typ = typ
         self.val = val
-        self.half = half
+        self.full = full
 
     def __str__(self):
         return f"{self.typ} {repr(self.val)}"
@@ -242,7 +242,8 @@ def lexer_tokenize_fragment(fragment, loc):
     exit(1)
 
 
-def transformer_expand_token(token, half):
+def transformer_expand_token(token, full):
+    half = not full
     match token.typ:
         case TokenType.DIRECTIVE:
             # Directive won't expand.
@@ -272,14 +273,13 @@ def transformer_expand_line(line, half):
     return sum(transformer_expand_token(token, half) for token in line)
 
 
-def transformer_process_line(line, half):
+def transformer_process_line(line, full):
+    half = not full
     operation, *operands = line
     loc = operation.loc
 
-    # If first operand is `byte` directive, process line without that operand,
-    # with `half` flag set to True. e.g.: `define byte "Hello, world!" 0`
     if len(operands) >= 1 and (operands[0].typ == TokenType.DIRECTIVE and
-                               operands[0].val == DirectiveType.BYTE):
+                               operands[0].val == DirectiveType.WORD):
         operands = operands[1:]
         return transformer_process_line([operation, *operands], True)
 
@@ -295,11 +295,11 @@ def transformer_process_line(line, half):
     # time, but given as an integer to know how many of them there are.
     elif operation.val == DirectiveType.RESERVE:
         if operation_match_arguments([TokenType.IMMEDIATE], operands):
-            return half, operands[0].val * (2 - int(half)), line
+            return full, operands[0].val * (2 - half), line
         report_no_overload(operation, operands, loc)
         exit(1)
 
-    return half, transformer_expand_line(line, half), line
+    return full, transformer_expand_line(line, full), line
 
 
 def transformer_process_lines(lines):
@@ -530,7 +530,7 @@ def transformer_process_operands(operands, labels):
 def transformer_parse_operations(lines, labels):
     result = []
 
-    for half, size, data in lines:
+    for full, size, data in lines:
         operation, *operands = data
         loc = operation.loc
     
@@ -543,12 +543,12 @@ def transformer_parse_operations(lines, labels):
         if operation.typ == TokenType.DIRECTIVE:
             operands = [operation.val] + operands
             result.append(Operation(loc, OperationType.DIRECTIVE, operands,
-                                    half))
+                                    full))
             continue
 
         # Find the overload for the operation.
         overload = operation_find_overload(operation, operands, OVERLOADS)
-        result.append(Operation(loc, overload, operands, half))
+        result.append(Operation(loc, overload, operands, full))
 
     return result
 
@@ -584,25 +584,25 @@ def builder_fit_limit(value, limit, loc):
     return value
 
 
-def builder_get_width(value, half, loc):
-    if half:
+def builder_get_width(value, full, loc):
+    if not full:
         return [builder_fit_limit(value, 0x100, loc)]
     value = builder_fit_limit(value, 0x10000, loc)
     return [(value & 0xFF), (value >> 8)]
 
 
-def builder_build_operand(operand, half, loc):
+def builder_build_operand(operand, full, loc):
     result = bytearray()
 
     if operand.typ == TokenType.IMMEDIATE:
-        result.extend(builder_get_width(operand.val, half, loc))
+        result.extend(builder_get_width(operand.val, full, loc))
     if operand.typ == TokenType.IDENTIFIER:
         result.append(builder_get_register(operand.val, loc))
     if operand.typ == TokenType.STRING:
         for char in operand.val:
-            result.extend(builder_get_width(ord(char), half, loc))
+            result.extend(builder_get_width(ord(char), full, loc))
     if operand.typ == TokenType.IADDRESS:
-        result.extend(builder_get_width(operand.val, False, loc))
+        result.extend(builder_get_width(operand.val, True, loc))
     if operand.typ == TokenType.RADDRESS:
         result.append(builder_get_register(operand.val, loc))
 
@@ -614,7 +614,7 @@ def builder_build(operations):
 
     for operation in operations:
         loc = operation.loc
-        half = operation.half
+        full = operation.full
         operation, operands = operation.typ, operation.val
 
         if operation == OperationType.DIRECTIVE:
@@ -622,21 +622,21 @@ def builder_build(operations):
 
             if operation == DirectiveType.DEFINE:
                 for operand in operands:
-                    result.extend(builder_build_operand(operand, half, loc))
+                    result.extend(builder_build_operand(operand, full, loc))
 
             if operation == DirectiveType.RESERVE:
                 for _ in range(operands[0].val):
-                    result.extend(builder_get_width(0, half, loc))
+                    result.extend(builder_get_width(0, full, loc))
 
             continue
 
-        if half:
+        if full:
             result.append(operation | 0x80)
         else:
             result.append(operation)
 
         for operand in operands:
-            result.extend(builder_build_operand(operand, half, loc))
+            result.extend(builder_build_operand(operand, full, loc))
 
     return result
 

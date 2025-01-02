@@ -1,55 +1,55 @@
 
-  call .init_points
+  call word .init_points
 
 
 .loop
-  mov byte *0xFFFA 1
+  mov *0xFFFA 1
 
-  call .move_points
-  call .bounce_points
-  call .draw_points
+  call word .move_points
+  call word .bounce_points
+  call word .draw_points
 
-  mov byte *0xFFFB 1
+  mov *0xFFFB 1
 
-  jmp .loop
+  jmp word .loop
   halt
 
 
 .init_points
   pusha
 
-  mov byte r1 0
+  mov r1 0
 
 .init_points_loop
-  cmp byte r1 64
-  jge .init_points_end
+  cmp r1 64
+  jge word .init_points_end
 
-  mov r5 .xs
+  mov word r5 .xs
   add r5 r5 r1
 
-  mov r6 .ys
+  mov word r6 .ys
   add r6 r6 r1
 
-  mov r7 .dxs
+  mov word r7 .dxs
   add r7 r7 r1
 
-  mov r8 .dys
+  mov word r8 .dys
   add r8 r8 r1
 
-  mul byte r2 r1 2
-  mov byte *r6 r2
+  mul r2 r1 2
+  mov *r6 r2
 
-  mov byte r3 127
-  mul byte r2 r1 2
-  sub byte r2 r3 r2
-  mov byte *r5 r2
+  mov r3 127
+  mul r2 r1 2
+  sub r2 r3 r2
+  mov *r5 r2
 
-  div byte r2 r1 2
-  mov byte *r7 ac
-  mov byte *r8 ac
+  div r2 r1 2
+  mov *r7 ac
+  mov *r8 ac
 
-  add byte r1 r1 1
-  jmp .init_points_loop
+  add r1 r1 1
+  jmp word .init_points_loop
 
 .init_points_end
   popa
@@ -59,56 +59,56 @@
 .move_points
   pusha
 
-  mov byte r1 0
+  mov r1 0
 
 .move_points_loop
-  cmp byte r1 64
-  jge .move_points_end
+  cmp r1 64
+  jge word .move_points_end
 
-  mov r5 .xs
+  mov word r5 .xs
   add r5 r5 r1
 
-  mov r6 .dxs
+  mov word r6 .dxs
   add r6 r6 r1
 
-  mov byte r2 *r5
-  mov byte r3 *r6
+  mov r2 *r5
+  mov r3 *r6
 
-  cmp byte r3 0
-  jne .move_points_sub_x
+  cmp r3 0
+  jne word .move_points_sub_x
 
-  add byte r2 r2 1
-  jmp .move_points_add_x
+  add r2 r2 1
+  jmp word .move_points_add_x
 
 .move_points_sub_x
-  sub byte r2 r2 1
+  sub r2 r2 1
 
 .move_points_add_x
-  mov byte *r5 r2
+  mov *r5 r2
 
-  mov r5 .ys
+  mov word r5 .ys
   add r5 r5 r1
 
-  mov r6 .dys
+  mov word r6 .dys
   add r6 r6 r1
 
-  mov byte r2 *r5
-  mov byte r3 *r6
+  mov r2 *r5
+  mov r3 *r6
 
-  cmp byte r3 0
-  jne .move_points_sub_y
+  cmp r3 0
+  jne word .move_points_sub_y
 
-  add byte r2 r2 1
-  jmp .move_points_add_y
+  add r2 r2 1
+  jmp word .move_points_add_y
 
 .move_points_sub_y
-  sub byte r2 r2 1
+  sub r2 r2 1
 
 .move_points_add_y
-  mov byte *r5 r2
+  mov *r5 r2
 
-  add byte r1 r1 1
-  jmp .move_points_loop
+  add r1 r1 1
+  jmp word .move_points_loop
 
 .move_points_end
   popa
@@ -118,57 +118,57 @@
 .bounce_points
   pusha
 
-  mov byte r1 0
+  mov r1 0
 
 .bounce_points_loop
-  cmp byte r1 64
-  jge .bounce_points_end
+  cmp r1 64
+  jge word .bounce_points_end
 
-  mov r5 .xs
+  mov word r5 .xs
   add r5 r5 r1
 
-  mov r6 .ys
+  mov word r6 .ys
   add r6 r6 r1
 
-  mov r7 .dxs
+  mov word r7 .dxs
   add r7 r7 r1
 
-  mov r8 .dys
+  mov word r8 .dys
   add r8 r8 r1
 
-  mov byte r5 *r5
-  mov byte r6 *r6
+  mov r5 *r5
+  mov r6 *r6
 
-  cmp byte r5 0 // LEFT
-  jgt .bounce_points_left
+  cmp r5 0 // LEFT
+  jgt word .bounce_points_left
 
-  mov byte *r7 0
-  mov byte *r8 0
+  mov *r7 0
+  mov *r8 0
 
 .bounce_points_left
-  cmp byte r5 127 // RIGHT
-  jlt .bounce_points_right
+  cmp r5 127 // RIGHT
+  jlt word .bounce_points_right
 
-  mov byte *r7 1
-  mov byte *r8 1
+  mov *r7 1
+  mov *r8 1
 
 .bounce_points_right
-  cmp byte r6 0 // UP
-  jgt .bounce_points_up
+  cmp r6 0 // UP
+  jgt word .bounce_points_up
 
-  mov byte *r7 0
-  mov byte *r8 0
+  mov *r7 0
+  mov *r8 0
 
 .bounce_points_up
-  cmp byte r6 127 // DOWN
-  jlt .bounce_points_down
+  cmp r6 127 // DOWN
+  jlt word .bounce_points_down
 
-  mov byte *r7 1
-  mov byte *r8 1
+  mov *r7 1
+  mov *r8 1
 
 .bounce_points_down
-  add byte r1 r1 1
-  jmp .bounce_points_loop
+  add r1 r1 1
+  jmp word .bounce_points_loop
 
 .bounce_points_end
   popa
@@ -177,11 +177,11 @@
 
 .point_to_index
   pusha
-  mov byte ac 0
+  mov ac 0
 
-  mul byte ac r6 128
+  mul ac r6 128
   add ac ac r5
-  add ac ac 0x3000
+  add word ac ac 0x3000
 
   popa
   ret
@@ -190,8 +190,8 @@
 .draw_point
   pusha
 
-  call .point_to_index
-  mov byte *ac r7
+  call word .point_to_index
+  mov *ac r7
 
   popa
   ret
@@ -200,26 +200,26 @@
 .draw_points
   pusha
 
-  mov byte r1 0
+  mov r1 0
 
 .draw_points_loop
-  cmp byte r1 64
-  jge .draw_points_end
+  cmp r1 64
+  jge word .draw_points_end
 
-  mov r5 .xs
+  mov word r5 .xs
   add r5 r5 r1
 
-  mov r6 .ys
+  mov word r6 .ys
   add r6 r6 r1
 
-  mov byte r5 *r5
-  mov byte r6 *r6
-  mov byte r7 r1
-  call .draw_point
+  mov r5 *r5
+  mov r6 *r6
+  mov r7 r1
+  call word .draw_point
 
-  add byte r1 r1 1
+  add r1 r1 1
 
-  jmp .draw_points_loop
+  jmp word .draw_points_loop
 
 .draw_points_end
   popa
@@ -227,14 +227,14 @@
 
 
 .xs
-  reserve byte 64
+  reserve 64
 
 .ys
-  reserve byte 64
+  reserve 64
 
 .dxs
-  reserve byte 64
+  reserve 64
 
 .dys
-  reserve byte 64
+  reserve 64
 

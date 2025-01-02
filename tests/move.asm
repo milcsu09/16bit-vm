@@ -1,16 +1,16 @@
 
 .loop
-  mov byte *0xFFFA 1 // Clear screen
+  mov *0xFFFA 1 // Clear screen
 
-  mov byte r5 *.px
-  mov byte r6 *.py
+  mov r5 *.px
+  mov r6 *.py
   mov r7 0
-  call .point
+  call word .point
 
-  call .move
+  call word .move
 
-  mov byte *0xFFFB 1 // Display screen
-  jmp .loop
+  mov *0xFFFB 1 // Display screen
+  jmp word .loop
 
   halt
 
@@ -20,36 +20,36 @@
   mov r1 *.px
   mov r2 *.py
 
-  mov byte r5 26 // W
-  call .is_down
+  mov r5 26 // W
+  call word .is_down
 
   cmp ac 0
-  jeq ._move_skip_u
-  sub byte r2 r2 1
+  jeq word ._move_skip_u
+  sub r2 r2 1
 
 ._move_skip_u
-  mov byte r5 22 // S
-  call .is_down
+  mov r5 22 // S
+  call word .is_down
 
   cmp ac 0
-  jeq ._move_skip_d
-  add byte r2 r2 1
+  jeq word ._move_skip_d
+  add r2 r2 1
 
 ._move_skip_d
-  mov byte r5 4 // A
-  call .is_down
+  mov r5 4 // A
+  call word .is_down
 
   cmp ac 0
-  jeq ._move_skip_l
-  sub byte r1 r1 1
+  jeq word ._move_skip_l
+  sub r1 r1 1
 
 ._move_skip_l
-  mov byte r5 7 // D
-  call .is_down
+  mov r5 7 // D
+  call word .is_down
 
   cmp ac 0
-  jeq ._move_skip_r
-  add byte r1 r1 1
+  jeq word ._move_skip_r
+  add r1 r1 1
 
 ._move_skip_r
   mov *.px r1
@@ -61,8 +61,8 @@
 .is_down
   pusha
   
-  add r1 r5 0x7000
-  mov byte ac *r1
+  add word r1 r5 0x7000
+  mov ac *r1
 
   popa
   ret
@@ -73,7 +73,7 @@
 
   mul ac r6 128
   add ac ac r5
-  add ac ac 0x3000
+  add word ac ac 0x3000
 
   popa
   ret
@@ -81,15 +81,15 @@
 .point
   pusha
 
-  call .c2i
-  mov byte *ac r7
+  call word .c2i
+  mov *ac r7
 
   popa
   ret
 
 .px
-  define byte 10
+  define 10
 
 .py
-  define byte 10
+  define 10
 
