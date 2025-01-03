@@ -656,8 +656,11 @@ def main():
     if len(labels) != 0:
         print(f"{len(labels)} labels")
         pad = len(max(labels.keys(), key=len))
+        previous = 0
         for key, value in labels.items():
-            print(f"    {key:{pad}} {value:04X} ({value})")
+            diff = value - previous
+            print(f"    {key:{pad}} {value:04X} ({value}) +{abs(diff)}")
+            previous = value
 
     print(f"Success. {len(result)} bytes, '{output_path}'")
 

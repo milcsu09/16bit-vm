@@ -1,9 +1,8 @@
 #include "vm.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 #include <SDL2/SDL.h>
 
@@ -128,9 +127,9 @@ point_to_index (float x, float y, uint32_t stride)
 }
 
 void
-draw_point (word index, byte color)
+draw_point (word index, uint32_t color)
 {
-  state.pixel_buffer[index] = colors[color];
+  state.pixel_buffer[index] = color;
 }
 
 byte
@@ -140,12 +139,29 @@ renderer_load_byte (VM *vm, VM_Device *device, word address)
   return 0;
 }
 
+uint32_t
+convertColor (uint16_t color)
+{
+  uint8_t a4 = (color >> 12) & 0x0F;
+  uint8_t r4 = (color >> 8) & 0x0F;
+  uint8_t g4 = (color >> 4) & 0x0F;
+  uint8_t b4 = color & 0x0F;
+
+  uint8_t a8 = (a4 << 4) | a4;
+  uint8_t r8 = (r4 << 4) | r4;
+  uint8_t g8 = (g4 << 4) | g4;
+  uint8_t b8 = (b4 << 4) | b4;
+
+  return (a8 << 24) | (r8 << 16) | (g8 << 8) | b8;
+}
+    
+
 void
 renderer_store_byte (VM *vm, VM_Device *device, word address, byte value)
 {
   (void) vm, (void) device;
   word index = address - 0x3000;
-  draw_point (index, value);
+  draw_point (index, colors[value]);
 }
 
 word
@@ -159,6 +175,8 @@ void
 renderer_store_word (VM *vm, VM_Device *device, word address, word value)
 {
   (void) vm, (void) device, (void) address, (void) value;
+  word index = address - 0x3000;
+  draw_point (index, convertColor (value));
 }
 
 byte
@@ -211,9 +229,11 @@ main (int argc, char *argv[argc])
   vm_map_device (&vm, &keyboard, 0x7000, 0x7100);
 
   render_init ("16bit-vm", 768, 768, 6);
+  // render_init ("16bit-vm", 128, 128, 1);
 
   printf ("%dx%d\n", state.width, state.height);
   printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
+
 
   while (!vm.halt)
     {
@@ -243,13 +263,14 @@ main (int argc, char *argv[argc])
       // if (getc (stdin) != '\n')
       //   continue;
 
+      // printf ("%d\n", *vm.sp);
       vm_step (&vm);
 
       if (vm.memory[0xFFFB])
         {
           render_present (SDL_FLIP_NONE);
           vm.memory[0xFFFB] = 0;
-          // SDL_Delay (1000 / 60);
+          SDL_Delay (1000 / 60);
         }
     }
 
