@@ -1,63 +1,104 @@
 #!/usr/bin/python3
 
-import os
-import re
-import sys
-import inspect
-import warnings
-
+import time
+import os, sys
 from enum import IntEnum, auto, unique
 
-warnings.simplefilter("ignore", category=DeprecationWarning)
+
+def report_message(typ, msg, loc=None, fd=sys.stderr):
+    fd.write(f"{loc[0]} [{loc[1]}]: " if loc else "")
+    fd.write(f"{typ}: {msg}\n")
+
+
+def report_error(*args, **kwargs):
+    report_message("ERROR", *args, **kwargs)
+
+
+def report_warning(*args, **kwargs):
+    report_message("WARNING", *args, **kwargs)
+
+
+def report_note(*args, **kwargs):
+    report_message("NOTE", *args, **kwargs)
 
 
 @unique
 class TokenType(IntEnum):
-    DIRECTIVE = auto(0)
-    IMMEDIATE = auto()
-    IDENTIFIER = auto()
+    DIRECTIVE = 0
+
+    SYMBOL = auto()
+    NUMBER = auto()
     STRING = auto()
-    LABEL = auto()
-    IADDRESS = auto()
-    RADDRESS = auto()
+
+    EQUALS = auto()
+    # Colon implicitly places an EOL token after itself.
+    COLON = auto()
+
+    LPAREN = auto()
+    RPAREN = auto()
+    LBRACE = auto()
+    RBRACE = auto()
+
+    EOL = auto()
+    EOF = auto()
+
+    # Used after tokenization later
+    IMEMORY = auto()
+    RMEMORY = auto()
 
     def __str__(self):
-        return self.name.lower()
+        return self.name.upper()
 
     def __repr__(self):
         return str(self)
 
 
 class Token:
-    def __init__(self, loc, typ, val):
+    def __init__(self, loc, typ, val=None):
         self.loc = loc
         self.typ = typ
         self.val = val
 
+    def to(self, typ, val=None):
+        return Token(self.loc, typ, self.val if val is None else val)
+
     def __str__(self):
-        return f"{self.typ} {repr(self.val)}"
+        postfix = f":{repr(self.val)}" if self.val is not None else ""
+        return str(self.typ) + postfix
 
     def __repr__(self):
         return str(self)
 
 
-@unique
-class DirectiveType(IntEnum):
-    WORD = auto(0)
-    ATTACH = auto()
-    DEFINE = auto()
-    RESERVE = auto()
-
-    def __str__(self):
-        return self.name.lower()
-
-    def __repr__(self):
-        return str(self)
+TOKEN_SINGLE = {
+    "=": TokenType.EQUALS,
+    ":": TokenType.COLON,
+    "(": TokenType.LPAREN,
+    ")": TokenType.RPAREN,
+    "{": TokenType.LBRACE,
+    "}": TokenType.RBRACE,
+    "\\": TokenType.EOL,
+    "\n": TokenType.EOL,
+}
 
 
-DIRECTIVES = {str(item): item for item in DirectiveType}
+REGISTERS = {
+    "ip": 0,
+    "sp": 1,
+    "bp": 2,
+    "ac": 3,
+    "r1": 4,
+    "r2": 5,
+    "r3": 6,
+    "r4": 7,
+    "r5": 8,
+    "r6": 9,
+    "r7": 10,
+    "r8": 11
+}
 
 
+# Has to align with the VM's instruction set!
 @unique
 class OperationType(IntEnum):
     NONE = 0
@@ -130,236 +171,531 @@ class Operation:
         return str(self)
 
 
-def report_message(typ, msg, loc):
-    if loc:
-        context, line = loc
-        sys.stderr.write(f"{context} [{line}]: ")
-    sys.stderr.write(f"{typ}: {msg}\n")
+# Operation overloads.
+OPERATIONS = {
+    "none": OperationType.NONE,
+
+    "mov": [
+        ([TokenType.SYMBOL, TokenType.NUMBER], OperationType.MOV_R_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.MOV_R_R),
+        ([TokenType.SYMBOL, TokenType.IMEMORY], OperationType.MOV_R_IM),
+        ([TokenType.SYMBOL, TokenType.RMEMORY], OperationType.MOV_R_RM),
+
+        ([TokenType.IMEMORY, TokenType.NUMBER], OperationType.MOV_IM_I),
+        ([TokenType.IMEMORY, TokenType.SYMBOL], OperationType.MOV_IM_R),
+        ([TokenType.IMEMORY, TokenType.IMEMORY], OperationType.MOV_IM_IM),
+        ([TokenType.IMEMORY, TokenType.RMEMORY], OperationType.MOV_IM_RM),
+
+        ([TokenType.RMEMORY, TokenType.NUMBER], OperationType.MOV_RM_I),
+        ([TokenType.RMEMORY, TokenType.SYMBOL], OperationType.MOV_RM_R),
+        ([TokenType.RMEMORY, TokenType.IMEMORY], OperationType.MOV_RM_IM),
+        ([TokenType.RMEMORY, TokenType.RMEMORY], OperationType.MOV_RM_RM),
+    ],
+
+    "push": [
+        ([TokenType.NUMBER], OperationType.PUSH_I),
+        ([TokenType.SYMBOL], OperationType.PUSH_R),
+    ],
+
+    "pop": [
+        ([TokenType.SYMBOL], OperationType.POP),
+    ],
+
+    "pusha": OperationType.PUSHA,
+    "popa": OperationType.POPA,
+
+    "add": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.ADD_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.ADD_R),
+    ],
+
+    "sub": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.SUB_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.SUB_R),
+    ],
+
+    "mul": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.MUL_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.MUL_R),
+    ],
+
+    "div": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.DIV_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.DIV_R),
+    ],
+
+    "cmp": [
+        ([TokenType.SYMBOL, TokenType.NUMBER], OperationType.CMP_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.CMP_R),
+    ],
+
+    "jmp": [
+        ([TokenType.NUMBER], OperationType.JMP_I),
+        ([TokenType.SYMBOL], OperationType.JMP_R),
+    ],
+
+    "jeq": [
+        ([TokenType.NUMBER], OperationType.JEQ_I),
+        ([TokenType.SYMBOL], OperationType.JEQ_R),
+    ],
+
+    "jne": [
+        ([TokenType.NUMBER], OperationType.JNE_I),
+        ([TokenType.SYMBOL], OperationType.JNE_R),
+    ],
+
+    "jlt": [
+        ([TokenType.NUMBER], OperationType.JLT_I),
+        ([TokenType.SYMBOL], OperationType.JLT_R),
+    ],
+
+    "jgt": [
+        ([TokenType.NUMBER], OperationType.JGT_I),
+        ([TokenType.SYMBOL], OperationType.JGT_R),
+    ],
+
+    "jle": [
+        ([TokenType.NUMBER], OperationType.JLE_I),
+        ([TokenType.SYMBOL], OperationType.JLE_R),
+    ],
+
+    "jge": [
+        ([TokenType.NUMBER], OperationType.JGE_I),
+        ([TokenType.SYMBOL], OperationType.JGE_R),
+    ],
+
+    "call": [
+        ([TokenType.NUMBER], OperationType.CALL_I),
+        ([TokenType.SYMBOL], OperationType.CALL_R),
+    ],
+
+    "ret": OperationType.RET,
+    "halt": OperationType.HALT,
+}
 
 
-def report_error(msg, loc):
-    report_message("ERROR", msg, loc)
+# These operations will always be implicitly full to avoid problems.
+ALWAYS_FULL = [
+    "jmp",
+    "jeq",
+    "jne",
+    "jlt",
+    "jgt",
+    "jle",
+    "jge",
+    "call",
+]
 
 
-def report_warning(msg, loc):
-    report_message("WARNING", msg, loc)
+@unique
+class DirectiveType(IntEnum):
+    W = 0
+    DEF = auto()
+    RES = auto()
+
+    def __str__(self):
+        return self.name.lower()
+
+    def __repr__(self):
+        return str(self)
 
 
-def report_note(msg, loc):
-    report_message("NOTE", msg, loc)
+DIRECTIVES = {str(item): item for item in DirectiveType}
 
 
-def report_todo(msg):
-    report_message("TODO", msg, None)
+def lexer_find(content, condition, start):
+    while start < len(content) and not condition(content[start]):
+        start = start + 1
+    return start
 
 
-def report_invalid_fragment(fragment, loc):
-    report_error(f"invalid fragment `{fragment}`", loc)
+def lexer_number(content, loc):
+    try:
+        value = int(content, 0)
+    except ValueError:
+        report_error(f"invalid `{content}`")
+        exit(1)
+    return Token(loc, TokenType.NUMBER, value)
 
-
-def report_redefinition(name, loc):
-    report_error(f"redefinition of `{name}`", loc)
-
-
-def report_undefined(name, loc):
-    report_error(f"undefined `{name}`", loc)
-
-
-def report_no_overload(operation, operands, loc):
-    operands = ', '.join(str(x) for x in operands) or "nothing"
-    report_error(f"no matching overload for {operation} with {operands}", loc)
-
-
-def lexer_tokenize(string, context):
-    tokens = []
-
-    for number, line in enumerate(string.splitlines(), 1):
-        line = line.split("//")[0].strip()
-        if not line:
-            continue
-
-        tokens.append([
-            lexer_tokenize_fragment(fragment, (context, number))
-            for fragment in lexer_split(line)
-        ])
-
-    return tokens
-
-
-def lexer_split(string):
-    # Pattern to split a string at every whitespace, but preserve spaces inside
-    # double or single quotes. Also preserves the quotes. Able to escape quotes
-    # with `\`.
-    pattern = '\'(?:\\\'|[^\'])*\'|\"(?:\\\"|[^\"])*\"|\S+'
-    return re.findall(pattern, string)
-
-
-def lexer_valid_identifier(string):
-    return bool(re.match('^[A-Za-z_][A-Za-z0-9_]*$', string))
 
 def lexer_encode_string(string, loc):
     try:
         return string.encode('utf-8').decode('unicode_escape')
     except UnicodeDecodeError:
-        report_warning(f"invalid escape sequence", loc)
-        report_note(f"will default to `{string}`", loc)
-        return string
+        report_error(f"invalid escape sequence", loc)
+        exit(1)
 
 
-def lexer_tokenize_fragment(fragment, loc):
-    if fragment in DIRECTIVES:
-        return Token(loc, TokenType.DIRECTIVE, DIRECTIVES[fragment])
+def lexer_tokenize_file(path, loc=None):
+    if not os.path.exists(path):
+        report_error(f"{path}: No such file or directory", loc)
+        exit(1)
 
-    elif fragment[0].isdigit():
-        try:
-            return Token(loc, TokenType.IMMEDIATE, int(fragment, 0))
-        except:
-            pass
+    with open(path, "r") as file:
+        content = file.read()
+        length = len(content)
 
-    elif lexer_valid_identifier(fragment):
-        return Token(loc, TokenType.IDENTIFIER, fragment)
+    index, line = 0, 1
+    while index < length:
+        loc, begin = (path, line), index
 
-    elif fragment[0] == fragment[-1] == "'" and len(fragment) > 1:
-        child = lexer_encode_string(fragment[1:-1], loc)
-        if len(child) == 1:
-            return Token(loc, TokenType.IMMEDIATE, ord(child))
+        if content[index].isalpha():
+            condition = lambda x: not (x.isalnum() or x == "_")
+            index = lexer_find(content, condition, index) - 1
+            value = content[begin:index + 1]
+            if value in DIRECTIVES:
+                yield Token(loc, TokenType.DIRECTIVE, DIRECTIVES[value])
+            else:
+                yield Token(loc, TokenType.SYMBOL, value)
 
-    elif fragment[0] == fragment[-1] == "\"" and len(fragment) > 1:
-        child = lexer_encode_string(fragment[1:-1], loc)
-        return Token(loc, TokenType.STRING, child)
 
-    elif fragment[0] == "." and lexer_valid_identifier(fragment[1:]):
-        return Token(loc, TokenType.LABEL, fragment[1:])
+        elif content[index].isdigit():
+            condition = lambda x: not x.isalnum()
+            index = lexer_find(content, condition, index) - 1
+            yield lexer_number(content[begin:index + 1], loc)
 
-    elif fragment[0] == "*" and len(fragment) > 1:
-        child = lexer_tokenize_fragment(fragment[1:], loc)
-        if child.typ in (TokenType.IMMEDIATE, TokenType.LABEL):
-            return Token(loc, TokenType.IADDRESS, child.val)
-        if child.typ in (TokenType.IDENTIFIER, ):
-            return Token(loc, TokenType.RADDRESS, child.val)
+        elif content[index] == "\"":
+            condition = lambda x: x == "\""
+            while index := lexer_find(content, condition, index + 1):
+                if index >= length:
+                    report_error("string-literal not terminated", loc)
+                    exit(1)
+                # Allow for escaped quotes
+                elif ((value := content[begin + 1:index]) or "\0")[-1] != "\\":
+                    break
 
-    report_invalid_fragment(fragment, loc)
+            value = lexer_encode_string(value, loc)
+            yield Token(loc, TokenType.STRING, value)
+
+        elif content[index] == "'":
+            index = index + 1 + (content[index + 1] == "\\")
+            value = lexer_encode_string(content[begin + 1:index + 1], loc)
+            if len(value) != 1:
+                report_error(f"`{value}` too long", loc)
+                exit(1)
+            yield Token(loc, TokenType.NUMBER, ord(value))
+
+        elif content[index] in TOKEN_SINGLE:
+            yield Token(loc, TOKEN_SINGLE[content[index]])
+            if content[index] == ":":
+                yield Token(loc, TokenType.EOL, loc)
+
+        elif content[index:index + 2] == "#[": # ]
+            stack = 1
+            while index < length and stack != 0:
+                index = index + 1
+                if content[index:index + 2] == "#[": # ]
+                    stack = stack + 1
+                    index = index + 1
+                if content[index:index + 2] == "]#":
+                    stack = stack - 1
+                    index = index + 1
+
+            if index == length or stack != 0:
+                report_error(f"unbalanced comment blocks", loc)
+                exit(1)
+
+        elif content[index] == "#":
+            index = lexer_find(content, lambda x: x == "\n", index + 1)
+
+        elif not content[index].isspace():
+            report_error(f"undefined `{content[index]}`", loc)
+            exit(1)
+
+        # Skip whitespaces, but not newlines!
+        index = lexer_find(content, lambda x: x not in " \t\r", index + 1)
+        line = line + content[begin:index].count("\n")
+
+    yield Token((path, line - 1), TokenType.EOF)
+
+
+def assert_token(token, *types):
+    if token.typ not in (types or [token.typ]):
+        report_error(f"expected {', '.join(str(typ) for typ in types)}",
+                     token.loc)
+        report_note(f"got {str(token.typ)}", token.loc)
+        exit(1)
+
+
+def assert_token_not(token, *types):
+    if token.typ in types:
+        report_error(f"unexpected {str(token.typ)}", token.loc)
+        exit(1)
+
+
+# Used in other places as well.
+VALID_CONST = [TokenType.NUMBER, TokenType.STRING, TokenType.SYMBOL]
+
+
+# Handle constants, macros and the "w" directive.
+def pass1(tokens, consts=None, macros=None):
+    consts = consts or {}
+    macros = macros or {}
+    result = []
+
+    full = False
+    iterator = iter(tokens)
+
+    def optional(*types):
+        nonlocal current
+        while current.typ != TokenType.EOF and current.typ in types:
+            current = next(iterator, None)
+
+    current = next(iterator, None)
+    while current != None:
+        initial = current
+        current = next(iterator, None)
+
+        if initial.typ == TokenType.EOL:
+            full = False
+
+        if current and current.typ == TokenType.DIRECTIVE:
+            # Handle 16-bit operations using "w", short for "word"
+            if current.val == DirectiveType.W:
+                full = True
+                current = next(iterator, current)
+                result.append((full, initial))
+                continue
+
+        # Handle every symbol
+        if initial.typ == TokenType.SYMBOL:
+            # "Expand" consts
+            if initial.val in consts:
+                result.append((full, consts[initial.val]))
+                continue
+
+            # "Expand" macros
+            if initial.val in macros:
+                arguments = []
+                while current.typ not in [TokenType.EOL, TokenType.EOF]:
+                    assert_token(current, *VALID_CONST)
+                    arguments.append(current)
+                    current = next(iterator, None)
+
+                macro = macros[initial.val]
+                expected, body = macro
+
+                if len(expected) != len(arguments):
+                    report_error("argument mismatch", initial.loc)
+                    exit(1)
+
+                local = dict(zip([x.val for x in expected], arguments))
+                body = pass1(body, {} | consts | local, {} | macros)
+
+                result.extend(body)
+                continue
+                # print(body)
+
+            # Only valid syntax is ```<symbol> = ...```
+            if current.typ not in [TokenType.EQUALS]:
+                result.append((full, initial))
+                continue
+
+            name = initial
+
+            if current.typ == TokenType.EQUALS:
+                current = next(iterator, None)
+
+                optional(TokenType.EOL)
+
+                # Handle macro assignment
+                if current.typ in [TokenType.SYMBOL, TokenType.LBRACE]:
+                    arguments = []
+                    while current.typ in [TokenType.SYMBOL]:
+                        arguments.append(current)
+                        current = next(iterator, None)
+
+                    optional(TokenType.EOL)
+
+                    assert_token(current, TokenType.LBRACE)
+                    current = next(iterator, None)
+
+                    body = []
+                    while current.typ not in [TokenType.RBRACE, TokenType.EOF]:
+                        assert_token_not(current, TokenType.EQUALS)
+                        body.append(current)
+                        current = next(iterator, None)
+
+                    assert_token(current, TokenType.RBRACE)
+                    current = next(iterator, None)
+
+                    macros[name.val] = (arguments, body)
+                # Handle const assignment
+                else:
+                    assert_token(current, *VALID_CONST)
+                    consts[name.val] = current
+                    current = next(iterator, current)
+                continue
+        else:
+            result.append((full, initial))
+
+    return result
+
+
+# Returns how much each operation will expand to during the generation of the
+# bytecode.
+def pass2_expand_token(token, full):
+    match token.typ:
+        case TokenType.DIRECTIVE:
+            return 0
+        case TokenType.SYMBOL:
+            if token.val in REGISTERS | OPERATIONS:
+                return 1
+            return 2
+        case TokenType.NUMBER:
+            return 1 + full
+        case TokenType.STRING:
+            return len(token.val) * (1 + full)
+        case TokenType.IMEMORY:
+            return 2
+        case TokenType.RMEMORY:
+            if token.val in REGISTERS | OPERATIONS:
+                return 1
+            return 2
+        case TokenType.COLON:
+            return 0
+        case TokenType.EOL:
+            return 0
+        case TokenType.EOF:
+            return 0
+
+    report_error(f"invalid syntax `{token}`", token.loc)
     exit(1)
 
 
-def transformer_expand_token(token, full):
-    half = not full
-    match token.typ:
-        case TokenType.DIRECTIVE:
-            # Directive won't expand.
-            return 0
-        case TokenType.IMMEDIATE:
-            # Either 8- or 16-bit.
-            return 2 - half
-        case TokenType.IDENTIFIER:
-            # After transformation, identifier will only hold registers.
-            # Register expands to 1 byte.
-            return 1
-        case TokenType.STRING:
-            # String will either be split into 8- or 16-bit values.
-            return len(token.val) * (2 - half)
-        case TokenType.LABEL:
-            # TODO: figure out the correct way.
-            return 2 - half
-        case TokenType.IADDRESS:
-            # IADDRESS is always 16-bit
-            return 2
-        case TokenType.RADDRESS:
-            # RADDRESS is always 8-bit
-            return 1
+def pass2_expand_line(line, full):
+    return sum(pass2_expand_token(token, full) for token in line)
 
 
-def transformer_expand_line(line, half):
-    return sum(transformer_expand_token(token, half) for token in line)
-
-
-def transformer_process_line(line, full):
-    half = not full
-    operation, *operands = line
-    loc = operation.loc
-
-    if len(operands) >= 1 and (operands[0].typ == TokenType.DIRECTIVE and
-                               operands[0].val == DirectiveType.WORD):
-        operands = operands[1:]
-        return transformer_process_line([operation, *operands], True)
-
-    # Since define can have any amount of arguments, it's checked here.
-    # No need for return since define is passed on like any other operation.
-    elif operation.val == DirectiveType.DEFINE:
-        expected = [TokenType.IMMEDIATE, TokenType.STRING, TokenType.LABEL]
-        if not all(got.typ in expected for got in operands):
-            report_no_overload(operation, operands, loc)
-            exit(1)
-
-    # `Reserve` is special, since each word / byte isn't defined at compile
-    # time, but given as an integer to know how many of them there are.
-    elif operation.val == DirectiveType.RESERVE:
-        if operation_match_arguments([TokenType.IMMEDIATE], operands):
-            return full, operands[0].val * (2 - half), line
-        report_no_overload(operation, operands, loc)
-        exit(1)
-
-    return full, transformer_expand_line(line, full), line
-
-
-def transformer_process_lines(lines):
+# Turn the tokens into intermediate lines.
+# Handle more directives.
+def pass2(trans):
     result = []
-    attach = []
 
-    for line in lines:
-        operation, *operands = line
-        loc = operation.loc
+    iterator = iter(trans)
 
-        # `Attach` has to be handled here, since it will modify multiple lines
-        # instead of a single line.
-        if operation.val == DirectiveType.ATTACH:
-            if operation_match_arguments([TokenType.STRING], operands):
-                try:
-                    file = operands[0].val
-                    attach.extend(transformer_process_file(file, loc))
-                except RecursionError:
-                    report_error(f"`{file}` depends on itself", loc)
-                    exit(1)
+    current = next(iterator, None)
+    while current != None:
+        body = []
+        initial = current
+        full = initial[0]
+
+        # Handle directives
+        if initial[1].typ == TokenType.DIRECTIVE:
+            current = next(iterator, None)
+            body = [initial[1]]
+
+            # Handle directives
+            if initial[1].val == DirectiveType.DEF:
+                # Def can accept infinite amount of bytes!
+                while current[1].typ not in [TokenType.EOL, TokenType.EOF]:
+                    assert_token(current[1], *VALID_CONST)
+                    body.append(current[1])
+                    current = next(iterator, None)
+
+                result.append((full, pass2_expand_line(body, full), body))
                 continue
-            report_no_overload(operation, operands, loc)
-            exit(1)
 
-        result.append(transformer_process_line(line, False))
+            elif initial[1].val == DirectiveType.RES:
+                assert_token(current[1], TokenType.NUMBER)
+                amount = current[1].val
+                body.append(current[1])
 
-    return result + attach
+                # RES will use N * (1 or 2) amount of bytes!
+                result.append((full, amount * (1 + full), body))
+
+                current = next(iterator, None)
+                continue
+
+        # Handle normal operations
+        while current[1].typ not in [TokenType.EOL, TokenType.EOF]:
+            if current[1].typ == TokenType.LPAREN:
+                current = next(iterator, None)
+                assert_token(current[1], TokenType.SYMBOL, TokenType.NUMBER)
+
+                if current[1].typ == TokenType.SYMBOL:
+                    body.append(current[1].to(TokenType.RMEMORY))
+                elif current[1].typ == TokenType.NUMBER:
+                    body.append(current[1].to(TokenType.IMEMORY))
+
+                current = next(iterator, None)
+                assert_token(current[1], TokenType.RPAREN)
+            else:
+                body.append(current[1])
+
+            current = next(iterator, None)
+
+        # Now is the time to remove empty lines!
+        if body != []:
+            result.append((full, pass2_expand_line(body, full), body))
+        current = next(iterator, None)
+
+    # Each 'IR' has this format: (FULL, SIZE, TOKENS)
+    # Full denotes if the operation is 8- or 16-bit
+    # Size denotes the amount of bytes the operation will "expand" to.
+    return result
 
 
-def transformer_process_file(file, loc=None):
-    try:
-        with open(file, "r") as f:
-            content = f.read()
-    except FileNotFoundError as e:
-        report_error(str(e), loc)
-        exit(1)
-
-    lines = lexer_tokenize(content, file)
-    lines = transformer_process_lines(lines)
-    return lines
-
-
-def transformer_parse_labels(lines):
+# Calculate labels.
+def pass3(ir):
+    result = []
     labels = {}
     address = 0
 
-    for _, size, data in lines:
-        operation, *operands = data
-        loc = operation.loc
-
-        if operation.typ == TokenType.LABEL:
-            if operation_match_arguments([], operands):
-                labels[operation.val] = address
-                continue
-            report_no_overload(operation, operands, loc)
-            exit(1)
-
+    for full, size, tokens in ir:
+        if len(tokens) == 2:
+            if tokens[0].typ == TokenType.SYMBOL:
+                if tokens[1].typ == TokenType.COLON:
+                    labels[tokens[0].val] = address
+                    continue
         address += size
+        result.append((full, size, tokens))
 
-    return labels
+    return result, labels
+
+
+# Handle symbols.
+def pass4(ir, labels):
+    result = []
+
+    for full, size, tokens in ir:
+        copy = tokens.copy()
+
+        for i, token in enumerate(tokens):
+            # Handle symbols which are not defined. At this point, there's no
+            # other way of having a defined symbol, then it either being a
+            # register, operations or part of the labels dict.
+            if token.typ == TokenType.SYMBOL:
+                if token.val not in REGISTERS | OPERATIONS | labels:
+                    report_error(f"undefined `{token.val}`", token.loc)
+                    exit(1)
+
+            # Don't modify first token!
+            if i == 0:
+                continue
+
+            # Substitute symbol tokens that are present in the labels dict,
+            # with their address.
+            if token.typ == TokenType.SYMBOL and token.val in labels:
+                copy[i] = token.to(TokenType.NUMBER, labels[token.val])
+            elif token.typ == TokenType.RMEMORY and token.val not in REGISTERS:
+                if token.val not in labels:
+                    report_error(f"undefined `{token.val}`", token.loc)
+                    exit(1)
+                copy[i] = token.to(TokenType.IMEMORY, labels[token.val])
+
+        # Don't append `size` back, we don't need it no more!
+        result.append((full, copy))
+
+    return result
 
 
 def operation_match_argument(expected, got):
@@ -375,122 +711,9 @@ def operation_match_arguments(expected, got):
     return all(operation_match_argument(a, b) for a, b in zip(expected, got))
 
 
-# This huge dictionary is a metadata for the operations. It stores each
-# overload based on the given arguments.
-OVERLOADS = {
-    "none": OperationType.NONE,
-
-    "mov": [
-        ([TokenType.IDENTIFIER, TokenType.IMMEDIATE], OperationType.MOV_R_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER], OperationType.MOV_R_R),
-        ([TokenType.IDENTIFIER, TokenType.IADDRESS], OperationType.MOV_R_IM),
-        ([TokenType.IDENTIFIER, TokenType.RADDRESS], OperationType.MOV_R_RM),
-
-        ([TokenType.IADDRESS, TokenType.IMMEDIATE], OperationType.MOV_IM_I),
-        ([TokenType.IADDRESS, TokenType.IDENTIFIER], OperationType.MOV_IM_R),
-        ([TokenType.IADDRESS, TokenType.IADDRESS], OperationType.MOV_IM_IM),
-        ([TokenType.IADDRESS, TokenType.RADDRESS], OperationType.MOV_IM_RM),
-
-        ([TokenType.RADDRESS, TokenType.IMMEDIATE], OperationType.MOV_RM_I),
-        ([TokenType.RADDRESS, TokenType.IDENTIFIER], OperationType.MOV_RM_R),
-        ([TokenType.RADDRESS, TokenType.IADDRESS], OperationType.MOV_RM_IM),
-        ([TokenType.RADDRESS, TokenType.RADDRESS], OperationType.MOV_RM_RM),
-    ],
-
-    "push": [
-        ([TokenType.IMMEDIATE], OperationType.PUSH_I),
-        ([TokenType.IDENTIFIER], OperationType.PUSH_R),
-    ],
-
-    "pop": [
-        ([TokenType.IDENTIFIER], OperationType.POP),
-    ],
-
-    "pusha": OperationType.PUSHA,
-    "popa": OperationType.POPA,
-
-    "add": [
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IMMEDIATE],
-         OperationType.ADD_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IDENTIFIER],
-         OperationType.ADD_R),
-    ],
-
-    "sub": [
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IMMEDIATE],
-         OperationType.SUB_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IDENTIFIER],
-         OperationType.SUB_R),
-    ],
-
-    "mul": [
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IMMEDIATE],
-         OperationType.MUL_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IDENTIFIER],
-         OperationType.MUL_R),
-    ],
-
-    "div": [
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IMMEDIATE],
-         OperationType.DIV_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER, TokenType.IDENTIFIER],
-         OperationType.DIV_R),
-    ],
-
-    "cmp": [
-        ([TokenType.IDENTIFIER, TokenType.IMMEDIATE], OperationType.CMP_I),
-        ([TokenType.IDENTIFIER, TokenType.IDENTIFIER], OperationType.CMP_R),
-    ],
-
-    "jmp": [
-        ([TokenType.IMMEDIATE], OperationType.JMP_I),
-        ([TokenType.IDENTIFIER], OperationType.JMP_R),
-    ],
-
-    "jeq": [
-        ([TokenType.IMMEDIATE], OperationType.JEQ_I),
-        ([TokenType.IDENTIFIER], OperationType.JEQ_R),
-    ],
-
-    "jne": [
-        ([TokenType.IMMEDIATE], OperationType.JNE_I),
-        ([TokenType.IDENTIFIER], OperationType.JNE_R),
-    ],
-
-    "jlt": [
-        ([TokenType.IMMEDIATE], OperationType.JLT_I),
-        ([TokenType.IDENTIFIER], OperationType.JLT_R),
-    ],
-
-    "jgt": [
-        ([TokenType.IMMEDIATE], OperationType.JGT_I),
-        ([TokenType.IDENTIFIER], OperationType.JGT_R),
-    ],
-
-    "jle": [
-        ([TokenType.IMMEDIATE], OperationType.JLE_I),
-        ([TokenType.IDENTIFIER], OperationType.JLE_R),
-    ],
-
-    "jge": [
-        ([TokenType.IMMEDIATE], OperationType.JGE_I),
-        ([TokenType.IDENTIFIER], OperationType.JGE_R),
-    ],
-
-    "call": [
-        ([TokenType.IMMEDIATE], OperationType.CALL_I),
-        ([TokenType.IDENTIFIER], OperationType.CALL_R),
-    ],
-
-    "ret": OperationType.RET,
-    "halt": OperationType.HALT,
-}
-
-
 def operation_find_overload(operation, operands, table):
-    if operation.val not in table:
-        report_no_overload(operation, operands, operation.loc)
-        exit(1)
+    # Existence of operation already checked in previous passes
+    assert operation.val in table, f"Operation {operation} should be defined."
 
     overloads = table[operation.val]
 
@@ -503,113 +726,66 @@ def operation_find_overload(operation, operands, table):
             if operation_match_arguments(expected, operands):
                 return result
 
-    report_no_overload(operation, operands, operation.loc)
+    report_error(f"invalid overload for `{operation.val}`", operation.loc)
     exit(1)
 
 
-def transformer_process_operands(operands, labels):
-    def get_label(operand):
-        if operand.val not in labels:
-            report_undefined(operand.val, operand.loc)
-            exit(1)
-        return labels[operand.val]
-
-    result = operands.copy()
-    for i, operand in enumerate(result):
-        if operand.typ == TokenType.LABEL:
-            child = get_label(operand)
-            result[i] = Token(operand.loc, TokenType.IMMEDIATE, child)
-        if operand.typ == TokenType.IADDRESS:
-            if isinstance(operand.val, str):
-                child = get_label(operand)
-                result[i].val = child
-
-    return result
-
-
-def transformer_parse_operations(lines, labels):
+def parse_operations(ir):
     result = []
 
-    for full, size, data in lines:
-        operation, *operands = data
+    for full, tokens in ir:
+        operation, *operands = tokens
         loc = operation.loc
-    
-        if operation.typ == TokenType.LABEL:
-            continue
 
-        operands = transformer_process_operands(operands, labels)
+        full = full or operation.val in ALWAYS_FULL
 
-        # Directives are passed on with a wrapper.
+        # Directives are just passed on. Their arguments have been checked in
+        # previous passes.
         if operation.typ == TokenType.DIRECTIVE:
             operands = [operation.val] + operands
             result.append(Operation(loc, OperationType.DIRECTIVE, operands,
                                     full))
             continue
 
-        # Find the overload for the operation.
-        overload = operation_find_overload(operation, operands, OVERLOADS)
+        overload = operation_find_overload(operation, operands, OPERATIONS)
         result.append(Operation(loc, overload, operands, full))
 
     return result
 
 
-REGISTERS = {
-    "ip": 0,
-    "sp": 1,
-    "bp": 2,
-    "ac": 3,
-    "r1": 4,
-    "r2": 5,
-    "r3": 6,
-    "r4": 7,
-    "r5": 8,
-    "r6": 9,
-    "r7": 10,
-    "r8": 11
-}
-
-
-def builder_get_register(key, loc):
-    if key not in REGISTERS:
-        report_undefined(key, loc)
-        exit(1)
-    return REGISTERS[key]
-
-
-def builder_fit_limit(value, limit, loc):
-    if value >= limit:
-        report_warning(f"immediate `{value}` cannot fit target type", loc)
-        value %= limit
-        report_note(f"will default to `{value}`", loc)
+def build_fit_limit(value, limit, loc):
+    if value > limit:
+        t, value = value, value & limit
+        report_note(f"`{t}` wrapped to `{value}`", loc)
     return value
 
 
-def builder_get_width(value, full, loc):
+def build_get_width(value, full, loc):
     if not full:
-        return [builder_fit_limit(value, 0x100, loc)]
-    value = builder_fit_limit(value, 0x10000, loc)
-    return [(value & 0xFF), (value >> 8)]
+        return [build_fit_limit(value, 0xff, loc)]
+    value = build_fit_limit(value, 0xffff, loc)
+    return [(value & 0xff), (value >> 8)]
 
 
-def builder_build_operand(operand, full, loc):
+def build_operand(operand, full, loc):
     result = bytearray()
 
-    if operand.typ == TokenType.IMMEDIATE:
-        result.extend(builder_get_width(operand.val, full, loc))
-    if operand.typ == TokenType.IDENTIFIER:
-        result.append(builder_get_register(operand.val, loc))
-    if operand.typ == TokenType.STRING:
+    if operand.typ == TokenType.SYMBOL:
+        result.append(REGISTERS[operand.val])
+    elif operand.typ == TokenType.NUMBER:
+        result.extend(build_get_width(operand.val, full, loc))
+    elif operand.typ == TokenType.STRING:
         for char in operand.val:
-            result.extend(builder_get_width(ord(char), full, loc))
-    if operand.typ == TokenType.IADDRESS:
-        result.extend(builder_get_width(operand.val, True, loc))
-    if operand.typ == TokenType.RADDRESS:
-        result.append(builder_get_register(operand.val, loc))
+            result.extend(build_get_width(ord(char), full, loc))
+    elif operand.typ == TokenType.IMEMORY:
+        result.extend(build_get_width(operand.val, True, loc))
+    elif operand.typ == TokenType.RMEMORY:
+        result.append(REGISTERS[operand.val])
 
     return result
 
 
-def builder_build(operations):
+def build(operations):
     result = bytearray()
 
     for operation in operations:
@@ -617,52 +793,69 @@ def builder_build(operations):
         full = operation.full
         operation, operands = operation.typ, operation.val
 
+        # Build the directives first.
         if operation == OperationType.DIRECTIVE:
             operation, *operands = operands
 
-            if operation == DirectiveType.DEFINE:
+            if operation == DirectiveType.DEF:
                 for operand in operands:
-                    result.extend(builder_build_operand(operand, full, loc))
+                    result.extend(build_operand(operand, full, loc))
 
-            if operation == DirectiveType.RESERVE:
+            elif operation == DirectiveType.RES:
                 for _ in range(operands[0].val):
-                    result.extend(builder_get_width(0, full, loc))
+                    result.extend(build_get_width(0, full, loc))
 
             continue
 
+        # In the VM, each operations highest bit denotes the full flag.
         if full:
             result.append(operation | 0x80)
         else:
             result.append(operation)
 
         for operand in operands:
-            result.extend(builder_build_operand(operand, full, loc))
+            result.extend(build_operand(operand, full, loc))
 
     return result
 
 
+def usage():
+    print(f"Usage: {sys.argv[0]} <file>")
+
+
 def main():
-    input_path = sys.argv[1]
-    lines = transformer_process_file(input_path)
-    labels = transformer_parse_labels(lines)
+    if len(sys.argv) != 2:
+        usage()
+        exit(1)
 
-    operations = transformer_parse_operations(lines, labels)
-    result = builder_build(operations)
+    input_file = sys.argv[1]
+    output_file = os.path.splitext(input_file)[0]
 
-    output_path = os.path.splitext(input_path)[0]
-    with open(output_path, "wb") as f:
-        f.write(result)
+    # report_note(f"{input_file=}", fd=sys.stdout)
+    # report_note(f"{output_file=}", fd=sys.stdout)
 
-    if len(labels) != 0:
-        print(f"{len(labels)} labels")
-        pad = len(max(labels.keys(), key=len))
-        previous = 0
-        for key, value in labels.items():
-            diff = value - previous
-            print(f"    {key:{pad}} {value:04X} ({value}) +{abs(diff)}")
-            previous = value
+    start = time.time()
 
-    print(f"Success. {len(result)} bytes, '{output_path}'")
+    tokens = lexer_tokenize_file(input_file)
+
+    p1 = pass1(tokens)
+    p2 = pass2(p1)
+    p3 = pass3(p2)
+    p4 = pass4(*p3)
+
+    ops = parse_operations(p4)
+    bytecode = build(ops)
+
+    with open(output_file, "wb") as f:
+        f.write(bytecode)
+
+    # for byte in bytecode:
+    #     print(f"{byte:02x}", end=" ")
+    # print()
+
+    end = time.time()
+    print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} ms)")
+
 
 if __name__ == "__main__":
     main()

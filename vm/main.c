@@ -234,6 +234,7 @@ main (int argc, char *argv[argc])
   printf ("%dx%d\n", state.width, state.height);
   printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
 
+  int x = SDL_SCANCODE_A;
 
   while (!vm.halt)
     {
@@ -255,15 +256,6 @@ main (int argc, char *argv[argc])
           vm.memory[0xFFFA] = 0;
         }
 
-      // for (byte i = 0; i < VM_REGISTER_COUNT; ++i)
-      //   vm_view_register (&vm, i);
-     
-      // vm_view_memory (&vm, *vm.ip, 4, 12, true);
-
-      // if (getc (stdin) != '\n')
-      //   continue;
-
-      // printf ("%d\n", *vm.sp);
       vm_step (&vm);
 
       if (vm.memory[0xFFFB])
