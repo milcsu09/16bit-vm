@@ -406,7 +406,7 @@ def lexer_tokenize_file(path, loc=None):
                 exit(1)
 
         elif content[index] == "#":
-            index = lexer_find(content, lambda x: x == "\n", index + 1)
+            index = lexer_find(content, lambda x: x == "\n", index + 1) - 1
 
         elif not content[index].isspace():
             report_error(f"undefined `{content[index]}`", loc)
@@ -438,9 +438,9 @@ VALID_CONST = [TokenType.NUMBER, TokenType.STRING, TokenType.SYMBOL]
 
 
 # Handle constants, macros and the "w" directive.
-def pass1(tokens, consts=None, macros=None):
-    consts = consts or {}
-    macros = macros or {}
+def pass1(tokens, consts={}, macros={}):
+    # consts = consts or {}
+    # macros = macros or {}
     result = []
     attach = []
 
@@ -471,14 +471,14 @@ def pass1(tokens, consts=None, macros=None):
             if current.val == DirectiveType.INCLUDE:
                 current = next(iterator, current)
                 tokens = lexer_tokenize_file(current.val, current.loc)
-                result.extend(pass1(tokens, {} | consts, {} | macros))
+                result.extend(pass1(tokens, consts, macros))
                 current = next(iterator, current)
                 continue
 
             if current.val == DirectiveType.ATTACH:
                 current = next(iterator, current)
                 tokens = lexer_tokenize_file(current.val, current.loc)
-                attach.extend(pass1(tokens, {} | consts, {} | macros))
+                attach.extend(pass1(tokens, consts, macros))
                 current = next(iterator, current)
                 continue
 
@@ -497,6 +497,10 @@ def pass1(tokens, consts=None, macros=None):
                     arguments.append(current)
                     current = next(iterator, None)
 
+                arguments = arguments + [current]
+                expanded = pass1(arguments, {} | consts, {} | macros)
+                arguments = [e[1] for e in expanded[:-1]]
+
                 macro = macros[initial.val]
                 expected, body = macro
 
@@ -509,7 +513,6 @@ def pass1(tokens, consts=None, macros=None):
 
                 result.extend(body)
                 continue
-                # print(body)
 
             # Only valid syntax is ```<symbol> = ...```
             if current.typ not in [TokenType.EQUALS]:
@@ -729,8 +732,9 @@ def operation_match_arguments(expected, got):
 
 
 def operation_find_overload(operation, operands, table):
-    # Existence of operation already checked in previous passes
-    assert operation.val in table, f"Operation {operation} should be defined."
+    if operation.val not in table:
+        report_error(f"invalid operation `{operation.val}`", operation.loc)
+        exit(1)
 
     overloads = table[operation.val]
 
@@ -841,9 +845,12 @@ def usage():
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) <= 1:
         usage()
         exit(1)
+
+    if (debug := "-d" in sys.argv):
+        sys.argv.remove("-d")
 
     input_file = sys.argv[1]
     output_file = os.path.splitext(input_file)[0]
@@ -857,6 +864,9 @@ def main():
     p3 = pass3(p2)
     p4 = pass4(*p3)
 
+    if debug:
+        print(*p2, sep='\n')
+
     ops = parse_operations(p4)
     bytecode = build(ops)
 
@@ -865,8 +875,9 @@ def main():
 
     end = time.time()
 
-    for key, value in p3[1].items():
-        print(f"{key}: {value}")
+    if debug:
+        for key, value in p3[1].items():
+            print(f"{key}: {value}")
 
     print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} ms)")
 

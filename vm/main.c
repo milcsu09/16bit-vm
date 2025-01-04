@@ -256,12 +256,18 @@ main (int argc, char *argv[argc])
           vm.memory[0xFFFA] = 0;
         }
 
-      vm_step (&vm);
-
       if (vm.memory[0xFFFB])
         {
-          render_present (SDL_FLIP_NONE);
+          render_clear ();
           vm.memory[0xFFFB] = 0;
+        }
+
+      vm_step (&vm);
+
+      if (vm.memory[0xFFFC])
+        {
+          render_present (SDL_FLIP_NONE);
+          vm.memory[0xFFFC] = 0;
           SDL_Delay (1000 / 60);
         }
     }

@@ -1,39 +1,24 @@
 
-attach "test"
+attach "tests/sdl.asm"
 
 loop:
-  mov (0xfffa) 1
+  mov (FLAG_ADDRESS_EVENT) 1
+  mov (FLAG_ADDRESS_CLEAR) 1
 
-  mov r5 (px)
-  mov r6 (py)
+  mov   r5 KEY_SPACE
+  call keyboard_is_down
+
+  cmp ac 0
+  jeq end
+
+  mov   r5 10
+  mov   r6 20
   mov w r7 0xFAF
-  call draw_point
+  call renderer_draw_point
 
-  mov (0xfffb) 1
+end:
+  mov (FLAG_ADDRESS_DISPLAY) 1
 
   jmp loop
   halt
-
-point_to_index:
-  pusha
-  
-  mov ac 0
-  mul ac r6 128
-  add ac ac r5
-  add w ac ac 0x3000
-
-  popa
-  ret
-
-draw_point:
-  pusha
-
-  call point_to_index
-  mov w (ac) r7
-
-  popa
-  ret
-
-px: def 10
-py: def 10
 
