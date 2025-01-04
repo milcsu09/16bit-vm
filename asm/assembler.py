@@ -298,6 +298,8 @@ ALWAYS_FULL = [
 @unique
 class DirectiveType(IntEnum):
     W = 0
+    INCLUDE = auto()
+    ATTACH = auto()
     DEF = auto()
     RES = auto()
 
@@ -440,6 +442,7 @@ def pass1(tokens, consts=None, macros=None):
     consts = consts or {}
     macros = macros or {}
     result = []
+    attach = []
 
     full = False
     iterator = iter(tokens)
@@ -463,6 +466,20 @@ def pass1(tokens, consts=None, macros=None):
                 full = True
                 current = next(iterator, current)
                 result.append((full, initial))
+                continue
+
+            if current.val == DirectiveType.INCLUDE:
+                current = next(iterator, current)
+                tokens = lexer_tokenize_file(current.val, current.loc)
+                result.extend(pass1(tokens, {} | consts, {} | macros))
+                current = next(iterator, current)
+                continue
+
+            if current.val == DirectiveType.ATTACH:
+                current = next(iterator, current)
+                tokens = lexer_tokenize_file(current.val, current.loc)
+                attach.extend(pass1(tokens, {} | consts, {} | macros))
+                current = next(iterator, current)
                 continue
 
         # Handle every symbol
@@ -537,7 +554,7 @@ def pass1(tokens, consts=None, macros=None):
         else:
             result.append((full, initial))
 
-    return result
+    return result + attach
 
 
 # Returns how much each operation will expand to during the generation of the
@@ -831,9 +848,6 @@ def main():
     input_file = sys.argv[1]
     output_file = os.path.splitext(input_file)[0]
 
-    # report_note(f"{input_file=}", fd=sys.stdout)
-    # report_note(f"{output_file=}", fd=sys.stdout)
-
     start = time.time()
 
     tokens = lexer_tokenize_file(input_file)
@@ -849,11 +863,11 @@ def main():
     with open(output_file, "wb") as f:
         f.write(bytecode)
 
-    # for byte in bytecode:
-    #     print(f"{byte:02x}", end=" ")
-    # print()
-
     end = time.time()
+
+    for key, value in p3[1].items():
+        print(f"{key}: {value}")
+
     print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} ms)")
 
 

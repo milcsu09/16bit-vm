@@ -1,4 +1,6 @@
 
+attach "test"
+
 loop:
   mov (0xfffa) 1
 
