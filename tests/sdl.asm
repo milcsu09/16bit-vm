@@ -6,9 +6,9 @@ SCREEN_SIZE = 128
 ADDRESS_RENDERER = 0x3000
 ADDRESS_KEYBOARD = 0x7000
 
-FLAG_ADDRESS_EVENT   = 0xFFFA
-FLAG_ADDRESS_CLEAR   = 0xFFFB
-FLAG_ADDRESS_DISPLAY = 0xFFFC
+FLAG_ADDRESS_EVENT   = 0x9000
+FLAG_ADDRESS_CLEAR   = 0x9001
+FLAG_ADDRESS_DISPLAY = 0x9002
 
 POINT_TO_INDEX = x y
 {
@@ -16,6 +16,11 @@ POINT_TO_INDEX = x y
   mul   ac  y   SCREEN_SIZE
   add   ac  ac  x
   add w ac  ac  ADDRESS_RENDERER
+}
+
+TEST = x
+{
+  mov r1 x
 }
 
 renderer_draw_point: # (x, y, color)

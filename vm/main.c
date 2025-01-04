@@ -238,7 +238,7 @@ main (int argc, char *argv[argc])
 
   while (!vm.halt)
     {
-      if (vm.memory[0xFFFA])
+      if (vm.memory[0x9000])
         {
           SDL_Event event;
           while (SDL_PollEvent (&event))
@@ -253,21 +253,21 @@ main (int argc, char *argv[argc])
             }
 
           render_clear ();
-          vm.memory[0xFFFA] = 0;
+          vm.memory[0x9000] = 0;
         }
 
-      if (vm.memory[0xFFFB])
+      if (vm.memory[0x9001])
         {
           render_clear ();
-          vm.memory[0xFFFB] = 0;
+          vm.memory[0x9001] = 0;
         }
 
       vm_step (&vm);
 
-      if (vm.memory[0xFFFC])
+      if (vm.memory[0x9002])
         {
           render_present (SDL_FLIP_NONE);
-          vm.memory[0xFFFC] = 0;
+          vm.memory[0x9002] = 0;
           SDL_Delay (1000 / 60);
         }
     }

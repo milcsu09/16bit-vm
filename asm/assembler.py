@@ -151,7 +151,7 @@ class OperationType(IntEnum):
     DIRECTIVE = auto()
 
     def __str__(self):
-        return self.name.lower()
+        return self.name.upper()
 
     def __repr__(self):
         return str(self)
@@ -337,13 +337,13 @@ def lexer_encode_string(string, loc):
 
 
 def lexer_tokenize_file(path, loc=None):
-    if not os.path.exists(path):
-        report_error(f"{path}: No such file or directory", loc)
+    try:
+        with open(path, "r") as file:
+            content = file.read()
+            length = len(content)
+    except:
+        report_error(f"unable to read `{path}`", loc)
         exit(1)
-
-    with open(path, "r") as file:
-        content = file.read()
-        length = len(content)
 
     index, line = 0, 1
     while index < length:
@@ -438,9 +438,13 @@ VALID_CONST = [TokenType.NUMBER, TokenType.STRING, TokenType.SYMBOL]
 
 
 # Handle constants, macros and the "w" directive.
-def pass1(tokens, consts={}, macros={}):
-    # consts = consts or {}
-    # macros = macros or {}
+def pass1(tokens, consts=None, macros=None):
+    if consts is None:
+        consts = {}
+
+    if macros is None:
+        macros = {}
+
     result = []
     attach = []
 
@@ -460,26 +464,28 @@ def pass1(tokens, consts={}, macros={}):
         if initial.typ == TokenType.EOL:
             full = False
 
+        # Where directive is the initial token
+        if initial.typ == TokenType.DIRECTIVE:
+            # TODO: Remove repetition
+            if initial.val == DirectiveType.INCLUDE:
+                tokens = lexer_tokenize_file(current.val, current.loc)
+                result.extend(pass1(tokens, consts, macros))
+                current = next(iterator, current)
+                continue
+
+            if initial.val == DirectiveType.ATTACH:
+                tokens = lexer_tokenize_file(current.val, current.loc)
+                attach.extend(pass1(tokens, consts, macros))
+                current = next(iterator, current)
+                continue
+
+        # Where is the current token
         if current and current.typ == TokenType.DIRECTIVE:
             # Handle 16-bit operations using "w", short for "word"
             if current.val == DirectiveType.W:
                 full = True
                 current = next(iterator, current)
                 result.append((full, initial))
-                continue
-
-            if current.val == DirectiveType.INCLUDE:
-                current = next(iterator, current)
-                tokens = lexer_tokenize_file(current.val, current.loc)
-                result.extend(pass1(tokens, consts, macros))
-                current = next(iterator, current)
-                continue
-
-            if current.val == DirectiveType.ATTACH:
-                current = next(iterator, current)
-                tokens = lexer_tokenize_file(current.val, current.loc)
-                attach.extend(pass1(tokens, consts, macros))
-                current = next(iterator, current)
                 continue
 
         # Handle every symbol
@@ -497,7 +503,9 @@ def pass1(tokens, consts={}, macros={}):
                     arguments.append(current)
                     current = next(iterator, None)
 
+                # `+ [current]` to have an EOL or EOF token.
                 arguments = arguments + [current]
+                # `{} | x` to pass a copy of a dictionary
                 expanded = pass1(arguments, {} | consts, {} | macros)
                 arguments = [e[1] for e in expanded[:-1]]
 
@@ -698,10 +706,6 @@ def pass4(ir, labels):
                     report_error(f"undefined `{token.val}`", token.loc)
                     exit(1)
 
-            # Don't modify first token!
-            if i == 0:
-                continue
-
             # Substitute symbol tokens that are present in the labels dict,
             # with their address.
             if token.typ == TokenType.SYMBOL and token.val in labels:
@@ -841,16 +845,22 @@ def build(operations):
 
 
 def usage():
-    print(f"Usage: {sys.argv[0]} <file>")
+    print(f"Usage: {sys.argv[0]} [OPTIONS] <file>")
+    print(f"    OPTIONS")
+    print(f"        -d      Debug information about compilation process")
+    print(f"        -x      Display compiled bytecode")
 
 
 def main():
+    if (d := "-d" in sys.argv):
+        sys.argv.remove("-d")
+
+    if (x := "-x" in sys.argv):
+        sys.argv.remove("-x")
+
     if len(sys.argv) <= 1:
         usage()
         exit(1)
-
-    if (debug := "-d" in sys.argv):
-        sys.argv.remove("-d")
 
     input_file = sys.argv[1]
     output_file = os.path.splitext(input_file)[0]
@@ -858,28 +868,32 @@ def main():
     start = time.time()
 
     tokens = lexer_tokenize_file(input_file)
-
     p1 = pass1(tokens)
     p2 = pass2(p1)
     p3 = pass3(p2)
     p4 = pass4(*p3)
-
-    if debug:
-        print(*p2, sep='\n')
-
     ops = parse_operations(p4)
     bytecode = build(ops)
 
     with open(output_file, "wb") as f:
         f.write(bytecode)
 
+    if d:
+        for op in ops:
+            operands = ", ".join(str(operand).ljust(12) for operand in op.val)
+            report_note(f"\t{str(op.typ):<12}{operands}", op.loc,
+                        fd=sys.stdout)
+
+    if x:
+        for i, byte in enumerate(bytecode):
+            print(f"{byte:02x}", end=" ")
+            if (i + 1) % 16 == 0:
+                print()
+        if len(bytecode) % 16 != 0:
+            print()
+
     end = time.time()
-
-    if debug:
-        for key, value in p3[1].items():
-            print(f"{key}: {value}")
-
-    print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} ms)")
+    print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} s)")
 
 
 if __name__ == "__main__":
