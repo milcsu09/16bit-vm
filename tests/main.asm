@@ -8,37 +8,23 @@ loop:
   mov   r5 10
   mov   r6 10
   mov w r7 0xFFF
-  mov   r8 'H
-  call renderer_draw_font
+  mov w r8 message1
+  call renderer_draw_text
 
-  mov   r5 18
-  mov   r6 10
+  mov   r5 00
+  mov   r6 40
   mov w r7 0xFFF
-  mov   r8 'E
-  call renderer_draw_font
+  mov w r8 message2
+  call renderer_draw_text
 
-  mov   r5 27
-  mov   r6 10
-  mov w r7 0xFFF
-  mov   r8 'L
-  call renderer_draw_font
-
-  mov   r5 36
-  mov   r6 10
-  mov w r7 0xFFF
-  mov   r8 'L
-  call renderer_draw_font
-
-  mov   r5 45
-  mov   r6 10
-  mov w r7 0xFFF
-  mov   r8 'O
-  call renderer_draw_font
-
-
-end:
   mov (FLAG_ADDRESS_DISPLAY) 1
   jmp loop
 
   halt
+
+message1:
+  def "HELLO WORLD" 0
+
+message2:
+  def "TEST ASD 123 123" 0
 

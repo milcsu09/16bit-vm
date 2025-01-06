@@ -706,4 +706,29 @@ renderer_draw_font_end:
   popa
   ret
 
+renderer_draw_text: # (x, y, color, string)
+  pusha
+
+renderer_draw_text_loop:
+  mov r1 (r8)
+
+  cmp r1 0
+  jeq renderer_draw_text_end
+
+  push r8
+
+  mov r8 r1
+  call renderer_draw_font
+
+  pop r8
+
+  add r5 r5 8
+  add r8 r8 1
+
+  jmp renderer_draw_text_loop
+
+renderer_draw_text_end:
+  popa
+  ret
+
 

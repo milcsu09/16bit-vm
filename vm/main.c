@@ -264,6 +264,22 @@ main (int argc, char *argv[argc])
           vm.memory[0x9001] = 0;
         }
 
+#if 0
+
+      for (byte i = 0; i < VM_REGISTER_COUNT; ++i)
+        vm_view_register (&vm, i);
+      printf("\n");
+      vm_view_memory (&vm, *vm.ip, 4, 12, 1);
+      printf("\n");
+
+      char c = getc (stdin);
+      if (c == 'q')
+        goto quit;
+      if (c != '\n')
+        continue;
+
+#endif
+
       vm_step (&vm);
 
       if (vm.memory[0x9002])
