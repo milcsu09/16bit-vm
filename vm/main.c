@@ -228,6 +228,8 @@ main (int argc, char *argv[argc])
   keyboard.state = (void *)SDL_GetKeyboardState(NULL);
   vm_map_device (&vm, &keyboard, 0x7000, 0x7200);
 
+  // render_init ("16bit-vm", 1024, 1024, 8);
+  // render_init ("16bit-vm", 512, 512, 4);
   render_init ("16bit-vm", 768, 768, 6);
   // render_init ("16bit-vm", 128, 128, 1);
 
