@@ -127,6 +127,17 @@ class OperationType(IntEnum):
     MUL_R = auto()
     DIV_I = auto()
     DIV_R = auto()
+    AND_I = auto()
+    AND_R = auto()
+    OR_I = auto()
+    OR_R = auto()
+    XOR_I = auto()
+    XOR_R = auto()
+    NOT = auto()
+    SHL_I = auto()
+    SHL_R = auto()
+    SHR_I = auto()
+    SHR_R = auto()
     CMP_I = auto()
     CMP_R = auto()
     JMP_I = auto()
@@ -230,6 +241,45 @@ OPERATIONS = {
          OperationType.DIV_I),
         ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
          OperationType.DIV_R),
+    ],
+
+    "and": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.AND_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.AND_R),
+    ],
+
+    "or": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.OR_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.OR_R),
+    ],
+
+    "xor": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.XOR_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.XOR_R),
+    ],
+
+    "not": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.NOT),
+    ],
+
+    "shl": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.SHL_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.SHL_R),
+    ],
+
+    "shl": [
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
+         OperationType.SHR_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
+         OperationType.SHR_R),
     ],
 
     "cmp": [
@@ -920,7 +970,7 @@ def main():
 
     if x:
         for i, byte in enumerate(bytecode):
-            print(f"{byte:02x}", end=" ")
+            print(f"0x{byte:02x}", end=", ")
             if (i + 1) % 16 == 0:
                 print()
         if len(bytecode) % 16 != 0:
