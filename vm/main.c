@@ -225,7 +225,7 @@ main (int argc, char *argv[argc])
   keyboard.store_byte = keyboard_store_byte;
   keyboard.load_word = keyboard_load_word;
   keyboard.store_word = keyboard_store_word;
-  keyboard.state = (void *)SDL_GetKeyboardState(NULL);
+  keyboard.state = (void *)SDL_GetKeyboardState (NULL);
   vm_map_device (&vm, &keyboard, 0x7000, 0x7200);
 
   // render_init ("16bit-vm", 1024, 1024, 8);
@@ -235,8 +235,6 @@ main (int argc, char *argv[argc])
 
   printf ("%dx%d\n", state.width, state.height);
   printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
-
-  int x = SDL_SCANCODE_A;
 
   while (!vm.halt)
     {
