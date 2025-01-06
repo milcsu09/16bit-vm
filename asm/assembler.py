@@ -349,7 +349,7 @@ def lexer_tokenize_file(path, loc=None):
     while index < length:
         loc, begin = (path, line), index
 
-        if content[index].isalpha():
+        if content[index].isalpha() or content[index] == "_":
             condition = lambda x: not (x.isalnum() or x == "_")
             index = lexer_find(content, condition, index) - 1
             value = content[begin:index + 1]
@@ -357,7 +357,6 @@ def lexer_tokenize_file(path, loc=None):
                 yield Token(loc, TokenType.DIRECTIVE, DIRECTIVES[value])
             else:
                 yield Token(loc, TokenType.SYMBOL, value)
-
 
         elif content[index].isdigit():
             condition = lambda x: not x.isalnum()
@@ -851,6 +850,28 @@ def usage():
     print(f"        -x      Display compiled bytecode")
 
 
+DEBUG_SEPARATOR = [
+    # OperationType.JMP_I,
+    # OperationType.JMP_R,
+    # OperationType.JEQ_I,
+    # OperationType.JEQ_R,
+    # OperationType.JNE_I,
+    # OperationType.JNE_R,
+    # OperationType.JLT_I,
+    # OperationType.JLT_R,
+    # OperationType.JGT_I,
+    # OperationType.JGT_R,
+    # OperationType.JLE_I,
+    # OperationType.JLE_R,
+    # OperationType.JGE_I,
+    # OperationType.JGE_R,
+    # OperationType.CALL_I,
+    # OperationType.CALL_R,
+    OperationType.RET,
+    OperationType.HALT,
+]
+
+
 def main():
     if (d := "-d" in sys.argv):
         sys.argv.remove("-d")
@@ -879,10 +900,23 @@ def main():
         f.write(bytecode)
 
     if d:
+        previous = None
         for op in ops:
             operands = ", ".join(str(operand).ljust(12) for operand in op.val)
+
+            # Separator to help distinguish between some parts of code
+            if previous in DEBUG_SEPARATOR:
+                sys.stdout.write("\n")
+
             report_note(f"\t{str(op.typ):<12}{operands}", op.loc,
                         fd=sys.stdout)
+            previous = op.typ
+
+        print()
+        longest_label = len(max(p3[1].keys(), key=len))
+        for key, value in p3[1].items():
+            print(f"  {key:<{longest_label}} {value:04x} ({value})")
+        print()
 
     if x:
         for i, byte in enumerate(bytecode):

@@ -1,7 +1,8 @@
 # Calling convertion is R5, R6, R7, R8, stack ...
 # Return in AC
 
-SCREEN_SIZE = 128
+SCREEN_SIZE       = 128
+SCREEN_LAST_INDEX = 127
 
 ADDRESS_RENDERER = 0x3000
 ADDRESS_KEYBOARD = 0x7000
@@ -18,17 +19,19 @@ POINT_TO_INDEX = x y
   add w ac  ac  ADDRESS_RENDERER
 }
 
-TEST = x
-{
-  mov r1 x
-}
-
 renderer_draw_point: # (x, y, color)
   pusha
+
+  cmp r5 SCREEN_LAST_INDEX
+  jgt __renderer_draw_point_end
+
+  cmp r6 SCREEN_LAST_INDEX
+  jgt __renderer_draw_point_end
 
   POINT_TO_INDEX r5 r6
   mov w (ac) r7
 
+__renderer_draw_point_end:
   popa
   ret
 

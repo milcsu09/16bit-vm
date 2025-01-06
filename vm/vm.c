@@ -39,6 +39,19 @@ static const char *const VM_OPERATION_NAME[] = {
   "mul(r)",
   "div(i)",
   "div(r)",
+
+  "and(i)",
+  "and(r)",
+  "or(i)",
+  "or(r)",
+  "xor(i)",
+  "xor(r)",
+  "not",
+  "shl(i)",
+  "shl(r)",
+  "shr(i)",
+  "shr(r)",
+
   "cmp(i)",
   "cmp(r)",
   "jmp(i)",
@@ -422,12 +435,16 @@ vm_execute (VM *vm, VM_Operation operation)
       }
       break;
     case VM_OPERATION_PUSHA:
-      for (size_t i = VM_REGISTER_R1; i <= VM_REGISTER_R8; ++i)
-        vm_push_word (vm, vm->registers[i]);
+      {
+        for (size_t i = VM_REGISTER_R1; i <= VM_REGISTER_R8; ++i)
+          vm_push_word (vm, vm->registers[i]);
+      }
       break;
     case VM_OPERATION_POPA:
-      for (size_t i = VM_REGISTER_R8; i >= VM_REGISTER_R1; --i)
-        vm->registers[i] = vm_pop_word (vm);
+      {
+        for (size_t i = VM_REGISTER_R8; i >= VM_REGISTER_R1; --i)
+          vm->registers[i] = vm_pop_word (vm);
+      }
       break;
     case VM_OPERATION_ADD_I:
       {
@@ -495,6 +512,93 @@ vm_execute (VM *vm, VM_Operation operation)
         *dest = src1 / src2;
       }
       break;
+    case VM_OPERATION_AND_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_width (vm, full);
+        *dest = src1 & src2;
+      }
+      break;  
+    case VM_OPERATION_AND_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
+        *dest = src1 & src2;
+      }
+      break;  
+    case VM_OPERATION_OR_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_width (vm, full);
+        *dest = src1 | src2;
+      }
+      break;  
+    case VM_OPERATION_OR_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
+        *dest = src1 | src2;
+      }
+      break;  
+    case VM_OPERATION_XOR_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_width (vm, full);
+        *dest = src1 ^ src2;
+      }
+      break;  
+    case VM_OPERATION_XOR_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
+        *dest = src1 ^ src2;
+      }
+      break;  
+    case VM_OPERATION_NOT:
+      {
+        word *dest = vm_next_register_address (vm);
+        word value = vm_next_register_value (vm);
+        *dest = ~value;
+      }
+      break;  
+    case VM_OPERATION_SHL_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_width (vm, full);
+        *dest = src1 << src2;
+      }
+      break;  
+    case VM_OPERATION_SHL_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
+        *dest = src1 << src2;
+      }
+      break;  
+    case VM_OPERATION_SHR_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_width (vm, full);
+        *dest = src1 >> src2;
+      }
+      break;  
+    case VM_OPERATION_SHR_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        word src1 = vm_next_register_value (vm);
+        word src2 = vm_next_register_value (vm);
+        *dest = src1 >> src2;
+      }
+      break;  
     case VM_OPERATION_CMP_I:
       {
         word a = vm_next_register_value (vm);
