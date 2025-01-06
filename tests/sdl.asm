@@ -23,15 +23,15 @@ renderer_draw_point: # (x, y, color)
   pusha
 
   cmp r5 SCREEN_LAST_INDEX
-  jgt __renderer_draw_point_end
+  jgt renderer_draw_point_end
 
   cmp r6 SCREEN_LAST_INDEX
-  jgt __renderer_draw_point_end
+  jgt renderer_draw_point_end
 
   POINT_TO_INDEX r5 r6
   mov w (ac) r7
 
-__renderer_draw_point_end:
+renderer_draw_point_end:
   popa
   ret
 
@@ -293,5 +293,263 @@ KEY_SOFTRIGHT = 288
 KEY_CALL = 289
 KEY_ENDCALL = 290
 KEY_AMOUNT = 512
+
+
+font_none:
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+  def 0 1 1 1 1 1 1 0
+
+font_a:
+  def 0 0 0 1 0 0 0 0
+  def 0 0 1 1 1 0 0 0
+  def 0 1 0 0 0 1 0 0
+  def 0 1 0 0 0 1 0 0
+  def 1 1 1 1 1 1 1 0
+  def 1 0 0 0 0 0 1 0
+  def 1 0 0 0 0 0 1 0
+  def 1 0 0 0 0 0 1 0
+
+  def 1 1 1 1 1 0 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 1 1 1 1 0 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 1 1 1 1 0 0 0
+  def 0 0 0 0 0 0 0 0
+  
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+  
+  def 1 1 1 1 0 0 0 0
+  def 1 0 0 0 1 0 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 0 1 0 0
+  def 1 0 0 0 1 0 0 0
+  def 1 1 1 1 0 0 0 0
+  
+  def 1 1 1 1 1 1 1 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 1 1 1 1 1 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 1 1 1 1 1 1 0
+  def 0 0 0 0 0 0 0 0
+  
+  def 1 1 1 1 1 1 1 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 1 1 1 1 1 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 1 0 0 0 0 0 0 0
+  def 1 0 0 0 1 1 1 0
+  def 1 0 0 0 0 0 1 0
+  def 1 0 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+
+#[
+
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+  def 0 0 0 0 0 0 0 0
+
+]#
+
+font_0:
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 1 0 0 1 0
+  def 0 1 0 0 1 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 1 1 0 0 0
+  def 0 0 1 0 1 0 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 1 1 1 1 1 0
+
+  def 0 0 1 1 1 0 0 0
+  def 0 1 0 0 0 1 0 0
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 1 0 0 0 0
+  def 0 0 1 0 0 0 0 0
+  def 0 1 0 0 0 0 0 0
+  def 0 1 1 1 1 1 0 0
+
+  def 0 0 1 1 1 0 0 0
+  def 0 1 0 0 0 1 0 0
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 1 1 0 0 0
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 0 0 1 0 0
+  def 0 1 0 0 0 1 0 0
+  def 0 0 1 1 1 0 0 0
+
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 0 1 1 0 0
+  def 0 0 0 1 0 1 0 0
+  def 0 0 1 0 0 1 0 0
+  def 0 1 0 0 0 1 0 0
+  def 1 1 1 1 1 1 1 0
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 0 0 1 0 0
+
+  def 0 1 1 1 1 1 1 0
+  def 0 1 0 0 0 0 0 0
+  def 0 1 0 0 0 0 0 0
+  def 0 1 1 1 1 1 0 0
+  def 0 0 0 0 0 0 1 0
+  def 0 0 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 0 0
+  def 0 1 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+  
+  def 0 1 1 1 1 1 1 0
+  def 0 0 0 0 0 0 1 0
+  def 0 0 0 0 0 1 0 0
+  def 0 0 0 0 1 0 0 0
+  def 0 0 0 1 0 0 0 0
+  def 0 0 0 1 0 0 0 0
+  def 0 0 0 1 0 0 0 0
+  def 0 0 0 1 0 0 0 0
+
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+
+  def 0 0 1 1 1 1 0 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 1 0
+  def 0 0 0 0 0 0 1 0
+  def 0 1 0 0 0 0 1 0
+  def 0 0 1 1 1 1 0 0
+
+renderer_draw_font: # (x, y, color, alnum)
+  pusha
+
+  # Counter up to 64 (8x8)
+  mov r1 0
+
+  # Save state of X for later use
+  push r5
+
+  cmp r8 'A
+  jlt renderer_draw_font_not_digit
+
+  cmp r8 'Z
+  jgt renderer_draw_font_not_digit
+
+  jmp renderer_draw_font_loop
+
+renderer_draw_font_not_digit:
+  cmp r8 '0
+  jlt renderer_draw_font_end
+
+  cmp r8 '9
+  jgt renderer_draw_font_end
+
+  mov w r2 font_0
+
+  sub r3 r8 '0
+
+  mul r3 r3 64
+  add r2 r2 r3
+
+renderer_draw_font_loop:
+  cmp r1 64
+  jge renderer_draw_font_end
+
+  # mov w r2 font_0
+  add   r3 r2 r1
+  mov   r3 (r3)
+
+  cmp r3 0
+  jeq renderer_draw_font_skip_draw
+
+  # Render a point with (r5, r6, r7)
+  call renderer_draw_point
+
+renderer_draw_font_skip_draw:
+
+  # Increment counter
+  add r1 r1 1
+
+  # x = x + 1
+  add r5 r5 1
+
+  # ac = r1 % 8
+  push r1
+  div r1 r1 8
+  pop r1
+
+  # if (r1 % 8 == 0)
+  cmp ac 0
+  jne renderer_draw_font_skip_y_increment
+
+  # Increment Y and restore X
+  add r6 r6 1
+
+  # r5 = t_r5
+  pop r5
+  push r5
+
+renderer_draw_font_skip_y_increment:
+  jmp renderer_draw_font_loop
+
+renderer_draw_font_end:
+  # Remove r5 from stack
+  add sp sp 2
+
+  popa
+  ret
 
 

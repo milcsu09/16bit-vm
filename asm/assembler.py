@@ -63,8 +63,9 @@ class Token:
         return Token(self.loc, typ, self.val if val is None else val)
 
     def __str__(self):
-        postfix = f":{repr(self.val)}" if self.val is not None else ""
-        return str(self.typ) + postfix
+        # postfix = f":{repr(self.val)}" if self.val is not None else ""
+        # return str(self.typ) + postfix
+        return repr(self.val)
 
     def __repr__(self):
         return str(self)
@@ -952,7 +953,7 @@ def main():
     if d:
         previous = None
         for op in ops:
-            operands = ", ".join(str(operand).ljust(12) for operand in op.val)
+            operands = ", ".join(str(operand).ljust(6) for operand in op.val)
 
             # Separator to help distinguish between some parts of code
             if previous in DEBUG_SEPARATOR:
