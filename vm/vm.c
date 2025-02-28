@@ -118,7 +118,7 @@ vm_create (VM *vm)
   vm->nmemory = 0x10000; // Default to 64kB
   vm->ndevice = vm->nmemory / VM_DEVICE_BLOCK_SIZE;
 
-  vm->registers[VM_REGISTER_SP] = vm->nmemory - sizeof (word);
+  vm->registers[VM_REGISTER_SP] = vm->nmemory - VM_STACK_POINTER_DELTA;
   vm->registers[VM_REGISTER_BP] = vm->registers[VM_REGISTER_SP];
 
   vm->ip = &vm->registers[VM_REGISTER_IP];
@@ -519,7 +519,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_width (vm, full);
         *dest = src1 & src2;
       }
-      break;  
+      break;
     case VM_OPERATION_AND_R:
       {
         word *dest = vm_next_register_address (vm);
@@ -527,7 +527,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_register_value (vm);
         *dest = src1 & src2;
       }
-      break;  
+      break;
     case VM_OPERATION_OR_I:
       {
         word *dest = vm_next_register_address (vm);
@@ -535,7 +535,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_width (vm, full);
         *dest = src1 | src2;
       }
-      break;  
+      break;
     case VM_OPERATION_OR_R:
       {
         word *dest = vm_next_register_address (vm);
@@ -543,7 +543,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_register_value (vm);
         *dest = src1 | src2;
       }
-      break;  
+      break;
     case VM_OPERATION_XOR_I:
       {
         word *dest = vm_next_register_address (vm);
@@ -551,7 +551,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_width (vm, full);
         *dest = src1 ^ src2;
       }
-      break;  
+      break;
     case VM_OPERATION_XOR_R:
       {
         word *dest = vm_next_register_address (vm);
@@ -559,14 +559,14 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_register_value (vm);
         *dest = src1 ^ src2;
       }
-      break;  
+      break;
     case VM_OPERATION_NOT:
       {
         word *dest = vm_next_register_address (vm);
         word value = vm_next_register_value (vm);
         *dest = ~value;
       }
-      break;  
+      break;
     case VM_OPERATION_SHL_I:
       {
         word *dest = vm_next_register_address (vm);
@@ -574,7 +574,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_width (vm, full);
         *dest = src1 << src2;
       }
-      break;  
+      break;
     case VM_OPERATION_SHL_R:
       {
         word *dest = vm_next_register_address (vm);
@@ -582,7 +582,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_register_value (vm);
         *dest = src1 << src2;
       }
-      break;  
+      break;
     case VM_OPERATION_SHR_I:
       {
         word *dest = vm_next_register_address (vm);
@@ -590,7 +590,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_width (vm, full);
         *dest = src1 >> src2;
       }
-      break;  
+      break;
     case VM_OPERATION_SHR_R:
       {
         word *dest = vm_next_register_address (vm);
@@ -598,7 +598,7 @@ vm_execute (VM *vm, VM_Operation operation)
         word src2 = vm_next_register_value (vm);
         *dest = src1 >> src2;
       }
-      break;  
+      break;
     case VM_OPERATION_CMP_I:
       {
         word a = vm_next_register_value (vm);
@@ -712,7 +712,7 @@ vm_execute (VM *vm, VM_Operation operation)
       }
       break;
     case VM_OPERATION_RET:
-      *vm->ip = vm_pop_word (vm);      
+      *vm->ip = vm_pop_word (vm);
       break;
     case VM_OPERATION_HALT:
       vm->halt = true;
@@ -743,6 +743,7 @@ vm_view_register (VM *vm, VM_Register index)
         printf("%d", (value >> i) & 1);
       if (isprint ((char) value))
         printf (" '%c'", value);
+      printf (" %.8f", (value / (float)(1 << 8)));
     }
 
   printf ("\n");

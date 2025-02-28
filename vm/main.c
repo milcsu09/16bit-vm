@@ -26,7 +26,7 @@ uint32_t colors[] = {
   0xE0FFFF, 0xFAFAD2, 0xD3D3D3,
   0x90EE90, 0xFFB6C1, 0xFFA07A,
   0x20B2AA, 0x87CEFA, 0x778899,
-  0xB0C4DE, 0xFFFFE0, 0x32CD32,
+  0xB0C4DE, 0xFFFFE0, 0x32D32,
   0xFAF0E6, 0x800000, 0x66CDAA,
   0xBA55D3, 0x9370DB, 0x3CB371,
   0x7B68EE, 0x00FA9A, 0x48D1CC,
@@ -154,7 +154,6 @@ convertColor (uint16_t color)
 
   return (a8 << 24) | (r8 << 16) | (g8 << 8) | b8;
 }
-    
 
 void
 renderer_store_byte (VM *vm, VM_Device *device, word address, byte value)
@@ -228,13 +227,11 @@ main (int argc, char *argv[argc])
   keyboard.state = (void *)SDL_GetKeyboardState (NULL);
   vm_map_device (&vm, &keyboard, 0x7000, 0x7200);
 
-  // render_init ("16bit-vm", 1024, 1024, 8);
-  // render_init ("16bit-vm", 512, 512, 4);
   render_init ("16bit-vm", 768, 768, 6);
-  // render_init ("16bit-vm", 128, 128, 1);
 
   printf ("%dx%d\n", state.width, state.height);
-  printf ("%ld colors\n", VM_ARRAY_SIZE (colors));
+
+  Uint32 start = 0, end = 0;
 
   while (!vm.halt)
     {
@@ -252,6 +249,8 @@ main (int argc, char *argv[argc])
                 }
             }
 
+          start = SDL_GetTicks ();
+
           render_clear ();
           vm.memory[0x9000] = 0;
         }
@@ -262,28 +261,17 @@ main (int argc, char *argv[argc])
           vm.memory[0x9001] = 0;
         }
 
-#if 0
-
-      for (byte i = 0; i < VM_REGISTER_COUNT; ++i)
-        vm_view_register (&vm, i);
-      printf("\n");
-      vm_view_memory (&vm, *vm.ip, 4, 12, 1);
-      printf("\n");
-
-      char c = getc (stdin);
-      if (c == 'q')
-        goto quit;
-      if (c != '\n')
-        continue;
-
-#endif
-
       vm_step (&vm);
 
       if (vm.memory[0x9002])
         {
           render_present (SDL_FLIP_NONE);
           vm.memory[0x9002] = 0;
+
+          end = SDL_GetTicks ();
+          Uint32 t = end - start;
+          printf ("%.2f FPS, %dms\n", 1000.0 / (t < 1 ? 1 : t), t);
+
           SDL_Delay (1000 / 60);
         }
     }

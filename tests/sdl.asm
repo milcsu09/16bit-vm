@@ -1,4 +1,4 @@
-# Calling convertion is R5, R6, R7, R8, stack ...
+# Calling convention is R5, R6, R7, R8, stack ...
 # Return in AC
 
 SCREEN_SIZE       = 128
@@ -32,6 +32,162 @@ renderer_draw_point: # (x, y, color)
   mov w (ac) r7
 
 renderer_draw_point_end:
+  popa
+  ret
+
+renderer_draw_vline: # (x, y, end, color)
+  pusha
+
+renderer_draw_vline_loop:
+  cmp r5 r7
+  jgt renderer_draw_vline_end
+
+  push r7
+
+  mov r7 r8
+  call renderer_draw_point
+
+  pop r7
+
+  add r5 r5 1
+  jmp renderer_draw_vline_loop
+
+renderer_draw_vline_end:
+  popa
+  ret
+
+renderer_draw_rect:
+  pusha
+
+  mov r1 bp
+  mov w r1 (r1)
+
+renderer_draw_rect_loop:
+  cmp r6 r8
+  jgt renderer_draw_rect_end
+
+  push r8
+
+  mov r8 r1
+  call renderer_draw_vline
+
+  pop r8
+
+  add r6 r6 1
+  jmp renderer_draw_rect_loop
+
+renderer_draw_rect_end:
+  popa
+  ret
+
+renderer_draw_font: # (x, y, color, alnum)
+  pusha
+
+  # Counter up to 64 (8x8)
+  mov r1 0
+
+  # Save state of X for later use
+  push r5
+
+  cmp r8 'A
+  jlt renderer_draw_font_not_digit
+
+  cmp r8 'Z
+  jgt renderer_draw_font_not_digit
+
+  mov w r2 font_a
+
+  sub r3 r8 'A
+
+  mul r3 r3 64
+  add r2 r2 r3
+
+  jmp renderer_draw_font_loop
+
+renderer_draw_font_not_digit:
+  cmp r8 '0
+  jlt renderer_draw_font_end
+
+  cmp r8 '9
+  jgt renderer_draw_font_end
+
+  mov w r2 font_0
+
+  sub r3 r8 '0
+
+  mul r3 r3 64
+  add r2 r2 r3
+
+renderer_draw_font_loop:
+  cmp r1 64
+  jge renderer_draw_font_end
+
+  # mov w r2 font_0
+  add   r3 r2 r1
+  mov   r3 (r3)
+
+  cmp r3 0
+  jeq renderer_draw_font_skip_draw
+
+  # Render a point with (r5, r6, r7)
+  call renderer_draw_point
+
+renderer_draw_font_skip_draw:
+
+  # Increment counter
+  add r1 r1 1
+
+  # x = x + 1
+  add r5 r5 1
+
+  # ac = r1 % 8
+  push r1
+  div r1 r1 8
+  pop r1
+
+  # if (r1 % 8 == 0)
+  cmp ac 0
+  jne renderer_draw_font_skip_y_increment
+
+  # Increment Y and restore X
+  add r6 r6 1
+
+  # r5 = t_r5
+  pop r5
+  push r5
+
+renderer_draw_font_skip_y_increment:
+  jmp renderer_draw_font_loop
+
+renderer_draw_font_end:
+  # Remove r5 from stack
+  add sp sp 2
+
+  popa
+  ret
+
+renderer_draw_text: # (x, y, color, string)
+  pusha
+
+renderer_draw_text_loop:
+  mov r1 (r8)
+
+  cmp r1 0
+  jeq renderer_draw_text_end
+
+  push r8
+
+  mov r8 r1
+  call renderer_draw_font
+
+  pop r8
+
+  add r5 r5 8
+  add r8 r8 1
+
+  jmp renderer_draw_text_loop
+
+renderer_draw_text_end:
   popa
   ret
 
@@ -312,7 +468,7 @@ font_a:
   def 1 0 0 0 0 1 0 0
   def 1 0 0 0 0 1 0 0
   def 1 1 1 1 1 0 0 0
-  
+
   def 0 0 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 1 0 0 0 0 0 0 0
@@ -321,7 +477,7 @@ font_a:
   def 1 0 0 0 0 0 0 0
   def 0 1 0 0 0 0 1 0
   def 0 0 1 1 1 1 0 0
-  
+
   def 1 1 1 1 0 0 0 0
   def 1 0 0 0 1 0 0 0
   def 1 0 0 0 0 1 0 0
@@ -330,7 +486,7 @@ font_a:
   def 1 0 0 0 0 1 0 0
   def 1 0 0 0 1 0 0 0
   def 1 1 1 1 0 0 0 0
-  
+
   def 0 0 0 0 0 0 0 0
   def 1 1 1 1 1 1 1 0
   def 1 0 0 0 0 0 0 0
@@ -339,7 +495,7 @@ font_a:
   def 1 0 0 0 0 0 0 0
   def 1 0 0 0 0 0 0 0
   def 1 1 1 1 1 1 1 0
-  
+
   def 0 0 0 0 0 0 0 0
   def 1 1 1 1 1 1 1 0
   def 1 0 0 0 0 0 0 0
@@ -348,7 +504,7 @@ font_a:
   def 1 0 0 0 0 0 0 0
   def 1 0 0 0 0 0 0 0
   def 1 0 0 0 0 0 0 0
-  
+
   def 0 0 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 1 0 0 0 0 0 0 0
@@ -420,7 +576,7 @@ font_a:
   def 1 0 0 0 1 0 1 0
   def 1 0 0 0 0 1 1 0
   def 1 0 0 0 0 0 1 0
-  
+
   def 0 0 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
@@ -429,7 +585,7 @@ font_a:
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
   def 0 0 1 1 1 1 0 0
-  
+
   def 0 1 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
@@ -438,7 +594,7 @@ font_a:
   def 0 1 0 0 0 0 0 0
   def 0 1 0 0 0 0 0 0
   def 0 1 0 0 0 0 0 0
-  
+
   def 0 0 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
@@ -447,7 +603,7 @@ font_a:
   def 0 1 0 0 1 0 1 0
   def 0 1 0 0 0 1 0 0
   def 0 0 1 1 1 0 1 0
-  
+
   def 0 1 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
@@ -456,7 +612,7 @@ font_a:
   def 0 1 0 0 0 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 0 1
- 
+
   def 0 0 1 1 1 1 0 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 0 0
@@ -474,7 +630,7 @@ font_a:
   def 0 0 0 1 0 0 0 0
   def 0 0 0 1 0 0 0 0
   def 0 0 0 1 0 0 0 0
-  
+
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
@@ -483,7 +639,7 @@ font_a:
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
   def 0 0 1 1 1 1 0 0
-  
+
   def 0 1 0 0 0 1 0 0
   def 0 1 0 0 0 1 0 0
   def 0 1 0 0 0 1 0 0
@@ -592,7 +748,7 @@ font_0:
   def 0 1 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
   def 0 0 1 1 1 1 0 0
-  
+
   def 0 1 1 1 1 1 1 0
   def 0 0 0 0 0 0 1 0
   def 0 0 0 0 0 1 0 0
@@ -619,116 +775,4 @@ font_0:
   def 0 0 0 0 0 0 1 0
   def 0 1 0 0 0 0 1 0
   def 0 0 1 1 1 1 0 0
-
-renderer_draw_font: # (x, y, color, alnum)
-  pusha
-
-  # Counter up to 64 (8x8)
-  mov r1 0
-
-  # Save state of X for later use
-  push r5
-
-  cmp r8 'A
-  jlt renderer_draw_font_not_digit
-
-  cmp r8 'Z
-  jgt renderer_draw_font_not_digit
-
-  mov w r2 font_a
-
-  sub r3 r8 'A
-
-  mul r3 r3 64
-  add r2 r2 r3
-
-  jmp renderer_draw_font_loop
-
-renderer_draw_font_not_digit:
-  cmp r8 '0
-  jlt renderer_draw_font_end
-
-  cmp r8 '9
-  jgt renderer_draw_font_end
-
-  mov w r2 font_0
-
-  sub r3 r8 '0
-
-  mul r3 r3 64
-  add r2 r2 r3
-
-renderer_draw_font_loop:
-  cmp r1 64
-  jge renderer_draw_font_end
-
-  # mov w r2 font_0
-  add   r3 r2 r1
-  mov   r3 (r3)
-
-  cmp r3 0
-  jeq renderer_draw_font_skip_draw
-
-  # Render a point with (r5, r6, r7)
-  call renderer_draw_point
-
-renderer_draw_font_skip_draw:
-
-  # Increment counter
-  add r1 r1 1
-
-  # x = x + 1
-  add r5 r5 1
-
-  # ac = r1 % 8
-  push r1
-  div r1 r1 8
-  pop r1
-
-  # if (r1 % 8 == 0)
-  cmp ac 0
-  jne renderer_draw_font_skip_y_increment
-
-  # Increment Y and restore X
-  add r6 r6 1
-
-  # r5 = t_r5
-  pop r5
-  push r5
-
-renderer_draw_font_skip_y_increment:
-  jmp renderer_draw_font_loop
-
-renderer_draw_font_end:
-  # Remove r5 from stack
-  add sp sp 2
-
-  popa
-  ret
-
-renderer_draw_text: # (x, y, color, string)
-  pusha
-
-renderer_draw_text_loop:
-  mov r1 (r8)
-
-  cmp r1 0
-  jeq renderer_draw_text_end
-
-  push r8
-
-  mov r8 r1
-  call renderer_draw_font
-
-  pop r8
-
-  add r5 r5 8
-  add r8 r8 1
-
-  jmp renderer_draw_text_loop
-
-renderer_draw_text_end:
-  popa
-  ret
-
 

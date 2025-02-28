@@ -34,10 +34,19 @@ class TokenType(IntEnum):
     # Colon implicitly places an EOL token after itself.
     COLON = auto()
 
+    PLUS = auto()
+    MINUS = auto()
+    STAR = auto()
+    SLASH = auto()
+    SHL = auto()
+    SHR = auto()
+
     LPAREN = auto()
     RPAREN = auto()
     LBRACE = auto()
     RBRACE = auto()
+    LBRACKET = auto()
+    RBRACKET = auto()
 
     EOL = auto()
     EOF = auto()
@@ -74,10 +83,16 @@ class Token:
 TOKEN_SINGLE = {
     "=": TokenType.EQUALS,
     ":": TokenType.COLON,
+    "+": TokenType.PLUS,
+    "-": TokenType.MINUS,
+    "*": TokenType.STAR,
+    "/": TokenType.SLASH,
     "(": TokenType.LPAREN,
     ")": TokenType.RPAREN,
     "{": TokenType.LBRACE,
     "}": TokenType.RBRACE,
+    "[": TokenType.LBRACKET,
+    "]": TokenType.RBRACKET,
     "\\": TokenType.EOL,
     "\n": TokenType.EOL,
 }
@@ -276,7 +291,7 @@ OPERATIONS = {
          OperationType.SHL_R),
     ],
 
-    "shl": [
+    "shr": [
         ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER],
          OperationType.SHR_I),
         ([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL],
@@ -372,9 +387,13 @@ def lexer_find(content, condition, start):
 
 def lexer_number(content, loc):
     try:
-        value = int(content, 0)
+      if '.' in content:
+          float_value = float(content)
+          value = int(float_value * 256)
+      else:
+          value = int(content, 0)
     except ValueError:
-        report_error(f"invalid `{content}`")
+        report_error(f"invalid `{content}`", loc)
         exit(1)
     return Token(loc, TokenType.NUMBER, value)
 
@@ -409,8 +428,8 @@ def lexer_tokenize_file(path, loc=None):
             else:
                 yield Token(loc, TokenType.SYMBOL, value)
 
-        elif content[index].isdigit():
-            condition = lambda x: not x.isalnum()
+        elif content[index].isdigit() or content[index] == ".":
+            condition = lambda x: not x.isalnum() and not x == "."
             index = lexer_find(content, condition, index) - 1
             yield lexer_number(content[begin:index + 1], loc)
 
@@ -435,10 +454,18 @@ def lexer_tokenize_file(path, loc=None):
                 exit(1)
             yield Token(loc, TokenType.NUMBER, ord(value))
 
+        elif content[index:index + 2] == "<<":
+            yield Token(loc, TokenType.SHL, "<<")
+            index = index + 1
+
+        elif content[index:index + 2] == ">>":
+            yield Token(loc, TokenType.SHR, ">>")
+            index = index + 1
+
         elif content[index] in TOKEN_SINGLE:
-            yield Token(loc, TOKEN_SINGLE[content[index]])
-            if content[index] == ":":
-                yield Token(loc, TokenType.EOL, loc)
+            yield Token(loc, TOKEN_SINGLE[content[index]], content[index])
+            if content[index] in [":",]:
+                yield Token(loc, TokenType.EOL, content[index])
 
         elif content[index:index + 2] == "#[": # ]
             stack = 1
@@ -483,9 +510,19 @@ def assert_token_not(token, *types):
         exit(1)
 
 
-# Used in other places as well.
-VALID_CONST = [TokenType.NUMBER, TokenType.STRING, TokenType.SYMBOL]
-
+VALID_CONST = [TokenType.NUMBER, TokenType.SYMBOL]
+VALID_EXPRESSION = [
+    TokenType.NUMBER,
+    TokenType.SYMBOL,
+    TokenType.PLUS,
+    TokenType.MINUS,
+    TokenType.STAR,
+    TokenType.SLASH,
+    TokenType.SHL,
+    TokenType.SHR,
+    TokenType.LPAREN,
+    TokenType.RPAREN,
+]
 
 # Handle constants, macros and the "w" directive.
 def pass1(tokens, consts=None, macros=None):
@@ -506,6 +543,34 @@ def pass1(tokens, consts=None, macros=None):
         while current.typ != TokenType.EOF and current.typ in types:
             current = next(iterator, None)
 
+    def expression():
+        nonlocal current
+
+        if current.typ != TokenType.LBRACKET:
+            return current
+
+        current = next(iterator, None)
+
+        expr = ""
+        body = []
+        while current.typ not in [TokenType.RBRACKET, TokenType.EOL,
+                                  TokenType.EOF]:
+            assert_token(current, *VALID_EXPRESSION)
+            body.append(current)
+            current = next(iterator, None)
+
+        body = body + [Token(initial.loc, TokenType.EOL)]
+        body = pass1(body, {} | consts, {} | macros)[:-1]
+        expr = " ".join(str(token.val) for _, token in body)
+
+        try:
+            x = int(eval(expr, {"__builtins__": None}, {}))
+        except:
+            report_error(f"invalid expression `{expr}`", initial.loc)
+            exit(1)
+
+        return Token(initial.loc, TokenType.NUMBER, x)
+
     current = next(iterator, None)
     while current != None:
         initial = current
@@ -513,6 +578,12 @@ def pass1(tokens, consts=None, macros=None):
 
         if initial.typ == TokenType.EOL:
             full = False
+
+        if current and current.typ == TokenType.LBRACKET:
+            result.append((full, initial))
+            result.append((full, expression()))
+            current = next(iterator, None)
+            continue
 
         # Where directive is the initial token
         if initial.typ == TokenType.DIRECTIVE:
@@ -532,6 +603,7 @@ def pass1(tokens, consts=None, macros=None):
         # Where is the current token
         if current and current.typ == TokenType.DIRECTIVE:
             # Handle 16-bit operations using "w", short for "word"
+            # print(initial, current)
             if current.val == DirectiveType.W:
                 full = True
                 current = next(iterator, current)
@@ -608,9 +680,8 @@ def pass1(tokens, consts=None, macros=None):
                     macros[name.val] = (arguments, body)
                 # Handle const assignment
                 else:
-                    assert_token(current, *VALID_CONST)
-                    consts[name.val] = current
-                    current = next(iterator, current)
+                    consts[name.val] = expression()
+                    current = next(iterator, None)
                 continue
         else:
             result.append((full, initial))
@@ -675,7 +746,7 @@ def pass2(trans):
             if initial[1].val == DirectiveType.DEF:
                 # Def can accept infinite amount of bytes!
                 while current[1].typ not in [TokenType.EOL, TokenType.EOF]:
-                    assert_token(current[1], *VALID_CONST)
+                    assert_token(current[1], *VALID_CONST, TokenType.STRING)
                     body.append(current[1])
                     current = next(iterator, None)
 
@@ -918,6 +989,7 @@ DEBUG_SEPARATOR = [
     # OperationType.JGE_R,
     # OperationType.CALL_I,
     # OperationType.CALL_R,
+    OperationType.DIRECTIVE,
     OperationType.RET,
     OperationType.HALT,
 ]
@@ -939,8 +1011,15 @@ def main():
 
     start = time.time()
 
-    tokens = lexer_tokenize_file(input_file)
+    tokens = list(lexer_tokenize_file(input_file))
+    # if d:
+    #     for token in tokens:
+    #         postfix = f":{repr(token.val)}" if token.val is not None else ""
+    #         report_note(str(token.typ) + postfix, loc=token.loc, fd=sys.stdout)
+    #     print()
+
     p1 = pass1(tokens)
+
     p2 = pass2(p1)
     p3 = pass3(p2)
     p4 = pass4(*p3)
@@ -953,21 +1032,23 @@ def main():
     if d:
         previous = None
         for op in ops:
-            operands = ", ".join(str(operand).ljust(6) for operand in op.val)
+            operands = "".join(str(operand).ljust(6) for operand in op.val)
 
             # Separator to help distinguish between some parts of code
-            if previous in DEBUG_SEPARATOR:
+            if previous in DEBUG_SEPARATOR and op.typ != previous:
                 sys.stdout.write("\n")
 
             report_note(f"\t{str(op.typ):<12}{operands}", op.loc,
                         fd=sys.stdout)
             previous = op.typ
 
-        print()
-        longest_label = len(max(p3[1].keys(), key=len))
-        for key, value in p3[1].items():
-            print(f"  {key:<{longest_label}} {value:04x} ({value})")
-        print()
+
+        if len(p3[1]) != 0:
+            print()
+            longest_label = len(max(p3[1].keys(), key=len))
+            for key, value in p3[1].items():
+                print(f"  {key:<{longest_label}} {value:04x} ({value})")
+            print()
 
     if x:
         for i, byte in enumerate(bytecode):
