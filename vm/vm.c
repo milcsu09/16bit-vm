@@ -39,7 +39,6 @@ static const char *const VM_OPERATION_NAME[] = {
   "mul(r)",
   "div(i)",
   "div(r)",
-
   "and(i)",
   "and(r)",
   "or(i)",
@@ -51,7 +50,6 @@ static const char *const VM_OPERATION_NAME[] = {
   "shl(r)",
   "shr(i)",
   "shr(r)",
-
   "cmp(i)",
   "cmp(r)",
   "jmp(i)",
@@ -72,6 +70,9 @@ static const char *const VM_OPERATION_NAME[] = {
   "call(r)",
   "ret",
   "halt",
+
+  "print(i)",
+  "print(r)",
 };
 
 static const char *const VM_ERROR_NAME[] = {
@@ -716,6 +717,18 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_HALT:
       vm->halt = true;
+      break;
+    case VM_OPERATION_PRINT_I:
+      {
+        word value = vm_next_width (vm, full);
+        printf ("%d\n", value);
+      }
+      break;
+    case VM_OPERATION_PRINT_R:
+      {
+        word value = vm_next_register_value (vm);
+        printf ("%d\n", value);
+      }
       break;
     default:
       exit (VM_ERROR_ILLEGAL_OPERATION);

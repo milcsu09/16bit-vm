@@ -163,19 +163,19 @@ renderer_store_byte (VM *vm, VM_Device *device, word address, byte value)
   draw_point (index, colors[value]);
 }
 
-word
-renderer_load_word (VM *vm, VM_Device *device, word address)
-{
-  (void) vm, (void) device, (void) address;
-  return 0;
-}
-
 void
 renderer_store_word (VM *vm, VM_Device *device, word address, word value)
 {
   (void) vm, (void) device, (void) address, (void) value;
   word index = address - 0x3000;
   draw_point (index, convertColor (value));
+}
+
+word
+renderer_load_word (VM *vm, VM_Device *device, word address)
+{
+  (void) vm, (void) device, (void) address;
+  return 0;
 }
 
 byte
@@ -185,17 +185,17 @@ keyboard_load_byte (VM *vm, VM_Device *device, word address)
   return ((byte *)device->state)[address - 0x7000];
 }
 
-void
-keyboard_store_byte (VM *vm, VM_Device *device, word address, byte value)
-{
-  (void) vm, (void) device, (void) address, (void) value;
-}
-
 word
 keyboard_load_word (VM *vm, VM_Device *device, word address)
 {
   (void) vm, (void) device, (void) address;
   return 0;
+}
+
+void
+keyboard_store_byte (VM *vm, VM_Device *device, word address, byte value)
+{
+  (void) vm, (void) device, (void) address, (void) value;
 }
 
 void
@@ -207,6 +207,12 @@ keyboard_store_word (VM *vm, VM_Device *device, word address, word value)
 int
 main (int argc, char *argv[argc])
 {
+  if (argc != 2)
+    {
+      fprintf (stderr, "USAGE: %s <ROM-file>\n", argv[0]);
+      abort ();
+    }
+
   VM vm = { 0 };
   vm_create (&vm);
 
@@ -214,24 +220,25 @@ main (int argc, char *argv[argc])
 
   VM_Device renderer = {0};
   renderer.load_byte = renderer_load_byte;
-  renderer.store_byte = renderer_store_byte;
   renderer.load_word = renderer_load_word;
+  renderer.store_byte = renderer_store_byte;
   renderer.store_word = renderer_store_word;
   vm_map_device (&vm, &renderer, 0x3000, 0x7000);
 
   VM_Device keyboard = {0};
   keyboard.load_byte = keyboard_load_byte;
-  keyboard.store_byte = keyboard_store_byte;
   keyboard.load_word = keyboard_load_word;
+  keyboard.store_byte = keyboard_store_byte;
   keyboard.store_word = keyboard_store_word;
   keyboard.state = (void *)SDL_GetKeyboardState (NULL);
   vm_map_device (&vm, &keyboard, 0x7000, 0x7200);
 
   render_init ("16bit-vm", 768, 768, 6);
+  // render_init ("16bit-vm", 128, 128, 1);
 
-  printf ("%dx%d\n", state.width, state.height);
-
-  Uint32 start = 0, end = 0;
+  Uint32 start_time = 0; //, end = 0;
+  Uint32 previous_time = SDL_GetTicks ();
+  Uint32 frames = 0;
 
   while (!vm.halt)
     {
@@ -249,7 +256,7 @@ main (int argc, char *argv[argc])
                 }
             }
 
-          start = SDL_GetTicks ();
+          start_time = SDL_GetTicks ();
 
           render_clear ();
           vm.memory[0x9000] = 0;
@@ -268,11 +275,26 @@ main (int argc, char *argv[argc])
           render_present (SDL_FLIP_NONE);
           vm.memory[0x9002] = 0;
 
-          end = SDL_GetTicks ();
-          Uint32 t = end - start;
-          printf ("%.2f FPS, %dms\n", 1000.0 / (t < 1 ? 1 : t), t);
+          // end = SDL_GetTicks ();
+          // Uint32 t = end - start;
 
-          SDL_Delay (1000 / 60);
+          // printf ("%.2f FPS, %dms\n", 1000.0 / (t < 1 ? 1 : t), t);
+
+          Uint32 current_time = SDL_GetTicks ();
+          frames++;
+
+          if (current_time - previous_time > 1000)
+            {
+              printf ("%d FPS ~%.2fms\n", frames, 1000.0 / frames);
+
+              previous_time = current_time;
+              frames = 0;
+            }
+
+          const Uint32 frame_time = current_time - start_time;
+          const Uint32 frame_delay = (1000 / 144);
+          if (frame_time < frame_delay)
+            SDL_Delay (frame_delay - frame_time);
         }
     }
 

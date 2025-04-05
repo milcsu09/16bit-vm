@@ -175,6 +175,9 @@ class OperationType(IntEnum):
     RET = auto()
     HALT = auto()
 
+    PRINT_I = auto()
+    PRINT_R = auto()
+
     DIRECTIVE = auto()
 
     def __str__(self):
@@ -345,6 +348,11 @@ OPERATIONS = {
 
     "ret": OperationType.RET,
     "halt": OperationType.HALT,
+
+    "print": [
+        ([TokenType.NUMBER], OperationType.PRINT_I),
+        ([TokenType.SYMBOL], OperationType.PRINT_R),
+    ],
 }
 
 
@@ -358,6 +366,7 @@ ALWAYS_FULL = [
     "jle",
     "jge",
     "call",
+    "print",
 ]
 
 
@@ -1046,8 +1055,12 @@ def main():
         if len(p3[1]) != 0:
             print()
             longest_label = len(max(p3[1].keys(), key=len))
+            previous_value = 0
             for key, value in p3[1].items():
-                print(f"  {key:<{longest_label}} {value:04x} ({value})")
+                diff = value - previous_value
+                print(f"  {key:<{longest_label}} {value:04x} ({value})",
+                      f"(+{diff})" if diff else "")
+                previous_value = value
             print()
 
     if x:
