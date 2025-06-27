@@ -53,17 +53,33 @@ main (int argc, char *argv[])
 
   load_file (&vm, argv[1]);
 
+  char command[32];
+
   while (!vm.halt)
     {
-      // view_debug (&vm);
+      view_debug (&vm);
 
-      // while (getc (stdin) != '\n')
-      //   continue;
+      printf ("> ");
+      fgets (command, sizeof(command), stdin);
 
-      vm_step (&vm);
+      if (strcmp (command, "\n") == 0)
+        vm_step (&vm);
+
+      if (strcmp (command, "n\n") == 0)
+        {
+          word start = *vm.sp;
+          vm_step (&vm);
+          while (*vm.sp != start && !vm.halt)
+            vm_step (&vm);
+        }
+
+      if (strcmp (command, "f\n") == 0)
+        {
+          word start = *vm.sp;
+          while (*vm.sp <= start && !vm.halt)
+            vm_step (&vm);
+        }
     }
-
-  view_debug (&vm);
 
   return 0;
 }
