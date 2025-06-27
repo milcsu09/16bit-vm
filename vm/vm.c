@@ -677,13 +677,13 @@ vm_execute (VM *vm, VM_Operation operation)
     case VM_OPERATION_JLE_I:
       {
         word address = vm_next_word (vm);
-        vm_jump (vm, address, vm->flags.c == 1 || vm->flags.z == 1);
+        vm_jump (vm, address, vm->flags.z == 1 || vm->flags.c == 1);
       }
       break;
     case VM_OPERATION_JLE_R:
       {
         word address = vm_next_register_value (vm);
-        vm_jump (vm, address, vm->flags.c == 1 || vm->flags.z == 1);
+        vm_jump (vm, address, vm->flags.z == 1 || vm->flags.c == 1);
       }
       break;
     case VM_OPERATION_JGE_I:
