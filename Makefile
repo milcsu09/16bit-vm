@@ -1,8 +1,28 @@
 
-.PHONY: all dbg
+.PHONY: all vm-dbg vm-tty vm-sdl
 
-all: dbg
+CC := cc
+CCFLAGS := -std=c11 -Wall -Wextra -Wpedantic
 
-dbg:
-	gcc -std=c11 -Wall -Wextra -Wpedantic $(wildcard vm/*.c) $(wildcard dbg/*.c) -o vm-dbg
+VM_OBJ := vm/vm.o
+DBG_OBJ := dbg/dbg.o
+TTY_OBJ := frontend/tty.o
+SDL_OBJ := frontend/sdl.o
+
+all: vm-dbg vm-tty vm-sdl
+
+vm-dbg: $(VM_OBJ) $(DBG_OBJ)
+	$(CC) $(CCFLAGS) $^ -o $@
+
+vm-tty: $(VM_OBJ) $(TTY_OBJ)
+	$(CC) $(CCFLAGS) $^ -o $@
+
+vm-sdl: $(VM_OBJ) $(SDL_OBJ)
+	$(CC) $(CCFLAGS) $^ -o $@ `sdl2-config --cflags --libs`
+
+%.o: %.c
+	$(CC) $(CCFLAGS) -c $< -o $@
+
+clean:
+	rm $(VM_OBJ) $(DBG_OBJ) $(TTY_OBJ) $(SDL_OBJ)
 

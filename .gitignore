@@ -1,3 +1,6 @@
+*.o
 *.out
 *.bin
 vm-dbg
+vm-tty
+vm-sdl
