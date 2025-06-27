@@ -198,7 +198,7 @@ void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);
 
 void vm_view_register (VM *vm, VM_Register index);
-void vm_view_memory (VM *vm, word address, word b, word a, bool decode);
+void vm_view_memory (VM *vm, word address, word b, word a, int decode);
 
 #endif // VM_H
 

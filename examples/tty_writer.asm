@@ -1,29 +1,14 @@
 
-WRITER_BYTE_ADDRESS = 0x3000
+attach "asm/std.asm"
 
-mov w r5 message
-call write
+mov w r5 s1
+call tty_write
+
+mov w r5 s2
+call tty_write
 
 halt
 
-message: def "Hello, world!\n\0"
-
-write:
-  pusha
-
-write_loop:
-  mov r2 (r5)
-
-  cmp r2 '\0
-  jeq write_end
-
-  mov (WRITER_BYTE_ADDRESS) r2
-
-  add r5 r5 1
-  jmp write_loop
-
-write_end:
-  popa
-  ret
-
+s1: def "Hello " 0
+s2: def "world!" 10 0
 

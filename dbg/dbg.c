@@ -11,7 +11,7 @@ struct memory_region
   word address;
   word below;
   word above;
-  bool decode;
+  int decode;
 };
 
 int

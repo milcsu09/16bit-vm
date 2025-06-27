@@ -843,7 +843,7 @@ vm_view_register (VM *vm, VM_Register index)
 }
 
 void
-vm_view_memory (VM *vm, word address, word b, word a, bool decode)
+vm_view_memory (VM *vm, word address, word b, word a, int decode)
 {
   size_t above = (address <= vm->nmemory - 1 - a) ? a : vm->nmemory - 1 - address;
   size_t below = (address >= b) ? b : address;
@@ -860,14 +860,34 @@ vm_view_memory (VM *vm, word address, word b, word a, bool decode)
     printf (".. ");
 
   // (VM_FMT_WORD " ") + b * (VM_FMT_BYTE " ")
-  printf ("\n%*s^", 5 + b * 3, "");
+  printf ("\n%*s", 5 + b * 3, "");
 
-  if (decode)
+  switch (decode)
     {
-      VM_Operation operation = vm->memory[address];
-      byte full = operation & 0x80;
-      byte data = operation & 0x7F;
-      printf ("~ %s%s", vm_operation_name (data), full ? " w" : "");
+    case 1: // Decode operation
+      {
+        printf ("^");
+        VM_Operation operation = vm->memory[address];
+        byte full = operation & 0x80;
+        byte data = operation & 0x7F;
+        printf ("~ %s%s", vm_operation_name (data), full ? " w" : "");
+      }
+      break;
+    case 2: // Decode ASCII string
+      {
+        for (size_t i = address; i <= address + above; ++i)
+          {
+            char c = vm->memory[i];
+            if (isprint (c))
+              printf ("%c  ", c);
+            else
+              printf (".  ");
+          }
+      }
+      break;
+    default:
+      printf ("^");
+      break;
     }
 
   printf ("\n");
