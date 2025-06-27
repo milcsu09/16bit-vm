@@ -8,6 +8,14 @@
 
 #define VM_STACK_POINTER_DELTA sizeof (word)
 
+VM_Device vm_device_ram = {
+  .read_byte = vm_default_read_byte,
+  .read_word = vm_default_read_word,
+  .store_byte = vm_default_store_byte,
+  .store_word = vm_default_store_word,
+  .state = NULL,
+};
+
 static const char *const VM_REGISTER_NAME[] = {
   "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
 };
@@ -130,6 +138,8 @@ vm_create (VM *vm)
   vm->devices = calloc (vm->ndevice, sizeof (VM_Device *));
 
   vm->halt = false;
+
+  vm_map_device (vm, &vm_device_ram, 0, vm->nmemory - 1);
 }
 
 void
@@ -165,7 +175,7 @@ vm_load_file (VM *vm, const char *path)
       return false;
     }
 
-  if (fseek(file, 0, SEEK_END) != 0)
+  if (fseek (file, 0, SEEK_END) != 0)
     {
       perror ("Failed to seek file");
       fclose (file);
@@ -220,27 +230,50 @@ vm_find_device (VM *vm, word address)
 }
 
 byte
+vm_default_read_byte (VM *vm, VM_Device *device, word address)
+{
+  (void)device;
+  return vm->memory[address];
+}
+
+word
+vm_default_read_word (VM *vm, VM_Device *device, word address)
+{
+  (void)device;
+  const byte L = vm_read_byte (vm, address + 0);
+  const byte H = vm_read_byte (vm, address + 1);
+  return VM_WORD_PACK (H, L);
+}
+
+void
+vm_default_store_byte (VM *vm, VM_Device *device, word address, byte value)
+{
+  (void)device;
+  vm->memory[address] = value;
+}
+
+void
+vm_default_store_word (VM *vm, VM_Device *device, word address, word value)
+{
+  (void)device;
+  const byte L = VM_WORD_L (value);
+  const byte H = VM_WORD_H (value);
+  vm_store_byte (vm, address + 0, L);
+  vm_store_byte (vm, address + 1, H);
+}
+
+byte
 vm_read_byte (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
-  if (device)
-    return device->load_byte (vm, device, address);
-  else
-    return vm->memory[address];
+  return device->read_byte (vm, device, address);
 }
 
 word
 vm_read_word (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
-  if (device)
-    return device->read_word (vm, device, address);
-  else
-    {
-      const byte L = vm_read_byte (vm, address + 0);
-      const byte H = vm_read_byte (vm, address + 1);
-      return VM_WORD_PACK (H, L);
-    }
+  return device->read_word (vm, device, address);
 }
 
 word
@@ -305,25 +338,14 @@ void
 vm_store_byte (VM *vm, word address, byte value)
 {
   VM_Device *device = vm_find_device (vm, address);
-  if (device)
-    device->store_byte (vm, device, address, value);
-  else
-    vm->memory[address] = value;
+  device->store_byte (vm, device, address, value);
 }
 
 void
 vm_store_word (VM *vm, word address, word value)
 {
   VM_Device *device = vm_find_device (vm, address);
-  if (device)
-    device->store_word (vm, device, address, value);
-  else
-    {
-      const byte L = VM_WORD_L (value);
-      const byte H = VM_WORD_H (value);
-      vm_store_byte (vm, address + 0, L);
-      vm_store_byte (vm, address + 1, H);
-    }
+  device->store_word (vm, device, address, value);
 }
 
 void

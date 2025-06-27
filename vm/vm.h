@@ -119,12 +119,14 @@ typedef enum
 // read / store function can work with!
 typedef struct VM_Device
 {
-  byte (*load_byte) (VM *, VM_Device *, word);
+  byte (*read_byte) (VM *, VM_Device *, word);
   word (*read_word) (VM *, VM_Device *, word);
   void (*store_byte) (VM *, VM_Device *, word, byte);
   void (*store_word) (VM *, VM_Device *, word, word);
   void *state;
 } VM_Device;
+
+extern VM_Device vm_device_ram;
 
 typedef struct VM
 {
@@ -159,6 +161,11 @@ void vm_load (VM *vm, byte *memory, size_t nmemory);
 bool vm_load_file (VM *vm, const char *path);
 
 void vm_map_device (VM *vm, VM_Device *device, word start, word end);
+
+byte vm_default_read_byte (VM *, VM_Device *, word);
+word vm_default_read_word (VM *, VM_Device *, word);
+void vm_default_store_byte (VM *, VM_Device *, word, byte);
+void vm_default_store_word (VM *, VM_Device *, word, word);
 
 byte vm_read_byte (VM *vm, word address);
 word vm_read_word (VM *vm, word address);
