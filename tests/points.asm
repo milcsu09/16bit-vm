@@ -1,7 +1,7 @@
 
 attach "tests/sdl.asm"
 
-N = 1024
+N = 1000
 
 # NOTE: 'at' mustn't be r7 or r8
 subscript = bits from at to

@@ -4,6 +4,70 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if 1
+static inline void
+load_file (VM *vm, const char *path)
+{
+  FILE *file = fopen (path, "rb");
+
+  fseek(file, 0, SEEK_END);
+  long nmemb = ftell (file);
+  rewind(file);
+
+  byte *bytecode = malloc (nmemb);
+  size_t nread = fread (bytecode, 1, nmemb, file);
+
+  fclose (file);
+
+  memcpy (vm->memory, bytecode, nread);
+  free (bytecode);
+}
+
+
+static inline void
+view_debug (VM *vm)
+{
+  printf ("\033[2J\033[H");
+  printf ("\n");
+
+  for (size_t i = 0; i < VM_REGISTER_COUNT; ++i)
+    vm_view_register (vm, i);
+
+  printf ("\n");
+
+  printf ("z c\n");
+  printf ("%d %d\n", vm->flags.z, vm->flags.c);
+
+  printf ("\n");
+
+  vm_view_memory (vm, *vm->ip, 12, 4, true);
+  vm_view_memory (vm, *vm->sp, 12, 4, false);
+}
+
+
+int
+main (int argc, char *argv[])
+{
+  VM vm = { 0 };
+  vm_create (&vm);
+
+  load_file (&vm, argv[1]);
+
+  while (!vm.halt)
+    {
+      // view_debug (&vm);
+
+      // while (getc (stdin) != '\n')
+      //   continue;
+
+      vm_step (&vm);
+    }
+
+  view_debug (&vm);
+
+  return 0;
+}
+#else
 #include <SDL2/SDL.h>
 
 uint32_t colors[] = {
@@ -234,7 +298,6 @@ main (int argc, char *argv[argc])
   vm_map_device (&vm, &keyboard, 0x7000, 0x7200);
 
   render_init ("16bit-vm", 768, 768, 6);
-  // render_init ("16bit-vm", 128, 128, 1);
 
   Uint32 start_time = 0; //, end = 0;
   Uint32 previous_time = SDL_GetTicks ();
@@ -301,4 +364,5 @@ main (int argc, char *argv[argc])
 quit:
   return 0;
 }
+#endif
 

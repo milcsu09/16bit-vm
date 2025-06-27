@@ -438,7 +438,7 @@ def lexer_tokenize_file(path, loc=None):
                 yield Token(loc, TokenType.SYMBOL, value)
 
         elif content[index].isdigit() or content[index] == ".":
-            condition = lambda x: not x.isalnum() and not x == "."
+            condition = lambda x: not x.isalnum() and x != "."
             index = lexer_find(content, condition, index) - 1
             yield lexer_number(content[begin:index + 1], loc)
 
@@ -824,7 +824,7 @@ def pass3(ir):
 def pass4(ir, labels):
     result = []
 
-    for full, size, tokens in ir:
+    for full, _, tokens in ir:
         copy = tokens.copy()
 
         for i, token in enumerate(tokens):
@@ -911,7 +911,7 @@ def parse_operations(ir):
 def build_fit_limit(value, limit, loc):
     if value > limit:
         t, value = value, value & limit
-        report_note(f"`{t}` wrapped to `{value}`", loc)
+        report_warning(f"`{t}` wrapped to `{value}`", loc)
     return value
 
 
@@ -1047,7 +1047,12 @@ def main():
             if previous in DEBUG_SEPARATOR and op.typ != previous:
                 sys.stdout.write("\n")
 
-            report_note(f"\t{str(op.typ):<12}{operands}", op.loc,
+            if op.full:
+                full = " w "
+            else:
+                full = ""
+
+            report_note(f"\t{str(op.typ) + full:<16}{operands}", op.loc,
                         fd=sys.stdout)
             previous = op.typ
 
