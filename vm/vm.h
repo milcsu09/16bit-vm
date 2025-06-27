@@ -114,13 +114,13 @@ typedef enum
   VM_ERROR_COUNT,
 } VM_Error;
 
-// Devices have their own load / store operations, this allows for custom
+// Devices have their own read / store operations, this allows for custom
 // behavior on that operation. State is a pointer to a utility value that the
-// load / store function can work with!
+// read / store function can work with!
 typedef struct VM_Device
 {
   byte (*load_byte) (VM *, VM_Device *, word);
-  word (*load_word) (VM *, VM_Device *, word);
+  word (*read_word) (VM *, VM_Device *, word);
   void (*store_byte) (VM *, VM_Device *, word, byte);
   void (*store_word) (VM *, VM_Device *, word, word);
   void *state;
@@ -155,14 +155,17 @@ char *vm_error_name (VM_Error index);
 void vm_create (VM *vm);
 void vm_destroy (VM *vm);
 
+void vm_load (VM *vm, byte *memory, size_t nmemory);
+bool vm_load_file (VM *vm, const char *path);
+
 void vm_map_device (VM *vm, VM_Device *device, word start, word end);
 
-byte vm_load_byte (VM *vm, word address);
-word vm_load_word (VM *vm, word address);
-word vm_load_width (VM *vm, word address, bool full);
+byte vm_read_byte (VM *vm, word address);
+word vm_read_word (VM *vm, word address);
+word vm_read_width (VM *vm, word address, bool full);
 
-word vm_load_register_value (VM *vm, word address);
-word *vm_load_register_address (VM *vm, word address);
+word vm_read_register_value (VM *vm, word address);
+word *vm_read_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
@@ -188,7 +191,7 @@ void vm_execute (VM *vm, VM_Operation operation);
 void vm_step (VM *vm);
 
 void vm_view_register (VM *vm, VM_Register index);
-void vm_view_memory (VM *vm, word address, word a, word b, bool decode);
+void vm_view_memory (VM *vm, word address, word b, word a, bool decode);
 
 #endif // VM_H
 

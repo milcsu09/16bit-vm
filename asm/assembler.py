@@ -366,7 +366,6 @@ ALWAYS_FULL = [
     "jle",
     "jge",
     "call",
-    "print",
 ]
 
 

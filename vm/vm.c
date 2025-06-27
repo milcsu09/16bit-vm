@@ -13,66 +13,66 @@ static const char *const VM_REGISTER_NAME[] = {
 };
 
 static const char *const VM_OPERATION_NAME[] = {
-  "none",
-  "mov(r, i)",
-  "mov(r, r)",
-  "mov(r, im)",
-  "mov(r, rm)",
-  "mov(im, i)",
-  "mov(im, r)",
-  "mov(im, im)",
-  "mov(im, rm)",
-  "mov(rm, i)",
-  "mov(rm, r)",
-  "mov(rm, im)",
-  "mov(rm, rm)",
-  "push(i)",
-  "push(r)",
-  "pop",
-  "pusha",
-  "popa",
-  "add(i)",
-  "add(r)",
-  "sub(i)",
-  "sub(r)",
-  "mul(i)",
-  "mul(r)",
-  "div(i)",
-  "div(r)",
-  "and(i)",
-  "and(r)",
-  "or(i)",
-  "or(r)",
-  "xor(i)",
-  "xor(r)",
-  "not",
-  "shl(i)",
-  "shl(r)",
-  "shr(i)",
-  "shr(r)",
-  "cmp(i)",
-  "cmp(r)",
-  "jmp(i)",
-  "jmp(r)",
-  "jeq(i)",
-  "jeq(r)",
-  "jne(i)",
-  "jne(r)",
-  "jlt(i)",
-  "jlt(r)",
-  "jgt(i)",
-  "jgt(r)",
-  "jle(i)",
-  "jle(r)",
-  "jge(i)",
-  "jge(r)",
-  "call(i)",
-  "call(r)",
-  "ret",
-  "halt",
+  "NONE",
+  "MOV_R_I",
+  "MOV_R_R",
+  "MOV_R_IM",
+  "MOV_R_RM",
+  "MOV_IM_I",
+  "MOV_IM_R",
+  "MOV_IM_IM",
+  "MOV_IM_RM",
+  "MOV_RM_I",
+  "MOV_RM_R",
+  "MOV_RM_IM",
+  "MOV_RM_RM",
+  "PUSH_I",
+  "PUSH_R",
+  "POP",
+  "PUSHA",
+  "POPA",
+  "ADD_I",
+  "ADD_R",
+  "SUB_I",
+  "SUB_R",
+  "MUL_I",
+  "MUL_R",
+  "DIV_I",
+  "DIV_R",
+  "AND_I",
+  "AND_R",
+  "OR_I",
+  "OR_R",
+  "XOR_I",
+  "XOR_R",
+  "NOT",
+  "SHL_I",
+  "SHL_R",
+  "SHR_I",
+  "SHR_R",
+  "CMP_I",
+  "CMP_R",
+  "JMP_I",
+  "JMP_R",
+  "JEQ_I",
+  "JEQ_R",
+  "JNE_I",
+  "JNE_R",
+  "JLT_I",
+  "JLT_R",
+  "JGT_I",
+  "JGT_R",
+  "JLE_I",
+  "JLE_R",
+  "JGE_I",
+  "JGE_R",
+  "CALL_I",
+  "CALL_R",
+  "RET",
+  "HALT",
 
-  "print(i)",
-  "print(r)",
+  "PRINT_I",
+  "PRINT_R",
 };
 
 static const char *const VM_ERROR_NAME[] = {
@@ -146,6 +146,64 @@ vm_destroy (VM *vm)
 }
 
 void
+vm_load (VM *vm, byte *memory, size_t nmemory)
+{
+  if (nmemory > vm->nmemory)
+    nmemory = vm->nmemory;
+
+  memcpy (vm->memory, memory, nmemory);
+}
+
+bool
+vm_load_file (VM *vm, const char *path)
+{
+  FILE *file = fopen (path, "rb");
+
+  if (!file)
+    {
+      perror ("Failed to open file");
+      return false;
+    }
+
+  if (fseek(file, 0, SEEK_END) != 0)
+    {
+      perror ("Failed to seek file");
+      fclose (file);
+      return false;
+    }
+
+  long nmemory = ftell (file);
+
+  if (nmemory < 0)
+    {
+      perror ("Failed to tell file size");
+      fclose (file);
+      return false;
+    }
+
+  rewind(file);
+
+  byte *memory = calloc (nmemory, sizeof (byte));
+
+  size_t nread = fread (memory, 1, nmemory, file);
+
+  if (nread != (size_t)nmemory)
+    {
+      perror ("Failed to read file");
+      free (memory);
+      fclose (file);
+      return false;
+    }
+
+  vm_load (vm, memory, nmemory);
+
+  free (memory);
+  fclose (file);
+
+  return true;
+}
+
+void
 vm_map_device (VM *vm, VM_Device *device, word start, word end)
 {
   start /= VM_DEVICE_BLOCK_SIZE;
@@ -162,7 +220,7 @@ vm_find_device (VM *vm, word address)
 }
 
 byte
-vm_load_byte (VM *vm, word address)
+vm_read_byte (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
@@ -172,46 +230,46 @@ vm_load_byte (VM *vm, word address)
 }
 
 word
-vm_load_word (VM *vm, word address)
+vm_read_word (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
   if (device)
-    return device->load_word (vm, device, address);
+    return device->read_word (vm, device, address);
   else
     {
-      const byte L = vm_load_byte (vm, address + 0);
-      const byte H = vm_load_byte (vm, address + 1);
+      const byte L = vm_read_byte (vm, address + 0);
+      const byte H = vm_read_byte (vm, address + 1);
       return VM_WORD_PACK (H, L);
     }
 }
 
 word
-vm_load_width (VM *vm, word address, bool full)
+vm_read_width (VM *vm, word address, bool full)
 {
   if (full)
-    return vm_load_word (vm, address);
+    return vm_read_word (vm, address);
   else
-    return vm_load_byte (vm, address);
+    return vm_read_byte (vm, address);
 }
 
 word
-vm_load_register_value (VM *vm, word address)
+vm_read_register_value (VM *vm, word address)
 {
-  byte index = vm_load_byte (vm, address);
+  byte index = vm_read_byte (vm, address);
   return vm->registers[index];
 }
 
 word *
-vm_load_register_address (VM *vm, word address)
+vm_read_register_address (VM *vm, word address)
 {
-  byte index = vm_load_byte (vm, address);
+  byte index = vm_read_byte (vm, address);
   return &vm->registers[index];
 }
 
 byte
 vm_next_byte (VM *vm)
 {
-  return vm_load_byte (vm, (*vm->ip)++);
+  return vm_read_byte (vm, (*vm->ip)++);
 }
 
 word
@@ -234,13 +292,13 @@ vm_next_width (VM *vm, bool full)
 word
 vm_next_register_value (VM *vm)
 {
-  return vm_load_register_value (vm, (*vm->ip)++);
+  return vm_read_register_value (vm, (*vm->ip)++);
 }
 
 word *
 vm_next_register_address (VM *vm)
 {
-  return vm_load_register_address (vm, (*vm->ip)++);
+  return vm_read_register_address (vm, (*vm->ip)++);
 }
 
 void
@@ -295,14 +353,14 @@ byte
 vm_pop_byte (VM *vm)
 {
   *vm->sp += VM_STACK_POINTER_DELTA;
-  return vm_load_byte (vm, *vm->sp);
+  return vm_read_byte (vm, *vm->sp);
 }
 
 word
 vm_pop_word (VM *vm)
 {
   *vm->sp += VM_STACK_POINTER_DELTA;
-  return vm_load_word (vm, *vm->sp);
+  return vm_read_word (vm, *vm->sp);
 }
 
 void
@@ -347,14 +405,14 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_word (vm);
-        *dest = vm_load_width (vm, address, full);
+        *dest = vm_read_width (vm, address, full);
       }
       break;
     case VM_OPERATION_MOV_R_RM:
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_register_value (vm);
-        *dest = vm_load_width (vm, address, full);
+        *dest = vm_read_width (vm, address, full);
       }
       break;
     case VM_OPERATION_MOV_IM_I:
@@ -375,7 +433,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word dest = vm_next_word (vm);
         word address = vm_next_word (vm);
-        word value = vm_load_width (vm, address, full);
+        word value = vm_read_width (vm, address, full);
         vm_store_width (vm, dest, value, full);
       }
       break;
@@ -383,7 +441,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word dest = vm_next_word (vm);
         word address = vm_next_register_value (vm);
-        word value = vm_load_width (vm, address, full);
+        word value = vm_read_width (vm, address, full);
         vm_store_width (vm, dest, value, full);
       }
       break;
@@ -405,7 +463,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_word (vm);
-        word value = vm_load_width (vm, address, full);
+        word value = vm_read_width (vm, address, full);
         vm_store_width (vm, dest, value, full);
       }
       break;
@@ -413,7 +471,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_register_value (vm);
-        word value = vm_load_width (vm, address, full);
+        word value = vm_read_width (vm, address, full);
         vm_store_width (vm, dest, value, full);
       }
       break;
@@ -763,7 +821,7 @@ vm_view_register (VM *vm, VM_Register index)
 }
 
 void
-vm_view_memory (VM *vm, word address, word a, word b, bool decode)
+vm_view_memory (VM *vm, word address, word b, word a, bool decode)
 {
   size_t above = (address <= vm->nmemory - 1 - a) ? a : vm->nmemory - 1 - address;
   size_t below = (address >= b) ? b : address;
@@ -787,7 +845,7 @@ vm_view_memory (VM *vm, word address, word a, word b, bool decode)
       VM_Operation operation = vm->memory[address];
       byte full = operation & 0x80;
       byte data = operation & 0x7F;
-      printf ("~ %s%s", vm_operation_name (data), full ? "" : "'");
+      printf ("~ %s%s", vm_operation_name (data), full ? " w" : "");
     }
 
   printf ("\n");
