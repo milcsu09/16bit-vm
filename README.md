@@ -67,8 +67,8 @@ Full means that the operation works with 16-bit values! Otherwise, 8-bit values.
 | `0x15` | `SUB_R`     | `R1`, `R2`, `R3`  | Store `R2 - R3` to `R1`                                |
 | `0x16` | `MUL_I`     | `R1`, `R2`, `I1`  | Store `R2 * I1` to `R1`                                |
 | `0x17` | `MUL_R`     | `R1`, `R2`, `R3`  | Store `R2 * R3` to `R1`                                |
-| `0x18` | `DIV_I`     | `R1`, `R2`, `I1`  | Store `R2 / I1` to `R1`                                |
-| `0x19` | `DIV_R`     | `R1`, `R2`, `R3`  | Store `R2 / R3` to `R1`                                |
+| `0x18` | `DIV_I`     | `R1`, `R2`, `I1`  | Store `R2 / I1` to `R1` and `R2 % I1` to `AC`          |
+| `0x19` | `DIV_R`     | `R1`, `R2`, `R3`  | Store `R2 / R3` to `R1` and `R2 % R3` to `AC`          |
 | `0x1a` | `AND_I`     | `R1`, `R2`, `I1`  | Store `R2 & I1` to `R1`                                |
 | `0x1b` | `AND_R`     | `R1`, `R2`, `R3`  | Store `R2 & R3` to `R1`                                |
 | `0x1c` | `OR_I`      | `R1`, `R2`, `I1`  | Store `R2 \| I1` to `R1`                               |
