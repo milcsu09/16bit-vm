@@ -1,4 +1,6 @@
+# STANDARD LIBRARY
 # CALL CONVENTION : (r5, r6, r7, r8) -> ac
+
 
 ## STANDARD ##
 std_strcpy: # (r5 src, r6 dst)
@@ -18,6 +20,7 @@ std_strcpy_loop:
 std_strcpy_end:
   popa
   ret
+
 
 ## TTY ##
 TTY_WRITER_ADDRESS = 0x3000
