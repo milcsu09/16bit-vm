@@ -143,6 +143,9 @@ read_line:
             }
         }
 
+      if (strcmp (command, "F") == 0)
+        view_flags = !view_flags;
+
       if (strcmp (command, "puts") == 0)
         {
           if (arg1)

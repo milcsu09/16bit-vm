@@ -287,17 +287,6 @@ vm_read_word (VM *vm, word address)
   return device->read_word (vm, device, address);
 }
 
-/*
-word
-vm_read_width (VM *vm, word address, bool full)
-{
-  if (full)
-    return vm_read_word (vm, address);
-  else
-    return vm_read_byte (vm, address);
-}
-*/
-
 word
 vm_read_register_value (VM *vm, word address)
 {
@@ -326,17 +315,6 @@ vm_next_word (VM *vm)
   return VM_WORD_PACK (H, L);
 }
 
-/*
-word
-vm_next_width (VM *vm, bool full)
-{
-  if (full)
-    return vm_next_word (vm);
-  else
-    return vm_next_byte (vm);
-}
-*/
-
 word
 vm_next_register_value (VM *vm)
 {
@@ -362,17 +340,6 @@ vm_store_word (VM *vm, word address, word value)
   VM_Device *device = vm_find_device (vm, address);
   device->store_word (vm, device, address, value);
 }
-
-/*
-void
-vm_store_width (VM *vm, word address, word value, bool full)
-{
-  if (full)
-    vm_store_word (vm, address, value);
-  else
-    vm_store_byte (vm, address, value);
-}
-*/
 
 void
 vm_push_byte (VM *vm, byte value)
@@ -419,9 +386,6 @@ vm_jump (VM *vm, word address, bool condition)
 void
 vm_execute (VM *vm, VM_Operation operation)
 {
-  // byte full = operation & 0x80;
-  // byte data = operation & 0x7F;
-
   switch (operation)
     {
     case VM_OPERATION_NONE:
@@ -514,8 +478,6 @@ vm_execute (VM *vm, VM_Operation operation)
         vm_store_word (vm, dest, value);
       }
       break;
-
-
     case VM_OPERATION_MOVB_R_I:
       {
         word *dest = vm_next_register_address (vm);
@@ -604,8 +566,6 @@ vm_execute (VM *vm, VM_Operation operation)
         vm_store_byte (vm, dest, value);
       }
       break;
-
-
     case VM_OPERATION_PUSH_I:
       {
         word value = vm_next_word (vm);

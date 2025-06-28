@@ -53,10 +53,10 @@ halt
 
 s_enter_a_number: defb "Enter a number: \0"
 
-s_add: defb "Sum: \0"
+s_add: defb "Sum:        \0"
 s_sub: defb "Difference: \0"
-s_mul: defb "Product: \0"
-s_div: defb "Quotient: \0"
+s_mul: defb "Product:    \0"
+s_div: defb "Quotient:   \0"
 
 buffer1: resb 8
 buffer2: resb 8
