@@ -65,7 +65,7 @@
 | `0x1c` | `PUSHA`      | -                 | Push all general purpose registers to stack            |
 | `0x1d` | `POPA`       | -                 | Pop all general purpose registers from stack           |
 | `0x1e` | `ADD_I`      | `R1`, `R2`, `I1`  | Store `R2 + I1` to `R1`                                |
-| `0x1f` | `ADD_R`      | `R1`, `R2`, `R3`  | Store `R2 + I3` to `R1`                                |
+| `0x1f` | `ADD_R`      | `R1`, `R2`, `R3`  | Store `R2 + R3` to `R1`                                |
 | `0x20` | `SUB_I`      | `R1`, `R2`, `I1`  | Store `R2 - I1` to `R1`                                |
 | `0x21` | `SUB_R`      | `R1`, `R2`, `R3`  | Store `R2 - R3` to `R1`                                |
 | `0x22` | `MUL_I`      | `R1`, `R2`, `I1`  | Store `R2 * I1` to `R1`                                |
