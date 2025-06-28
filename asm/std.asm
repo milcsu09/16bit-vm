@@ -22,6 +22,36 @@ std_strcpy_end:
   ret
 
 
+std_strtoi: # (r5 src)
+  pusha
+
+  mov ac 0
+
+std_strtoi_loop:
+  mov r1 (r5)
+
+  cmp r1 '\0
+  jeq std_strtoi_end
+
+  cmp r1 '0
+  jlt std_strtoi_end
+
+  cmp r1 '9
+  jgt std_strtoi_end
+
+  sub r1 r1 '0
+
+  mul ac ac 10
+  add ac ac r1
+
+  add r5 r5 1
+  jmp std_strtoi_loop
+
+std_strtoi_end:
+  popa
+  ret
+
+
 ## TTY ##
 TTY_WRITER_ADDRESS = 0x3000
 TTY_READER_ADDRESS = 0x3100

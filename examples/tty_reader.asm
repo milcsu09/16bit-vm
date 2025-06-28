@@ -10,6 +10,11 @@ call tty_writes
 
 tty_write '\n
 
+mov w r5 buffer
+call std_strtoi
+
+print ac
+
 halt
 
 buffer: res 16
