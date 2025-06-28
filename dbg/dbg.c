@@ -31,6 +31,8 @@ main (int argc, char **argv)
   bool view_region_sp = 0;
   bool view_region_bp = 0;
 
+  bool view_flags = 1;
+
   VM vm = {0};
 
   vm_create (&vm);
@@ -67,6 +69,13 @@ main (int argc, char **argv)
       if (view_region_bp)
         {
           vm_view_memory (&vm, *vm.bp, 8, 8, 0);
+          printf ("\n");
+        }
+
+      if (view_flags)
+        {
+          printf ("z c\n");
+          printf ("%d %d\n", vm.flags.z, vm.flags.c);
           printf ("\n");
         }
 

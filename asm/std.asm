@@ -7,8 +7,8 @@ std_strcpy: # (r5 src, r6 dst)
   pusha
 
 std_strcpy_loop:
-  mov r1 (r5)
-  mov (r6) r1
+  movb r1 (r5)
+  movb (r6) r1
 
   cmp r1 0
   jeq std_strcpy_end
@@ -28,7 +28,7 @@ std_strtoi: # (r5 src)
   mov ac 0
 
 std_strtoi_loop:
-  mov r1 (r5)
+  movb r1 (r5)
 
   cmp r1 '\0
   jeq std_strtoi_end
@@ -58,14 +58,14 @@ TTY_READER_ADDRESS = 0x3100
 
 tty_write = value
 {
-  mov (TTY_WRITER_ADDRESS) value
+  movb (TTY_WRITER_ADDRESS) value
 }
 
 tty_writes: # (r5 src)
   pusha
 
 tty_writes_loop:
-  mov r1 (r5)
+  movb r1 (r5)
 
   cmp r1 0
   jeq tty_writes_end
@@ -82,13 +82,13 @@ tty_writes_end:
 
 tty_read =
 {
-  mov ac (TTY_READER_ADDRESS)
+  movb ac (TTY_READER_ADDRESS)
 }
 
 tty_reads: # (r5 dst, r6 size)
   pusha
 
-  mov r1 0
+  movb r1 0
   sub r6 r6 1
 
 tty_reads_loop:
@@ -103,14 +103,14 @@ tty_reads_loop:
   cmp r1 r6
   jge tty_reads_loop
 
-  mov (r5) ac
+  movb (r5) ac
 
   add r1 r1 1
   add r5 r5 1
   jmp tty_reads_loop
 
 tty_reads_end:
-  mov (r5) '\0
+  movb (r5) '\0
 
   popa
   ret

@@ -34,6 +34,18 @@ static const char *const VM_OPERATION_NAME[] = {
   "MOV_RM_R",
   "MOV_RM_IM",
   "MOV_RM_RM",
+  "MOVB_R_I",
+  "MOVB_R_R",
+  "MOVB_R_IM",
+  "MOVB_R_RM",
+  "MOVB_IM_I",
+  "MOVB_IM_R",
+  "MOVB_IM_IM",
+  "MOVB_IM_RM",
+  "MOVB_RM_I",
+  "MOVB_RM_R",
+  "MOVB_RM_IM",
+  "MOVB_RM_RM",
   "PUSH_I",
   "PUSH_R",
   "POP",
@@ -78,7 +90,6 @@ static const char *const VM_OPERATION_NAME[] = {
   "CALL_R",
   "RET",
   "HALT",
-
   "PRINT_I",
   "PRINT_R",
 };
@@ -276,6 +287,7 @@ vm_read_word (VM *vm, word address)
   return device->read_word (vm, device, address);
 }
 
+/*
 word
 vm_read_width (VM *vm, word address, bool full)
 {
@@ -284,6 +296,7 @@ vm_read_width (VM *vm, word address, bool full)
   else
     return vm_read_byte (vm, address);
 }
+*/
 
 word
 vm_read_register_value (VM *vm, word address)
@@ -313,6 +326,7 @@ vm_next_word (VM *vm)
   return VM_WORD_PACK (H, L);
 }
 
+/*
 word
 vm_next_width (VM *vm, bool full)
 {
@@ -321,6 +335,7 @@ vm_next_width (VM *vm, bool full)
   else
     return vm_next_byte (vm);
 }
+*/
 
 word
 vm_next_register_value (VM *vm)
@@ -348,6 +363,7 @@ vm_store_word (VM *vm, word address, word value)
   device->store_word (vm, device, address, value);
 }
 
+/*
 void
 vm_store_width (VM *vm, word address, word value, bool full)
 {
@@ -356,6 +372,7 @@ vm_store_width (VM *vm, word address, word value, bool full)
   else
     vm_store_byte (vm, address, value);
 }
+*/
 
 void
 vm_push_byte (VM *vm, byte value)
@@ -402,17 +419,17 @@ vm_jump (VM *vm, word address, bool condition)
 void
 vm_execute (VM *vm, VM_Operation operation)
 {
-  byte full = operation & 0x80;
-  byte data = operation & 0x7F;
+  // byte full = operation & 0x80;
+  // byte data = operation & 0x7F;
 
-  switch (data)
+  switch (operation)
     {
     case VM_OPERATION_NONE:
       break;
     case VM_OPERATION_MOV_R_I:
       {
         word *dest = vm_next_register_address (vm);
-        word value = vm_next_width (vm, full);
+        word value = vm_next_word (vm);
         *dest = value;
       }
       break;
@@ -427,79 +444,171 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_word (vm);
-        *dest = vm_read_width (vm, address, full);
+        *dest = vm_read_word (vm, address);
       }
       break;
     case VM_OPERATION_MOV_R_RM:
       {
         word *dest = vm_next_register_address (vm);
         word address = vm_next_register_value (vm);
-        *dest = vm_read_width (vm, address, full);
+        *dest = vm_read_word (vm, address);
       }
       break;
     case VM_OPERATION_MOV_IM_I:
       {
         word dest = vm_next_word (vm);
-        word value = vm_next_width (vm, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_next_word (vm);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_IM_R:
       {
         word dest = vm_next_word (vm);
         word value = vm_next_register_value (vm);
-        vm_store_width (vm, dest, value, full);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_IM_IM:
       {
         word dest = vm_next_word (vm);
         word address = vm_next_word (vm);
-        word value = vm_read_width (vm, address, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_read_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_IM_RM:
       {
         word dest = vm_next_word (vm);
         word address = vm_next_register_value (vm);
-        word value = vm_read_width (vm, address, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_read_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_I:
       {
         word dest = vm_next_register_value (vm);
-        word value = vm_next_width (vm, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_next_word (vm);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_R:
       {
         word dest = vm_next_register_value (vm);
         word value = vm_next_register_value (vm);
-        vm_store_width (vm, dest, value, full);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_IM:
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_word (vm);
-        word value = vm_read_width (vm, address, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_read_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
     case VM_OPERATION_MOV_RM_RM:
       {
         word dest = vm_next_register_value (vm);
         word address = vm_next_register_value (vm);
-        word value = vm_read_width (vm, address, full);
-        vm_store_width (vm, dest, value, full);
+        word value = vm_read_word (vm, address);
+        vm_store_word (vm, dest, value);
       }
       break;
+
+
+    case VM_OPERATION_MOVB_R_I:
+      {
+        word *dest = vm_next_register_address (vm);
+        byte value = vm_next_byte (vm);
+        *dest = value;
+      }
+      break;
+    case VM_OPERATION_MOVB_R_R:
+      {
+        word *dest = vm_next_register_address (vm);
+        byte value = vm_next_register_value (vm);
+        *dest = value;
+      }
+      break;
+    case VM_OPERATION_MOVB_R_IM:
+      {
+        word *dest = vm_next_register_address (vm);
+        word address = vm_next_word (vm);
+        *dest = vm_read_byte (vm, address);
+      }
+      break;
+    case VM_OPERATION_MOVB_R_RM:
+      {
+        word *dest = vm_next_register_address (vm);
+        word address = vm_next_register_value (vm);
+        *dest = vm_read_byte (vm, address);
+      }
+      break;
+    case VM_OPERATION_MOVB_IM_I:
+      {
+        word dest = vm_next_word (vm);
+        byte value = vm_next_byte (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_IM_R:
+      {
+        word dest = vm_next_word (vm);
+        byte value = vm_next_register_value (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_IM_IM:
+      {
+        word dest = vm_next_word (vm);
+        word address = vm_next_word (vm);
+        byte value = vm_read_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_IM_RM:
+      {
+        word dest = vm_next_word (vm);
+        word address = vm_next_register_value (vm);
+        byte value = vm_read_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_RM_I:
+      {
+        word dest = vm_next_register_value (vm);
+        byte value = vm_next_byte (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_RM_R:
+      {
+        word dest = vm_next_register_value (vm);
+        byte value = vm_next_register_value (vm);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_RM_IM:
+      {
+        word dest = vm_next_register_value (vm);
+        word address = vm_next_word (vm);
+        byte value = vm_read_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+    case VM_OPERATION_MOVB_RM_RM:
+      {
+        word dest = vm_next_register_value (vm);
+        word address = vm_next_register_value (vm);
+        byte value = vm_read_byte (vm, address);
+        vm_store_byte (vm, dest, value);
+      }
+      break;
+
+
     case VM_OPERATION_PUSH_I:
       {
-        word value = vm_next_width (vm, full);
+        word value = vm_next_word (vm);
         vm_push_word (vm, value);
       }
       break;
@@ -531,7 +640,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 + src2;
       }
       break;
@@ -547,7 +656,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 - src2;
       }
       break;
@@ -563,7 +672,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 * src2;
       }
       break;
@@ -579,7 +688,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         vm->registers[VM_REGISTER_AC] = src1 % src2;
         *dest = src1 / src2;
       }
@@ -597,7 +706,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 & src2;
       }
       break;
@@ -613,7 +722,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 | src2;
       }
       break;
@@ -629,7 +738,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 ^ src2;
       }
       break;
@@ -652,7 +761,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 << src2;
       }
       break;
@@ -668,7 +777,7 @@ vm_execute (VM *vm, VM_Operation operation)
       {
         word *dest = vm_next_register_address (vm);
         word src1 = vm_next_register_value (vm);
-        word src2 = vm_next_width (vm, full);
+        word src2 = vm_next_word (vm);
         *dest = src1 >> src2;
       }
       break;
@@ -683,7 +792,7 @@ vm_execute (VM *vm, VM_Operation operation)
     case VM_OPERATION_CMP_I:
       {
         word a = vm_next_register_value (vm);
-        word b = vm_next_width (vm, full);
+        word b = vm_next_word (vm);
         vm_compare (vm, a, b);
       }
       break;
@@ -800,7 +909,7 @@ vm_execute (VM *vm, VM_Operation operation)
       break;
     case VM_OPERATION_PRINT_I:
       {
-        word value = vm_next_width (vm, full);
+        word value = vm_next_word (vm);
         printf ("%d\n", value);
       }
       break;
@@ -868,9 +977,9 @@ vm_view_memory (VM *vm, word address, word b, word a, int decode)
       {
         printf ("^");
         VM_Operation operation = vm->memory[address];
-        byte full = operation & 0x80;
-        byte data = operation & 0x7F;
-        printf ("~ %s%s", vm_operation_name (data), full ? " w" : "");
+        // byte full = operation & 0x80;
+        // byte data = operation & 0x7F;
+        printf ("~ %s", vm_operation_name (operation));
       }
       break;
     case 2: // Decode ASCII string

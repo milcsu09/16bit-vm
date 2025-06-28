@@ -56,6 +56,18 @@ typedef enum
   VM_OPERATION_MOV_RM_R,
   VM_OPERATION_MOV_RM_IM,
   VM_OPERATION_MOV_RM_RM,
+  VM_OPERATION_MOVB_R_I,
+  VM_OPERATION_MOVB_R_R,
+  VM_OPERATION_MOVB_R_IM,
+  VM_OPERATION_MOVB_R_RM,
+  VM_OPERATION_MOVB_IM_I,
+  VM_OPERATION_MOVB_IM_R,
+  VM_OPERATION_MOVB_IM_IM,
+  VM_OPERATION_MOVB_IM_RM,
+  VM_OPERATION_MOVB_RM_I,
+  VM_OPERATION_MOVB_RM_R,
+  VM_OPERATION_MOVB_RM_IM,
+  VM_OPERATION_MOVB_RM_RM,
   VM_OPERATION_PUSH_I,
   VM_OPERATION_PUSH_R,
   VM_OPERATION_POP,
@@ -100,7 +112,6 @@ typedef enum
   VM_OPERATION_CALL_R,
   VM_OPERATION_RET,
   VM_OPERATION_HALT,
-
   VM_OPERATION_PRINT_I,
   VM_OPERATION_PRINT_R,
 
@@ -169,21 +180,21 @@ void vm_default_store_word (VM *, VM_Device *, word, word);
 
 byte vm_read_byte (VM *vm, word address);
 word vm_read_word (VM *vm, word address);
-word vm_read_width (VM *vm, word address, bool full);
+// word vm_read_width (VM *vm, word address, bool full);
 
 word vm_read_register_value (VM *vm, word address);
 word *vm_read_register_address (VM *vm, word address);
 
 byte vm_next_byte (VM *vm);
 word vm_next_word (VM *vm);
-word vm_next_width (VM *vm, bool full);
+// word vm_next_width (VM *vm, bool full);
 
 word vm_next_register_value (VM *vm);
 word *vm_next_register_address (VM *vm);
 
 void vm_store_byte (VM *vm, word address, byte value);
 void vm_store_word (VM *vm, word address, word value);
-void vm_store_width (VM *vm, word address, word value, bool full);
+// void vm_store_width (VM *vm, word address, word value, bool full);
 
 void vm_push_byte (VM *vm, byte value);
 void vm_push_word (VM *vm, word value);

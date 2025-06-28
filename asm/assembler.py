@@ -130,6 +130,18 @@ class OperationType(IntEnum):
     MOV_RM_R = auto()
     MOV_RM_IM = auto()
     MOV_RM_RM = auto()
+    MOVB_R_I = auto()
+    MOVB_R_R = auto()
+    MOVB_R_IM = auto()
+    MOVB_R_RM = auto()
+    MOVB_IM_I = auto()
+    MOVB_IM_R = auto()
+    MOVB_IM_IM = auto()
+    MOVB_IM_RM = auto()
+    MOVB_RM_I = auto()
+    MOVB_RM_R = auto()
+    MOVB_RM_IM = auto()
+    MOVB_RM_RM = auto()
     PUSH_I = auto()
     PUSH_R = auto()
     POP = auto()
@@ -174,7 +186,6 @@ class OperationType(IntEnum):
     CALL_R = auto()
     RET = auto()
     HALT = auto()
-
     PRINT_I = auto()
     PRINT_R = auto()
 
@@ -220,6 +231,23 @@ OPERATIONS = {
         ([TokenType.RMEMORY, TokenType.SYMBOL], OperationType.MOV_RM_R),
         ([TokenType.RMEMORY, TokenType.IMEMORY], OperationType.MOV_RM_IM),
         ([TokenType.RMEMORY, TokenType.RMEMORY], OperationType.MOV_RM_RM),
+    ],
+
+    "movb": [
+        ([TokenType.SYMBOL, TokenType.NUMBER], OperationType.MOVB_R_I),
+        ([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.MOVB_R_R),
+        ([TokenType.SYMBOL, TokenType.IMEMORY], OperationType.MOVB_R_IM),
+        ([TokenType.SYMBOL, TokenType.RMEMORY], OperationType.MOVB_R_RM),
+
+        ([TokenType.IMEMORY, TokenType.NUMBER], OperationType.MOVB_IM_I),
+        ([TokenType.IMEMORY, TokenType.SYMBOL], OperationType.MOVB_IM_R),
+        ([TokenType.IMEMORY, TokenType.IMEMORY], OperationType.MOVB_IM_IM),
+        ([TokenType.IMEMORY, TokenType.RMEMORY], OperationType.MOVB_IM_RM),
+
+        ([TokenType.RMEMORY, TokenType.NUMBER], OperationType.MOVB_RM_I),
+        ([TokenType.RMEMORY, TokenType.SYMBOL], OperationType.MOVB_RM_R),
+        ([TokenType.RMEMORY, TokenType.IMEMORY], OperationType.MOVB_RM_IM),
+        ([TokenType.RMEMORY, TokenType.RMEMORY], OperationType.MOVB_RM_RM),
     ],
 
     "push": [
@@ -357,25 +385,31 @@ OPERATIONS = {
 
 
 # These operations will always be implicitly full to avoid problems.
-ALWAYS_FULL = [
-    "jmp",
-    "jeq",
-    "jne",
-    "jlt",
-    "jgt",
-    "jle",
-    "jge",
-    "call",
+# ALWAYS_FULL = [
+#     "jmp",
+#     "jeq",
+#     "jne",
+#     "jlt",
+#     "jgt",
+#     "jle",
+#     "jge",
+#     "call",
+# ]
+
+ALWAYS_HALF = [
+    "movb",
 ]
 
 
 @unique
 class DirectiveType(IntEnum):
-    W = 0
+    # W = 0
     INCLUDE = auto()
     ATTACH = auto()
     DEF = auto()
     RES = auto()
+    DEFB = auto()
+    RESB = auto()
 
     def __str__(self):
         return self.name.lower()
@@ -543,7 +577,7 @@ def pass1(tokens, consts=None, macros=None):
     result = []
     attach = []
 
-    full = False
+    full = True
     iterator = iter(tokens)
 
     def optional(*types):
@@ -585,7 +619,7 @@ def pass1(tokens, consts=None, macros=None):
         current = next(iterator, None)
 
         if initial.typ == TokenType.EOL:
-            full = False
+            full = True
 
         if current and current.typ == TokenType.LBRACKET:
             result.append((full, initial))
@@ -609,14 +643,14 @@ def pass1(tokens, consts=None, macros=None):
                 continue
 
         # Where is the current token
-        if current and current.typ == TokenType.DIRECTIVE:
-            # Handle 16-bit operations using "w", short for "word"
-            # print(initial, current)
-            if current.val == DirectiveType.W:
-                full = True
-                current = next(iterator, current)
-                result.append((full, initial))
-                continue
+        # if current and current.typ == TokenType.DIRECTIVE:
+        #     # Handle 16-bit operations using "w", short for "word"
+        #     # print(initial, current)
+        #     if current.val == DirectiveType.W:
+        #         full = True
+        #         current = next(iterator, current)
+        #         result.append((full, initial))
+        #         continue
 
         # Handle every symbol
         if initial.typ == TokenType.SYMBOL:
@@ -745,6 +779,9 @@ def pass2(trans):
         initial = current
         full = initial[0]
 
+        if initial[1].val in ALWAYS_HALF:
+            full = 0
+
         # Handle directives
         if initial[1].typ == TokenType.DIRECTIVE:
             current = next(iterator, None)
@@ -758,16 +795,35 @@ def pass2(trans):
                     body.append(current[1])
                     current = next(iterator, None)
 
-                result.append((full, pass2_expand_line(body, full), body))
+                result.append((1, pass2_expand_line(body, 1), body))
                 continue
 
-            elif initial[1].val == DirectiveType.RES:
+            if initial[1].val == DirectiveType.RES:
                 assert_token(current[1], TokenType.NUMBER)
                 amount = current[1].val
                 body.append(current[1])
 
-                # RES will use N * (1 or 2) amount of bytes!
-                result.append((full, amount * (1 + full), body))
+                result.append((1, amount * 2, body))
+
+                current = next(iterator, None)
+                continue
+
+            if initial[1].val == DirectiveType.DEFB:
+                # Def can accept infinite amount of bytes!
+                while current[1].typ not in [TokenType.EOL, TokenType.EOF]:
+                    assert_token(current[1], *VALID_CONST, TokenType.STRING)
+                    body.append(current[1])
+                    current = next(iterator, None)
+
+                result.append((0, pass2_expand_line(body, 0), body))
+                continue
+
+            if initial[1].val == DirectiveType.RESB:
+                assert_token(current[1], TokenType.NUMBER)
+                amount = current[1].val
+                body.append(current[1])
+
+                result.append((0, amount * 1, body))
 
                 current = next(iterator, None)
                 continue
@@ -838,12 +894,9 @@ def pass4(ir, labels):
             # Substitute symbol tokens that are present in the labels dict,
             # with their address.
             if token.typ == TokenType.SYMBOL and token.val in labels:
-                if tokens[0].val not in ALWAYS_FULL and not full:
-                    report_warning ("label referenced in non-full operation",
+                if tokens[0].val in ALWAYS_HALF and not full:
+                    report_warning ("label referenced in half-sized operation",
                                     token.loc)
-                    report_note ("implicit full, consider adding ` w `",
-                                 token.loc)
-                    full = True
                 copy[i] = token.to(TokenType.NUMBER, labels[token.val])
             elif token.typ == TokenType.RMEMORY and token.val not in REGISTERS:
                 if token.val not in labels:
@@ -897,7 +950,9 @@ def parse_operations(ir):
         operation, *operands = tokens
         loc = operation.loc
 
-        full = full or operation.val in ALWAYS_FULL
+        if operation.val in ALWAYS_HALF:
+            full = 0
+        # full = full or operation.val in ALWAYS_FULL
 
         # Directives are just passed on. Their arguments have been checked in
         # previous passes.
@@ -965,13 +1020,19 @@ def build(operations):
                 for _ in range(operands[0].val):
                     result.extend(build_get_width(0, full, loc))
 
+            elif operation == DirectiveType.DEFB:
+                for operand in operands:
+                    result.extend(build_operand(operand, 0, loc))
+
+            elif operation == DirectiveType.RESB:
+                for _ in range(operands[0].val):
+                    result.extend(build_get_width(0, 0, loc))
+
+
             continue
 
         # In the VM, each operations highest bit denotes the full flag.
-        if full:
-            result.append(operation | 0x80)
-        else:
-            result.append(operation)
+        result.append(operation)
 
         for operand in operands:
             result.extend(build_operand(operand, full, loc))
@@ -1033,7 +1094,6 @@ def main():
     #     print()
 
     p1 = pass1(tokens)
-
     p2 = pass2(p1)
     p3 = pass3(p2)
     p4 = pass4(*p3)
@@ -1052,12 +1112,7 @@ def main():
             if previous in DEBUG_SEPARATOR and op.typ != previous:
                 sys.stdout.write("\n")
 
-            if op.full:
-                full = " w "
-            else:
-                full = ""
-
-            report_note(f"\t{str(op.typ) + full:<16}{operands}", op.loc,
+            report_note(f"\t{str(op.typ):<16}{operands}", op.loc,
                         fd=sys.stdout)
             previous = op.typ
 
