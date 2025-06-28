@@ -24,22 +24,65 @@ std_strcpy_end:
 
 ## TTY ##
 TTY_WRITER_ADDRESS = 0x3000
+TTY_READER_ADDRESS = 0x3100
 
-tty_write: # (r5 src)
+tty_write = value
+{
+  mov (TTY_WRITER_ADDRESS) value
+}
+
+tty_writes: # (r5 src)
   pusha
 
-tty_write_loop:
+tty_writes_loop:
   mov r1 (r5)
 
   cmp r1 0
-  jeq tty_write_end
+  jeq tty_writes_end
 
-  mov (TTY_WRITER_ADDRESS) r1
+  tty_write r1
 
   add r5 r5 1
-  jmp tty_write_loop
+  jmp tty_writes_loop
 
-tty_write_end:
+tty_writes_end:
   popa
   ret
+
+
+tty_read =
+{
+  mov ac (TTY_READER_ADDRESS)
+}
+
+tty_reads: # (r5 dst, r6 size)
+  pusha
+
+  mov r1 0
+  sub r6 r6 1
+
+tty_reads_loop:
+  tty_read
+
+  cmp ac 0xFF
+  jeq tty_reads_end
+
+  cmp ac '\n
+  jeq tty_reads_end
+
+  cmp r1 r6
+  jge tty_reads_loop
+
+  mov (r5) ac
+
+  add r1 r1 1
+  add r5 r5 1
+  jmp tty_reads_loop
+
+tty_reads_end:
+  mov (r5) '\0
+
+  popa
+  ret
+
 

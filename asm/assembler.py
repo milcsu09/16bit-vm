@@ -838,6 +838,12 @@ def pass4(ir, labels):
             # Substitute symbol tokens that are present in the labels dict,
             # with their address.
             if token.typ == TokenType.SYMBOL and token.val in labels:
+                if tokens[0].val not in ALWAYS_FULL and not full:
+                    report_warning ("label referenced in non-full operation",
+                                    token.loc)
+                    report_note ("implicit full, consider adding ` w `",
+                                 token.loc)
+                    full = True
                 copy[i] = token.to(TokenType.NUMBER, labels[token.val])
             elif token.typ == TokenType.RMEMORY and token.val not in REGISTERS:
                 if token.val not in labels:

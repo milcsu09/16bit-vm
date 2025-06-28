@@ -9,6 +9,13 @@ writer_store_byte (VM *vm, VM_Device *device, word address, byte value)
   putc (value, stdout);
 }
 
+byte
+reader_read_byte (VM *vm, VM_Device *device, word address)
+{
+  (void)vm, (void)device, (void)address;
+  return getc (stdin);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -31,6 +38,16 @@ main (int argc, char **argv)
   writer.state = NULL;
 
   vm_map_device (&vm, &writer, 0x3000, 0x3100);
+
+  VM_Device reader = {0};
+
+  reader.read_byte = reader_read_byte;
+  reader.read_word = vm_default_read_word;
+  reader.store_byte = vm_default_store_byte;
+  reader.store_word = vm_default_store_word;
+  reader.state = NULL;
+
+  vm_map_device (&vm, &reader, 0x3100, 0x3200);
 
   if (!vm_load_file (&vm, argv[1]))
     return 1;
