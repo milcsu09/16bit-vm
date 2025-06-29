@@ -24,5 +24,5 @@ vm-sdl: $(VM_OBJ) $(SDL_OBJ)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 clean:
-	rm vm-dbg vm-tty vm-sdl $(VM_OBJ) $(DBG_OBJ) $(TTY_OBJ) $(SDL_OBJ)
+	rm $(VM_OBJ) $(DBG_OBJ) $(TTY_OBJ) $(SDL_OBJ)
 

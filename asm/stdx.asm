@@ -6,12 +6,11 @@ STDX_FONE = [1 << STDX_FBITS]
 
 stdx_itof = dst src
 {
-  shl w dst src STDX_FBITS
+  shl dst src STDX_FBITS
 }
 
 stdx_ftoi = dst src
 {
-  shr w dst src STDX_FBITS
+  shr dst src STDX_FBITS
 }
-
 
