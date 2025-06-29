@@ -46,17 +46,23 @@ print ac
 mov r5 s_div
 call tty_writes
 
-div ac r1 r2
+div r3 r1 r2
+print r3
+
+mov r5 s_mod
+call tty_writes
+
 print ac
 
 halt
 
 s_enter_a_number: defb "Enter a number: \0"
 
-s_add: defb "Sum:        \0"
-s_sub: defb "Difference: \0"
-s_mul: defb "Product:    \0"
-s_div: defb "Quotient:   \0"
+s_add: defb "+ \0"
+s_sub: defb "- \0"
+s_mul: defb "* \0"
+s_div: defb "/ \0"
+s_mod: defb "% \0"
 
 buffer1: resb 8
 buffer2: resb 8

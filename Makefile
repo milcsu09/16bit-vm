@@ -5,7 +5,7 @@ CC := cc
 CCFLAGS := -std=c11 -Wall -Wextra -Wpedantic
 
 VM_OBJ := vm/vm.o
-DBG_OBJ := dbg/dbg.o
+DBG_OBJ := frontend/dbg.o
 TTY_OBJ := frontend/tty.o
 SDL_OBJ := frontend/sdl.o
 
@@ -24,5 +24,5 @@ vm-sdl: $(VM_OBJ) $(SDL_OBJ)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 clean:
-	rm $(VM_OBJ) $(DBG_OBJ) $(TTY_OBJ) $(SDL_OBJ)
+	rm vm-dbg vm-tty vm-sdl $(VM_OBJ) $(DBG_OBJ) $(TTY_OBJ) $(SDL_OBJ)
 
