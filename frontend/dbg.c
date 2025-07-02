@@ -130,6 +130,25 @@ read_line:
 
       if (strcmp (command, "mv") == 0)
         {
+          if (arg1 && (!arg2 && !arg3 && !arg4))
+            {
+              int address = strtol (arg1, NULL, 0);
+
+              size_t index = -1;
+              for (size_t i = 0; i < regions_size; ++i)
+                {
+                  if (regions[i].address == address)
+                    index = i;
+                }
+
+              if (index != (size_t)-1)
+                {
+                  regions_size--;
+                  for (size_t i = index; i < regions_size; ++i)
+                    regions[i] = regions[i + 1];
+                }
+            }
+
           if (regions_size < MAX_REGIONS_SIZE && arg1 && arg2 && arg3 && arg4)
             {
               struct memory_region region;
