@@ -143,8 +143,12 @@ skip_ball_neg_down:
 
     sub ac r2 ac
 
+    mov r6 0
+
     cmp ac 127.0
     jlt skip_ball_neg_left_normalize
+
+    mov r6 1
 
     # (0xFFFF - ac) + 1 == 0x10000 - ac
     mov r8 0xFFFF
@@ -174,8 +178,12 @@ skip_ball_neg_left:
 
     sub ac r2 ac
 
+    mov r6 0
+
     cmp ac 127.0
     jlt skip_ball_neg_right_normalize
+
+    mov r6 1
 
     # (0xFFFF - ac) + 1 == 0x10000 - ac
     mov r8 0xFFFF
