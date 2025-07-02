@@ -136,10 +136,10 @@ skip_ball_neg_down:
     add r8 ac [PAD_SIZE_HALF + PAD_MARGIN]
 
     cmp r2 r7
-    jlt ball_reset
+    jlt reset
 
     cmp r2 r8
-    jgt ball_reset
+    jgt reset
 
     sub ac r2 ac
 
@@ -171,10 +171,10 @@ skip_ball_neg_left:
     add r8 ac [PAD_SIZE_HALF + PAD_MARGIN]
 
     cmp r2 r7
-    jlt ball_reset
+    jlt reset
 
     cmp r2 r8
-    jgt ball_reset
+    jgt reset
 
     sub ac r2 ac
 
@@ -222,9 +222,20 @@ skip_ball_move_down:
 skip_ball_move_up:
   jmp skip_ball_reset
 
-ball_reset:
+reset:
     mov r1 64.0
     mov r2 64.0
+    mov r3 1.0
+    mov r4 0.0
+    std_lnot r5 r5
+    mov r6 0
+
+    mov r7 (p1_y)
+    mov r8 (p2_y)
+    mov r7 64.0
+    mov r8 64.0
+    mov (p1_y) r7
+    mov (p2_y) r8
 
 skip_ball_reset:
     mov (b_x) r1
@@ -245,8 +256,7 @@ skip_ball_reset:
 
 
     # -------- PAD 1 --------
-    mov r5 (p1_x)
-    stdx_ftoi r5 r5
+    mov r5 2
 
     mov r6 (p1_y)
     sub r6 r6 PAD_SIZE_HALF
@@ -261,8 +271,7 @@ skip_ball_reset:
     call sdl_render_vline
 
     # -------- PAD 2 --------
-    mov r5 (p2_x)
-    stdx_ftoi r5 r5
+    mov r5 [127 - 2]
 
     mov r6 (p2_y)
     sub r6 r6 PAD_SIZE_HALF
@@ -291,10 +300,7 @@ skip_ball_reset:
 
   jmp loop
 
-p1_x: def 2.0
 p1_y: def 64.0
-
-p2_x: def 125.0
 p2_y: def 64.0
 
 b_x: def 64.0
