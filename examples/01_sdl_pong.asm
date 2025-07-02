@@ -103,84 +103,130 @@ skip_update_pad2_down_clamp:
     mov (p2_y) r1
 
 skip_update_pad2_down:
-    # -------- BALL MOVE --------
+    # -------- BALL UPDATE --------
     mov r1 (b_x)
     mov r2 (b_y)
 
     mov r3 (b_vx)
     mov r4 (b_vy)
 
+    movb r5 (b_dx)
+    movb r6 (b_dy)
+
+    # -------- BALL BOUNCE TOP --------
     cmp r2 PAD_MARGIN
     jgt skip_ball_neg_up
 
-    std_neg r4
+    std_lnot r6 r6
 
 skip_ball_neg_up:
     cmp r2 [127.0 - PAD_MARGIN]
     jlt skip_ball_neg_down
 
-    std_neg r4
+    std_lnot r6 r6
 
 skip_ball_neg_down:
+    # -------- BALL BOUNCE SIDE --------
     cmp r1 3.0
     jge skip_ball_neg_left
 
-    mov r5 (p1_y)
-    sub r6 r5 [PAD_SIZE_HALF + PAD_MARGIN]
-    add r7 r5 [PAD_SIZE_HALF + PAD_MARGIN]
+    mov ac (p1_y)
 
-    cmp r2 r6
-    jlt ball_reset_left
+    sub r7 ac [PAD_SIZE_HALF + PAD_MARGIN]
+    add r8 ac [PAD_SIZE_HALF + PAD_MARGIN]
 
     cmp r2 r7
-    jgt ball_reset_left
+    jlt ball_reset
 
-    jmp ball_neg_left
+    cmp r2 r8
+    jgt ball_reset
 
-ball_reset_left:
-    mov r1 64.0
-    mov r2 64.0
+    sub ac r2 ac
 
-    jmp skip_ball_position_update
+    cmp ac 127.0
+    jlt skip_ball_neg_left_normalize
 
-ball_neg_left:
-    std_neg r3
+    # (0xFFFF - ac) + 1 == 0x10000 - ac
+    mov r8 0xFFFF
+    sub ac r8 ac
+    add ac ac 1
+
+skip_ball_neg_left_normalize:
+    shr ac ac 3
+    mov r4 ac
+
+    std_lnot r5 r5
 
 skip_ball_neg_left:
     cmp r1 [127.0 - 3.0]
     jle skip_ball_neg_right
 
-    mov r5 (p2_y)
-    sub r6 r5 [PAD_SIZE_HALF + PAD_MARGIN]
-    add r7 r5 [PAD_SIZE_HALF + PAD_MARGIN]
+    mov ac (p2_y)
 
-    cmp r2 r6
-    jlt ball_reset_right
+    sub r7 ac [PAD_SIZE_HALF + PAD_MARGIN]
+    add r8 ac [PAD_SIZE_HALF + PAD_MARGIN]
 
     cmp r2 r7
-    jgt ball_reset_right
+    jlt ball_reset
 
-    jmp ball_neg_right
+    cmp r2 r8
+    jgt ball_reset
 
-ball_reset_right:
+    sub ac r2 ac
+
+    cmp ac 127.0
+    jlt skip_ball_neg_right_normalize
+
+    # (0xFFFF - ac) + 1 == 0x10000 - ac
+    mov r8 0xFFFF
+    sub ac r8 ac
+    add ac ac 1
+
+skip_ball_neg_right_normalize:
+    shr ac ac 3
+    mov r4 ac
+
+    std_lnot r5 r5
+
+skip_ball_neg_right:
+    # -------- BALL MOVE --------
+    cmp r5 1
+    jeq skip_ball_move_right
+
+    add r1 r1 r3
+
+    jmp skip_ball_move_left
+
+skip_ball_move_right:
+    sub r1 r1 r3
+
+skip_ball_move_left:
+    cmp r6 1
+    jeq skip_ball_move_down
+
+    add r2 r2 r4
+
+    jmp skip_ball_move_up
+
+skip_ball_move_down:
+    sub r2 r2 r4
+
+skip_ball_move_up:
+  jmp skip_ball_reset
+
+ball_reset:
     mov r1 64.0
     mov r2 64.0
 
-    jmp skip_ball_position_update
-
-ball_neg_right:
-    std_neg r3
-
-skip_ball_neg_right:
-    add r1 r1 r3
-    add r2 r2 r4
-
-skip_ball_position_update:
+skip_ball_reset:
     mov (b_x) r1
     mov (b_y) r2
 
     mov (b_vx) r3
     mov (b_vy) r4
+
+    movb (b_dx) r5
+    movb (b_dy) r6
 
   # -------- RENDERING -------
     mov r5 64
@@ -246,6 +292,9 @@ p2_y: def 64.0
 b_x: def 64.0
 b_y: def 64.0
 
-b_vx: def 0.66
-b_vy: def 1.33
+b_vx: def 1.0
+b_vy: def 0.0
+
+b_dx: defb 0
+b_dy: defb 0
 

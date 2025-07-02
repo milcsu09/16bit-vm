@@ -11,6 +11,27 @@ std_neg = value
   pop ac
 }
 
+# ((~x & (x - 1)) >> 31) & 1
+# std_lnot: # (r5 value)
+
+std_lnot = dst value
+{
+  push r1
+  push r2
+
+  not r1 value
+  sub r2 value 1
+
+  and r1 r1 r2
+  shr r1 r1 15
+
+  and dst r1 1
+
+  pop r2
+  pop r1
+}
+
+
 std_strcpy: # (r5 src, r6 dst)
   pusha
 
