@@ -137,7 +137,7 @@ main (int argc, char **argv)
           frame_end = SDL_GetTicks ();
 
           // printf ("F %dms\n", frame_end - frame_start);
-          SDL_Delay (16);
+          SDL_Delay (1000 / 144);
         }
     }
 
