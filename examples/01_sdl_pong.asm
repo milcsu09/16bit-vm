@@ -269,7 +269,7 @@ skip_update_pad2_down:
     mov r6 buffer_score
     call std_itoa
 
-    mov r5 5
+    mov r5 6
     mov r6 2
     mov r7 0x111
     mov r8 buffer_score
@@ -279,7 +279,7 @@ skip_update_pad2_down:
     mov r6 buffer_score
     call std_itoa
 
-    mov r5 [64 + 5]
+    mov r5 [64 + 6]
     mov r6 2
     mov r7 0x111
     mov r8 buffer_score
