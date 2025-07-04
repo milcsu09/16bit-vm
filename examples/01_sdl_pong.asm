@@ -133,6 +133,25 @@ skip_ball_move_up:
   jmp skip_ball_reset
 
 reset:
+    cmp r1 64.0
+    jlt skip_score_p1
+
+    push r1
+    mov r1 (p1_score)
+    add r1 r1 1
+    mov (p1_score) r1
+    pop r1
+
+    jmp skip_score_p2
+
+skip_score_p1:
+    push r1
+    mov r1 (p2_score)
+    add r1 r1 1
+    mov (p2_score) r1
+    pop r1
+
+skip_score_p2:
     mov r1 64.0
     mov r2 64.0
     mov r4 0.0
@@ -246,6 +265,25 @@ skip_update_pad2_down_clamp:
     mov (p2_y) r1
 
 skip_update_pad2_down:
+    mov r5 (p1_score)
+    mov r6 buffer_score
+    call std_itoa
+
+    mov r5 5
+    mov r6 2
+    mov r7 0x111
+    mov r8 buffer_score
+    call sdl_render_itext
+
+    mov r5 (p2_score)
+    mov r6 buffer_score
+    call std_itoa
+
+    mov r5 [64 + 5]
+    mov r6 2
+    mov r7 0x111
+    mov r8 buffer_score
+    call sdl_render_itext
 
 
   # -------- RENDERING -------
@@ -254,7 +292,6 @@ skip_update_pad2_down:
     mov r7 127
     mov r8 0x111
     call sdl_render_vline
-
 
     # -------- PAD 1 --------
     mov r5 2
@@ -303,6 +340,11 @@ skip_update_pad2_down:
 
 p1_y: def 64.0
 p2_y: def 64.0
+
+p1_score: def 0
+p2_score: def 0
+
+buffer_score: resb 5
 
 b_x: def 64.0
 b_y: def 64.0
