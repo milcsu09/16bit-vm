@@ -275,7 +275,7 @@ skip_update_pad2_down:
     mov r6 2
     mov r7 0x333
     mov r8 buffer_score
-    call sdl_render_itext
+    call sdl_render_str
 
     mov r5 (p2_score)
     mov r6 buffer_score
@@ -285,7 +285,7 @@ skip_update_pad2_down:
     mov r6 2
     mov r7 0x333
     mov r8 buffer_score
-    call sdl_render_itext
+    call sdl_render_str
 
 
   # -------- RENDERING -------
