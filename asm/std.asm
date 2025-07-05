@@ -521,766 +521,765 @@ sdl_keyboard_down: # (r5 key)
   ret
 
 sdl_font: # 7x7
-  # ` `
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `!`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `"`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `#`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `$`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `%`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `&`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `'`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `(`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `)`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `*`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `+`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `,`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `-`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `.`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `/`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `0`
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 1 0 1 1 0 1 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-  # `1`
-defb 0 0 1 1 0 0 0
-defb 0 1 0 1 0 0 0
-defb 1 0 0 1 0 0 0
-defb 0 0 0 1 0 0 0
-defb 0 0 0 1 0 0 0
-defb 0 0 0 1 0 0 0
-defb 1 1 1 1 1 1 0
-  # `2`
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 0 0 0 0 1 0 0
-defb 0 0 0 1 0 0 0
-defb 0 0 1 0 0 0 0
-defb 0 1 0 0 0 0 0
-defb 1 1 1 1 1 1 0
-  # `3`
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 0 0 0 0 1 0 0
-defb 0 0 0 1 1 0 0
-defb 0 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-  # `4`
-defb 0 0 0 0 1 0 0
-defb 0 0 0 1 1 0 0
-defb 0 0 1 0 1 0 0
-defb 0 1 0 0 1 0 0
-defb 1 1 1 1 1 1 0
-defb 0 0 0 0 1 0 0
-defb 0 0 0 0 1 0 0
-  # `5`
-defb 1 1 1 1 1 1 0
-defb 1 0 0 0 0 0 0
-defb 1 1 1 1 1 0 0
-defb 0 0 0 0 0 1 0
-defb 0 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-  # `6`
-defb 0 0 1 1 1 0 0
-defb 0 1 0 0 0 0 0
-defb 1 0 0 0 0 0 0
-defb 1 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-  # `7`
-defb 1 1 1 1 1 1 0
-defb 0 0 0 0 0 1 0
-defb 0 0 0 0 1 0 0
-defb 0 0 0 1 0 0 0
-defb 0 0 1 0 0 0 0
-defb 0 1 0 0 0 0 0
-defb 1 0 0 0 0 0 0
-  # `8`
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 0 0
-  # `9`
-defb 0 1 1 1 1 0 0
-defb 1 0 0 0 0 1 0
-defb 1 0 0 0 0 1 0
-defb 0 1 1 1 1 1 0
-defb 0 0 0 0 0 1 0
-defb 0 0 0 0 1 0 0
-defb 0 1 1 1 0 0 0
-  # `:`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `;`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `<`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `=`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `>`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `?`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `@`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `A`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `B`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `C`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `D`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `E`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `F`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `G`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `H`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `I`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `J`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `K`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `L`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `M`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `N`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `O`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `P`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `Q`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `R`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `S`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `T`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `U`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `V`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `W`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `X`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `Y`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `Z`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `[`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `\`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `]`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `^`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `_`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # ```
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `a`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `b`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `c`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `d`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `e`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `f`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `g`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `h`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `i`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `j`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `k`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `l`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `m`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `n`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `o`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `p`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `q`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `r`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `s`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `t`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `u`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `v`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `w`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `x`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `y`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `z`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `{`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `|`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `}`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-  # `~`
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
-defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # !
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  # "
+  defb 0 0 1 0 1 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # #
+  defb 0 1 0 0 0 1 0
+  defb 1 1 1 1 1 1 1
+  defb 0 1 0 0 0 1 0
+  defb 0 1 0 0 0 1 0
+  defb 0 1 0 0 0 1 0
+  defb 1 1 1 1 1 1 1
+  defb 0 1 0 0 0 1 0
+  # $
+  defb 0 0 0 1 0 0 0
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 1 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 0 0 0 1 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 0 0 0 1 0 0 0
+  # %
+  defb 0 1 0 0 0 0 1
+  defb 1 0 1 0 0 1 0
+  defb 0 1 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 1 0
+  defb 0 1 0 0 1 0 1
+  defb 1 0 0 0 0 1 0
+  # &
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 1 0 0 0 1 0
+  defb 1 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 0
+  # '
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # (
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  # )
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  # *
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # +
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # ,
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # -
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # .
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  # /
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 1 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 1 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  # 2
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  # 3
+  defb 1 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # 4
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 1 0 0
+  defb 1 0 0 0 1 0 0
+  defb 0 1 1 1 1 1 1
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  # 5
+  defb 1 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # 6
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # 7
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 1 0
+  defb 0 0 0 1 1 1 0
+  defb 0 0 0 0 0 1 0
+  defb 0 0 0 0 0 1 0
+  defb 0 0 0 0 0 1 0
+  # 8
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # 9
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # :
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # ;
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # <
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 0 0 0
+  # =
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # >
+  defb 0 0 0 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # ?
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 1 1 1 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  # @
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 1 1 1 0 1
+  defb 1 0 1 1 1 0 1
+  defb 1 0 0 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 0 0 0
+  # A
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # B
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # C
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  # D
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # E
+  defb 1 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  # F
+  defb 1 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  # G
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 1 1 1 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # H
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # I
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  # J
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # K
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # L
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  # M
+  defb 1 0 0 0 0 0 1
+  defb 1 1 0 0 0 1 1
+  defb 1 0 1 0 1 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # N
+  defb 1 0 0 0 0 0 1
+  defb 1 1 0 0 0 0 1
+  defb 1 0 1 0 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 0 1 0 1
+  defb 1 0 0 0 0 1 1
+  defb 1 0 0 0 0 0 1
+  # O
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # P
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  # Q
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 1 0 1
+  defb 1 0 0 0 0 1 0
+  defb 0 1 1 1 1 0 1
+  # R
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # S
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # T
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # U
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # V
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 0 0 0 1 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  # W
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 1 0 1 0 1
+  defb 1 1 0 0 0 1 1
+  # X
+  defb 1 0 0 0 0 0 1
+  defb 0 1 0 0 0 1 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 1 0 0 0 1 0
+  defb 1 0 0 0 0 0 1
+  # Y
+  defb 1 0 0 0 0 0 1
+  defb 0 1 0 0 0 1 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # Z
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 1 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 1 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  # [
+  defb 0 0 1 1 1 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 1 1 1 0 0
+  # \
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # ]
+  defb 0 0 1 1 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 1 1 1 0 0
+  # ^
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 1 0 0
+  defb 0 1 0 0 0 1 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # _
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  # `
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  # a
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # b
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # c
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  # d
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  # e
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  # f
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # g
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 1 1 0
+  # h
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # i
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  # j
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # k
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # l
+  defb 0 0 0 0 0 0 0
+  defb 0 0 1 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  # m
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 0 1 1 0
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # n
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  # o
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # p
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 0
+  # q
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  # r
+  defb 0 0 0 0 0 0 0
+  defb 1 0 1 1 1 1 0
+  defb 1 1 0 0 0 0 1
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 0
+  # s
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 1
+  defb 1 0 0 0 0 0 0
+  defb 0 1 1 1 1 1 0
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 1 1 1 1 1 1 0
+  # t
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 1 1
+  # u
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 0
+  # v
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 0 0 0 1 0
+  defb 0 0 1 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  # w
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 0 1 0 0 1
+  defb 1 0 1 0 1 0 1
+  defb 1 1 0 0 0 1 1
+  # x
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 0 1 0 0 0 1 0
+  defb 0 0 1 1 1 0 0
+  defb 0 0 1 1 1 0 0
+  defb 0 1 0 0 0 1 0
+  defb 1 0 0 0 0 0 1
+  # y
+  defb 0 0 0 0 0 0 0
+  defb 1 0 0 0 0 0 1
+  defb 1 0 0 0 0 0 1
+  defb 0 1 1 1 1 1 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 0 0 1
+  defb 0 0 0 0 1 1 0
+  # z
+  defb 0 0 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  defb 0 0 0 0 0 1 0
+  defb 0 0 0 1 1 0 0
+  defb 0 0 1 1 0 0 0
+  defb 0 1 0 0 0 0 0
+  defb 1 1 1 1 1 1 1
+  # {
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  # |
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  # }
+  defb 0 0 1 0 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 0 1 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 0 1 0 0 0
+  defb 0 0 1 0 0 0 0
+  # ~
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
+  defb 0 1 1 0 0 0 0
+  defb 1 0 0 1 0 0 1
+  defb 0 0 0 0 1 1 0
+  defb 0 0 0 0 0 0 0
+  defb 0 0 0 0 0 0 0
 
 
 sdl_render_glyph: # (r5 x, r6 y, r7 color, r8 glyph)
@@ -1357,7 +1356,7 @@ sdl_render_str_loop:
 
   pop r8
 
-  add r5 r5 7
+  add r5 r5 8
   add r8 r8 1
   jmp sdl_render_str_loop
 
