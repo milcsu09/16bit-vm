@@ -6,7 +6,12 @@ from enum import IntEnum, auto, unique
 
 
 def report_message(typ, msg, loc=None, fd=sys.stderr):
-    fd.write(f"{loc[0]} [{loc[1]}]: " if loc else "")
+    if loc:
+        fd.write(f"{loc[0]}")
+        if loc[1]:
+            fd.write(f" [{loc[1]}]")
+        fd.write(": ")
+
     fd.write(f"{typ}: {msg}\n")
 
 
@@ -1123,11 +1128,12 @@ def build(operations):
 
 
 def usage():
-    print(f"Usage: {sys.argv[0]} [OPTIONS] <file>")
+    print(f"Usage: {sys.argv[0]} [OPTIONS] FILE [FILE ...]")
     print(f"    OPTIONS")
-    print(f"        -d      Debug information about compilation process")
-    print(f"        -x      Display compiled bytecode")
-    print(f"        --dce   Dead code elimination")
+    print(f"        -h --help       show this message and exit")
+    print(f"        -d              show debug information")
+    print(f"        -x              show compiled bytecode")
+    print(f"        --dce           dead code elimination")
 
 
 DEBUG_SEPARATOR = [
@@ -1153,21 +1159,8 @@ DEBUG_SEPARATOR = [
 ]
 
 
-def main():
-    if (d := "-d" in sys.argv):
-        sys.argv.remove("-d")
-
-    if (x := "-x" in sys.argv):
-        sys.argv.remove("-x")
-
-    if (dce := "--dce" in sys.argv):
-        sys.argv.remove("--dce")
-
-    if len(sys.argv) <= 1:
-        usage()
-        exit(1)
-
-    input_file = sys.argv[1]
+def compile_file(file, d, x, dce):
+    input_file = file
     output_file = os.path.splitext(input_file)[0]
 
     start = time.time()
@@ -1184,10 +1177,6 @@ def main():
     else:
         p3 = pass3(p2)
         p4 = pass4(*p3)
-
-    # p4 = pass4(*p3)
-
-    # print(*p4, sep='\n')
 
     ops = parse_operations(p4)
     bytecode = build(ops)
@@ -1241,7 +1230,29 @@ def main():
             print()
 
     end = time.time()
-    print(f"Success. {len(bytecode)} bytes. ({end - start:.2f} s)")
+    report_note(f"Success. {len(bytecode)} bytes. ({end - start:.2f} s)", (file, 0))
+
+
+def main():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        usage()
+        exit(1)
+
+    if (d := "-d" in sys.argv):
+        sys.argv.remove("-d")
+
+    if (x := "-x" in sys.argv):
+        sys.argv.remove("-x")
+
+    if (dce := "--dce" in sys.argv):
+        sys.argv.remove("--dce")
+
+    if len(sys.argv) <= 1:
+        usage()
+        exit(1)
+
+    for file in sys.argv[1:]:
+        compile_file(file, d, x, dce)
 
 
 if __name__ == "__main__":

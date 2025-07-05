@@ -146,5 +146,7 @@ main (int argc, char **argv)
   SDL_DestroyWindow (sdl_window);
 
   vm_destroy (&vm);
+
+  return 0;
 }
 

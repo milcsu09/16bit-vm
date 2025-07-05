@@ -23,7 +23,7 @@
 
 ### Operations
 
-#### Operation notations
+#### Operand notations
 | Notation | Description                                                     |
 |----------|-----------------------------------------------------------------|
 | `I`      | Immediate value                                                 |
