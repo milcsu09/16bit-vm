@@ -2,7 +2,7 @@
 attach "asm/std.asm"
 attach "asm/stdx.asm"
 
-PAD_SIZE      = 25.0
+PAD_SIZE      = 20.0
 PAD_SIZE_HALF = [PAD_SIZE / 2]
 
 PAD_MARGIN    = 2.0

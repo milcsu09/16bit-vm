@@ -1208,17 +1208,29 @@ def main():
                         fd=sys.stdout)
             previous = op.typ
 
+        if dce:
+            if len(p3) != 0:
+                longest_label = len(max(p3.keys(), key=len))
+                print()
+                previous_value = 0
+                for key, (_, value) in p3.items():
+                    diff = value - previous_value
+                    print(f"  {key:<{longest_label}} {value:04x} ({value})",
+                          f"(+{diff})" if diff else "")
+                    previous_value = value
+                print()
 
-        # if len(p3[1]) != 0:
-        #     print()
-        #     longest_label = len(max(p3[1].keys(), key=len))
-        #     previous_value = 0
-        #     for key, value in p3[1].items():
-        #         diff = value - previous_value
-        #         print(f"  {key:<{longest_label}} {value:04x} ({value})",
-        #               f"(+{diff})" if diff else "")
-        #         previous_value = value
-        #     print()
+        else:
+            if len(p3[1]) != 0:
+                print()
+                longest_label = len(max(p3[1].keys(), key=len))
+                previous_value = 0
+                for key, value in p3[1].items():
+                    diff = value - previous_value
+                    print(f"  {key:<{longest_label}} {value:04x} ({value})",
+                          f"(+{diff})" if diff else "")
+                    previous_value = value
+                print()
 
     if x:
         for i, byte in enumerate(bytecode):
