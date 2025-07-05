@@ -9,6 +9,8 @@ PAD_MARGIN    = 2.0
 
 PAD_SPEED     = 0.8
 
+entry:
+
 loop:
   sdl_begin
 

@@ -1,11 +1,12 @@
 
 attach "asm/std.asm"
 
-mov r5 420
-mov r6 buffer
-call std_itoa
+entry:
+  mov r5 420
+  mov r6 buffer
+  call std_itoa
 
-halt
+  halt
 
 buffer: resb 5
 

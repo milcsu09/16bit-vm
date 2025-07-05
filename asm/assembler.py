@@ -875,6 +875,88 @@ def pass3(ir):
     return result, labels
 
 
+def pass3_dce(ir):
+    inside_label = None
+    label_body = []
+    labels = {}
+
+    for full, size, tokens in ir:
+        if len(tokens) == 2:
+            if tokens[0].typ == TokenType.SYMBOL:
+                if tokens[1].typ == TokenType.COLON:
+                    if inside_label:
+                        labels[inside_label] = (label_body[:], tokens[0].val,
+                                                inside_label == "entry", set())
+                        label_body = []
+                    inside_label = tokens[0].val
+                    continue
+
+        if inside_label:
+            label_body.append((full, size, tokens))
+
+    if inside_label:
+        labels[inside_label] = (label_body[:], None, inside_label == "entry", set())
+        label_body = []
+
+
+    for name, (body, _, used, used_by) in labels.items():
+        for (_, _, tokens) in body:
+            for token in tokens:
+                if token.typ == TokenType.SYMBOL and token.val in labels:
+                    labels[token.val][3].add(name)
+                elif token.typ == TokenType.RMEMORY and token.val not in REGISTERS:
+                    labels[token.val][3].add(name)
+
+    for _ in range(len(labels)):
+        for name, (body, after, used, used_by) in labels.items():
+            if used:
+                if after and (len(body) == 0 or (len(body) > 0 and body[-1][2][0].val not in ['halt', 'ret'] and body[-1][2][0].typ not in [TokenType.DIRECTIVE])):
+                    labels[after] = (labels[after][0], labels[after][1], True, labels[after][3].union({name}))
+
+        for name, (body, after, used, used_by) in labels.items():
+            b = any(labels[x][2] for x in used_by) or used
+            labels[name] = (labels[name][0], labels[name][1], b, labels[name][3])
+
+    result = {}
+
+    address = 0
+    for name, (body, _, used, used_by) in labels.items():
+        if used:
+            result[name] = (body, address)
+            # print(f'{name}: {address}')
+            for (full, size, tokens) in body:
+                # print("   ", ' '.join(map(str, tokens)))
+                address += size
+
+    return result
+
+def pass4_dce(labels):
+    result = []
+    for _, (body, _) in labels.items():
+        for (full, _, tokens) in body:
+            copy = tokens.copy()
+
+            for i, token in enumerate(tokens):
+                if token.typ == TokenType.SYMBOL:
+                    if token.val not in REGISTERS | OPERATIONS | labels:
+                        report_error(f"undefined `{token.val}`", token.loc)
+                        exit(1)
+
+                if token.typ == TokenType.SYMBOL and token.val in labels:
+                    if tokens[0].val in ALWAYS_HALF and not full:
+                        report_warning ("label referenced in half-sized operation",
+                                        token.loc)
+                    copy[i] = token.to(TokenType.NUMBER, labels[token.val][1])
+                elif token.typ == TokenType.RMEMORY and token.val not in REGISTERS:
+                    if token.val not in labels:
+                        report_error(f"undefined `{token.val}`", token.loc)
+                        exit(1)
+                    copy[i] = token.to(TokenType.IMEMORY, labels[token.val][1])
+
+            result.append((full, copy))
+
+    return result
+
 # Handle symbols.
 def pass4(ir, labels):
     result = []
@@ -1045,6 +1127,7 @@ def usage():
     print(f"    OPTIONS")
     print(f"        -d      Debug information about compilation process")
     print(f"        -x      Display compiled bytecode")
+    print(f"        --dce   Dead code elimination")
 
 
 DEBUG_SEPARATOR = [
@@ -1077,6 +1160,9 @@ def main():
     if (x := "-x" in sys.argv):
         sys.argv.remove("-x")
 
+    if (dce := "--dce" in sys.argv):
+        sys.argv.remove("--dce")
+
     if len(sys.argv) <= 1:
         usage()
         exit(1)
@@ -1087,16 +1173,22 @@ def main():
     start = time.time()
 
     tokens = list(lexer_tokenize_file(input_file))
-    # if d:
-    #     for token in tokens:
-    #         postfix = f":{repr(token.val)}" if token.val is not None else ""
-    #         report_note(str(token.typ) + postfix, loc=token.loc, fd=sys.stdout)
-    #     print()
 
     p1 = pass1(tokens)
     p2 = pass2(p1)
     p3 = pass3(p2)
-    p4 = pass4(*p3)
+
+    if dce:
+        p3 = pass3_dce(p2)
+        p4 = pass4_dce(p3)
+    else:
+        p3 = pass3(p2)
+        p4 = pass4(*p3)
+
+    # p4 = pass4(*p3)
+
+    # print(*p4, sep='\n')
+
     ops = parse_operations(p4)
     bytecode = build(ops)
 
@@ -1117,16 +1209,16 @@ def main():
             previous = op.typ
 
 
-        if len(p3[1]) != 0:
-            print()
-            longest_label = len(max(p3[1].keys(), key=len))
-            previous_value = 0
-            for key, value in p3[1].items():
-                diff = value - previous_value
-                print(f"  {key:<{longest_label}} {value:04x} ({value})",
-                      f"(+{diff})" if diff else "")
-                previous_value = value
-            print()
+        # if len(p3[1]) != 0:
+        #     print()
+        #     longest_label = len(max(p3[1].keys(), key=len))
+        #     previous_value = 0
+        #     for key, value in p3[1].items():
+        #         diff = value - previous_value
+        #         print(f"  {key:<{longest_label}} {value:04x} ({value})",
+        #               f"(+{diff})" if diff else "")
+        #         previous_value = value
+        #     print()
 
     if x:
         for i, byte in enumerate(bytecode):
