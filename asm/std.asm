@@ -520,7 +520,7 @@ sdl_keyboard_down: # (r5 key)
   movb ac (ac)
   ret
 
-sdl_font_0: # 7x7
+sdl_font: # 7x7
   # ` `
 defb 0 0 0 0 0 0 0
 defb 0 0 0 0 0 0 0
@@ -1332,7 +1332,7 @@ sdl_render_char: # (r5 x, r6 y, r7 color, r8 char)
 
   sub r8 r8 32
   mul r8 r8 [7 * 7]
-  add r8 r8 sdl_font_0
+  add r8 r8 sdl_font
 
   call sdl_render_glyph
 

@@ -1169,7 +1169,6 @@ def compile_file(file, d, x, dce):
 
     p1 = pass1(tokens)
     p2 = pass2(p1)
-    p3 = pass3(p2)
 
     if dce:
         p3 = pass3_dce(p2)
@@ -1230,7 +1229,7 @@ def compile_file(file, d, x, dce):
             print()
 
     end = time.time()
-    report_note(f"Success. {len(bytecode)} bytes. ({end - start:.2f} s)", (file, 0))
+    report_note(f"Success. {len(bytecode)} bytes {'with' if dce else 'without'} DCE. ({end - start:.2f} s)", (file, 0))
 
 
 def main():
