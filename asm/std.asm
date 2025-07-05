@@ -524,9 +524,9 @@ sdl_keyboard_down: # (r5 key)
 sdl_font_0: # 7x7
   defb 0 1 1 1 1 0 0
   defb 1 0 0 0 0 1 0
-  defb 1 0 1 0 0 1 0
+  defb 1 0 0 0 0 1 0
   defb 1 0 1 1 0 1 0
-  defb 1 0 0 1 0 1 0
+  defb 1 0 0 0 0 1 0
   defb 1 0 0 0 0 1 0
   defb 0 1 1 1 1 0 0
 

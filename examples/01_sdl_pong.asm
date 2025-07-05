@@ -2,7 +2,7 @@
 attach "asm/std.asm"
 attach "asm/stdx.asm"
 
-PAD_SIZE      = 20.0
+PAD_SIZE      = 25.0
 PAD_SIZE_HALF = [PAD_SIZE / 2]
 
 PAD_MARGIN    = 2.0
@@ -273,7 +273,7 @@ skip_update_pad2_down:
 
     mov r5 6
     mov r6 2
-    mov r7 0x111
+    mov r7 0x333
     mov r8 buffer_score
     call sdl_render_itext
 
@@ -283,7 +283,7 @@ skip_update_pad2_down:
 
     mov r5 [64 + 6]
     mov r6 2
-    mov r7 0x111
+    mov r7 0x333
     mov r8 buffer_score
     call sdl_render_itext
 
