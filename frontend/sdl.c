@@ -96,9 +96,6 @@ main (int argc, char **argv)
 
   render_init ("", 768, 768, 6);
 
-  uint32_t frame_start = 0;
-  uint32_t frame_end = 0;
-
   while (!vm.halt)
     {
       if (vm_read_byte (&vm, 0x9000) == 1)
@@ -118,8 +115,6 @@ main (int argc, char **argv)
 
           for (uint32_t i = 0; i < width * height; ++i)
             pixel_buffer[i] = 0x000000;
-
-          frame_start = SDL_GetTicks ();
         }
 
       vm_step (&vm);
@@ -134,9 +129,6 @@ main (int argc, char **argv)
                             SDL_FLIP_NONE);
           SDL_RenderPresent (sdl_renderer);
 
-          frame_end = SDL_GetTicks ();
-
-          // printf ("F %dms\n", frame_end - frame_start);
           SDL_Delay (1000 / 144);
         }
     }
