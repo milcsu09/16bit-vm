@@ -1,6 +1,52 @@
 # 16-bit Virtual Machine
 
-16-bit Virtual Machine written in C
+16-bit Virtual Machine written in C.
+
+## Prerequisites
+
+- A C compiler (e.g., [GCC](https://gcc.gnu.org/))
+
+### Optional
+- [Make](https://www.gnu.org/software/make/) — Required for building via the `Makefile`.
+- [SDL2](https://www.libsdl.org/) — Required for building the `vm-sdl` frontend.
+- [Python 3.10+](https://www.python.org/downloads/) — Required for using the default assembler.
+
+## Build
+
+### With Make
+
+```bash
+$ make
+```
+
+### Without Make
+
+```bash
+$ cc vm/vm.c -c -o vm/vm.o
+$ cc vm/vm.o frontend/dbg.c -o vm-dbg
+$ cc vm/vm.o frontend/tty.c -o vm-tty
+$ cc vm/vm.o frontend/sdl.c -o vm-sdl `sdl2-config --cflags --libs`
+```
+
+## Usage
+
+### VM
+
+```bash
+$ <desired-frontend> <desired-ROM>
+```
+
+### Assembler
+
+```bash
+$ asm/assembler.py --help
+```
+
+## Project Structure
+- [`asm/`](asm/) — Contains an assembler implementation.
+- [`examples/`](examples/) — Contains ROM files and their corresponding source code, which can be assembled using the assembler in [`asm/`](asm/).
+- [`frontend/`](frontend/) — Contains C sources for VM frontend.
+- [`vm/`](vm/) — Contains C sources for VM backend.
 
 ## Details
 
@@ -104,7 +150,8 @@
 | `0x43` | `RET`        | -                 | Pop `16` bits from stack, store in `IP`                |
 | `0x44` | `HALT`       | -                 | Halt execution                                         |
 | `0x45` | *`PRINT_I`   | `I1`              | Print value of `I1` to `stdout`                        |
-| `0x46` | *`PRINT_R`   | `IR`              | Print value of `R1` to `stdout`                        |
+| `0x46` | *`PRINT_R`   | `R1`              | Print value of `R1` to `stdout`                        |
 
 _* Might be modified or removed_
+
 

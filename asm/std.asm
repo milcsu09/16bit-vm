@@ -1343,6 +1343,8 @@ sdl_render_char_end:
 sdl_render_str: # (r5 x, r6 y, r7 color, r8 buffer)
   pusha
 
+  mov r2 r5
+
 sdl_render_str_loop:
   movb r1 (r8)
 
@@ -1357,6 +1359,14 @@ sdl_render_str_loop:
   pop r8
 
   add r5 r5 8
+
+  cmp r5 120
+  jlt sdl_render_str_skip_overflow
+
+  mov r5 r2
+  add r6 r6 8
+
+sdl_render_str_skip_overflow:
   add r8 r8 1
   jmp sdl_render_str_loop
 

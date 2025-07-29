@@ -1130,10 +1130,10 @@ def build(operations):
 def usage():
     print(f"Usage: {sys.argv[0]} [OPTIONS] FILE [FILE ...]")
     print(f"    OPTIONS")
-    print(f"        -h --help       show this message and exit")
-    print(f"        -d              show debug information")
-    print(f"        -x              show compiled bytecode")
-    print(f"        --dce           dead code elimination")
+    print(f"        -h --help       Display this message and exit")
+    print(f"        -d              Display debug information")
+    print(f"        -x              Display compiled bytecode")
+    print(f"        --dce           Perform dead code elimination")
 
 
 DEBUG_SEPARATOR = [
@@ -1235,7 +1235,7 @@ def compile_file(file, d, x, dce):
 def main():
     if "-h" in sys.argv or "--help" in sys.argv:
         usage()
-        exit(1)
+        exit(0)
 
     if (d := "-d" in sys.argv):
         sys.argv.remove("-d")
