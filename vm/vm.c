@@ -6,7 +6,9 @@
 #include <string.h>
 #include <unistd.h>
 
+
 #define VM_STACK_POINTER_DELTA sizeof (word)
+
 
 VM_Device vm_device_ram = {
   .read_byte = vm_default_read_byte,
@@ -16,9 +18,11 @@ VM_Device vm_device_ram = {
   .state = NULL,
 };
 
+
 static const char *const VM_REGISTER_NAME[] = {
   "ip", "sp", "bp", "ac", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8",
 };
+
 
 static const char *const VM_OPERATION_NAME[] = {
   "NONE",
@@ -94,10 +98,12 @@ static const char *const VM_OPERATION_NAME[] = {
   "PRINT_R",
 };
 
+
 static const char *const VM_ERROR_NAME[] = {
   "none",
   "illegal operation",
 };
+
 
 static_assert (VM_ARRAY_SIZE (VM_REGISTER_NAME) == VM_REGISTER_COUNT,
                "items not aligned in VM_REGISTER_NAME");
@@ -108,11 +114,13 @@ static_assert (VM_ARRAY_SIZE (VM_OPERATION_NAME) == VM_OPERATION_COUNT,
 static_assert (VM_ARRAY_SIZE (VM_ERROR_NAME) == VM_ERROR_COUNT,
                "items not aligned in VM_ERROR_NAME");
 
+
 static inline char *
 vm_module_name (size_t index, size_t n, const char *const xs[n])
 {
   return (char *)(index < n ? xs[index] : "invalid");
 }
+
 
 char *
 vm_register_name (VM_Register index)
@@ -120,17 +128,20 @@ vm_register_name (VM_Register index)
   return vm_module_name (index, VM_REGISTER_COUNT, VM_REGISTER_NAME);
 }
 
+
 char *
 vm_operation_name (VM_Operation index)
 {
   return vm_module_name (index, VM_OPERATION_COUNT, VM_OPERATION_NAME);
 }
 
+
 char *
 vm_error_name (VM_Error index)
 {
   return vm_module_name (index, VM_ERROR_COUNT, VM_ERROR_NAME);
 }
+
 
 void
 vm_create (VM *vm)
@@ -153,6 +164,7 @@ vm_create (VM *vm)
   vm_map_device (vm, &vm_device_ram, 0, vm->nmemory - 1);
 }
 
+
 void
 vm_destroy (VM *vm)
 {
@@ -166,6 +178,7 @@ vm_destroy (VM *vm)
   vm->ndevice = 0;
 }
 
+
 void
 vm_load (VM *vm, byte *memory, size_t nmemory)
 {
@@ -174,6 +187,7 @@ vm_load (VM *vm, byte *memory, size_t nmemory)
 
   memcpy (vm->memory, memory, nmemory);
 }
+
 
 bool
 vm_load_file (VM *vm, const char *path)
@@ -224,6 +238,7 @@ vm_load_file (VM *vm, const char *path)
   return true;
 }
 
+
 void
 vm_map_device (VM *vm, VM_Device *device, word start, word end)
 {
@@ -234,11 +249,13 @@ vm_map_device (VM *vm, VM_Device *device, word start, word end)
     vm->devices[i] = device;
 }
 
+
 static inline VM_Device *
 vm_find_device (VM *vm, word address)
 {
   return vm->devices[address / VM_DEVICE_BLOCK_SIZE];
 }
+
 
 byte
 vm_default_read_byte (VM *vm, VM_Device *device, word address)
@@ -246,6 +263,7 @@ vm_default_read_byte (VM *vm, VM_Device *device, word address)
   (void)device;
   return vm->memory[address];
 }
+
 
 word
 vm_default_read_word (VM *vm, VM_Device *device, word address)
@@ -256,12 +274,14 @@ vm_default_read_word (VM *vm, VM_Device *device, word address)
   return VM_WORD_PACK (H, L);
 }
 
+
 void
 vm_default_store_byte (VM *vm, VM_Device *device, word address, byte value)
 {
   (void)device;
   vm->memory[address] = value;
 }
+
 
 void
 vm_default_store_word (VM *vm, VM_Device *device, word address, word value)
@@ -273,12 +293,14 @@ vm_default_store_word (VM *vm, VM_Device *device, word address, word value)
   vm_store_byte (vm, address + 1, H);
 }
 
+
 byte
 vm_read_byte (VM *vm, word address)
 {
   VM_Device *device = vm_find_device (vm, address);
   return device->read_byte (vm, device, address);
 }
+
 
 word
 vm_read_word (VM *vm, word address)
@@ -287,12 +309,14 @@ vm_read_word (VM *vm, word address)
   return device->read_word (vm, device, address);
 }
 
+
 word
 vm_read_register_value (VM *vm, word address)
 {
   byte index = vm_read_byte (vm, address);
   return vm->registers[index];
 }
+
 
 word *
 vm_read_register_address (VM *vm, word address)
@@ -301,11 +325,13 @@ vm_read_register_address (VM *vm, word address)
   return &vm->registers[index];
 }
 
+
 byte
 vm_next_byte (VM *vm)
 {
   return vm_read_byte (vm, (*vm->ip)++);
 }
+
 
 word
 vm_next_word (VM *vm)
@@ -315,17 +341,20 @@ vm_next_word (VM *vm)
   return VM_WORD_PACK (H, L);
 }
 
+
 word
 vm_next_register_value (VM *vm)
 {
   return vm_read_register_value (vm, (*vm->ip)++);
 }
 
+
 word *
 vm_next_register_address (VM *vm)
 {
   return vm_read_register_address (vm, (*vm->ip)++);
 }
+
 
 void
 vm_store_byte (VM *vm, word address, byte value)
@@ -334,12 +363,14 @@ vm_store_byte (VM *vm, word address, byte value)
   device->store_byte (vm, device, address, value);
 }
 
+
 void
 vm_store_word (VM *vm, word address, word value)
 {
   VM_Device *device = vm_find_device (vm, address);
   device->store_word (vm, device, address, value);
 }
+
 
 void
 vm_push_byte (VM *vm, byte value)
@@ -348,12 +379,14 @@ vm_push_byte (VM *vm, byte value)
   *vm->sp -= VM_STACK_POINTER_DELTA;
 }
 
+
 void
 vm_push_word (VM *vm, word value)
 {
   vm_store_word (vm, *vm->sp, value);
   *vm->sp -= VM_STACK_POINTER_DELTA;
 }
+
 
 byte
 vm_pop_byte (VM *vm)
@@ -362,12 +395,14 @@ vm_pop_byte (VM *vm)
   return vm_read_byte (vm, *vm->sp);
 }
 
+
 word
 vm_pop_word (VM *vm)
 {
   *vm->sp += VM_STACK_POINTER_DELTA;
   return vm_read_word (vm, *vm->sp);
 }
+
 
 void
 vm_compare (VM *vm, word a, word b)
@@ -376,12 +411,14 @@ vm_compare (VM *vm, word a, word b)
   vm->flags.c = (a < b);
 }
 
+
 void
 vm_jump (VM *vm, word address, bool condition)
 {
   if (condition)
     *vm->ip = address;
 }
+
 
 void
 vm_execute (VM *vm, VM_Operation operation)
@@ -884,11 +921,13 @@ vm_execute (VM *vm, VM_Operation operation)
     }
 }
 
+
 void
 vm_step (VM *vm)
 {
   vm_execute (vm, vm_next_byte (vm));
 }
+
 
 void
 vm_view_register (VM *vm, VM_Register index)
@@ -910,6 +949,7 @@ vm_view_register (VM *vm, VM_Register index)
 
   printf ("\n");
 }
+
 
 void
 vm_view_memory (VM *vm, word address, word b, word a, int decode)

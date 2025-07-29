@@ -1,10 +1,12 @@
 #ifndef VM_H
 #define VM_H
 
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
 
 #define VM_FMT_BYTE "%02x"
 #define VM_FMT_WORD "%04x"
@@ -18,11 +20,13 @@
 // Each device can be mapped to blocks of size VM_DEVICE_BLOCK_SIZE bytes.
 #define VM_DEVICE_BLOCK_SIZE 0x100
 
+
 typedef uint8_t byte;
 typedef uint16_t word;
 
 typedef struct VM_Device VM_Device;
 typedef struct VM VM;
+
 
 typedef enum
 {
@@ -40,6 +44,7 @@ typedef enum
   VM_REGISTER_R8,
   VM_REGISTER_COUNT,
 } VM_Register;
+
 
 typedef enum
 {
@@ -118,6 +123,7 @@ typedef enum
   VM_OPERATION_COUNT,
 } VM_Operation;
 
+
 typedef enum
 {
   VM_ERROR_NONE,
@@ -125,9 +131,9 @@ typedef enum
   VM_ERROR_COUNT,
 } VM_Error;
 
-// Devices have their own read / store operations, this allows for custom
-// behavior on that operation. State is a pointer to a utility value that the
-// read / store function can work with!
+
+// Devices have their own read / store operations, this allows for custom behavior on that
+// operation. State is a pointer to a utility value that the read / store function can work with!
 typedef struct VM_Device
 {
   byte (*read_byte) (VM *, VM_Device *, word);
@@ -137,7 +143,9 @@ typedef struct VM_Device
   void *state;
 } VM_Device;
 
+
 extern VM_Device vm_device_ram;
+
 
 typedef struct VM
 {
@@ -161,6 +169,7 @@ typedef struct VM
   bool halt;
 } VM;
 
+
 char *vm_register_name (VM_Register index);
 char *vm_operation_name (VM_Operation index);
 char *vm_error_name (VM_Error index);
@@ -173,10 +182,10 @@ bool vm_load_file (VM *vm, const char *path);
 
 void vm_map_device (VM *vm, VM_Device *device, word start, word end);
 
-byte vm_default_read_byte (VM *, VM_Device *, word);
-word vm_default_read_word (VM *, VM_Device *, word);
-void vm_default_store_byte (VM *, VM_Device *, word, byte);
-void vm_default_store_word (VM *, VM_Device *, word, word);
+byte vm_default_read_byte (VM *vm, VM_Device *device, word address);
+word vm_default_read_word (VM *vm, VM_Device *device, word address);
+void vm_default_store_byte (VM *vm, VM_Device *device, word address, byte value);
+void vm_default_store_word (VM *vm, VM_Device *device, word address, word value);
 
 byte vm_read_byte (VM *vm, word address);
 word vm_read_word (VM *vm, word address);
@@ -207,6 +216,7 @@ void vm_step (VM *vm);
 
 void vm_view_register (VM *vm, VM_Register index);
 void vm_view_memory (VM *vm, word address, word b, word a, int decode);
+
 
 #endif // VM_H
 
