@@ -25,7 +25,7 @@ $ make
 $ cc vm/vm.c -c -o vm/vm.o
 $ cc vm/vm.o frontend/dbg.c -o vm-dbg
 $ cc vm/vm.o frontend/tty.c -o vm-tty
-$ cc vm/vm.o frontend/sdl.c -o vm-sdl `sdl2-config --cflags --libs`
+$ cc vm/vm.o frontend/sdl.c -o vm-sdl $(sdl2-config --cflags --libs)
 ```
 
 ## Usage
