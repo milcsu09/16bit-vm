@@ -40,7 +40,7 @@ main (int argc, char **argv)
   if (!vm_load_file (&vm, argv[1]))
     return 1;
 
-  char line[32];
+  char line[512];
 
   while (!vm.halt)
     {

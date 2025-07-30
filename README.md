@@ -9,7 +9,7 @@
 ### Optional
 - [Make](https://www.gnu.org/software/make/) — Required for building via the `Makefile`.
 - [SDL2](https://www.libsdl.org/) — Required for building the `vm-sdl` frontend.
-- [Python 3.10+](https://www.python.org/downloads/) — Required for using the default assembler.
+- [Python 3.10+](https://www.python.org/downloads/) — Required for running the assembler in [`asm/`](asm/).
 
 ## Build
 
@@ -45,8 +45,8 @@ $ asm/assembler.py --help
 ## Project Structure
 - [`asm/`](asm/) — Contains an assembler implementation.
 - [`examples/`](examples/) — Contains ROM files and their corresponding source code, which can be assembled using the assembler in [`asm/`](asm/).
-- [`frontend/`](frontend/) — Contains C sources for VM frontend.
-- [`vm/`](vm/) — Contains C sources for VM backend.
+- [`frontend/`](frontend/) — Contains C sources for the VM frontend.
+- [`vm/`](vm/) — Contains C sources for the VM backend.
 
 ## Details
 
