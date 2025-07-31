@@ -593,14 +593,14 @@ def pass1(tokens, consts=None, macros=None):
     def expression():
         nonlocal current
 
-        if current.typ != TokenType.LBRACKET:
+        if current.typ != TokenType.LPAREN:
             return current
 
         current = next(iterator, None)
 
         expr = ""
         body = []
-        while current.typ not in [TokenType.RBRACKET, TokenType.EOL,
+        while current.typ not in [TokenType.RPAREN, TokenType.EOL,
                                   TokenType.EOF]:
             assert_token(current, *VALID_EXPRESSION)
             body.append(current)
@@ -626,7 +626,7 @@ def pass1(tokens, consts=None, macros=None):
         if initial.typ == TokenType.EOL:
             full = True
 
-        if current and current.typ == TokenType.LBRACKET:
+        if current and current.typ == TokenType.LPAREN:
             result.append((full, initial))
             result.append((full, expression()))
             current = next(iterator, None)
@@ -835,7 +835,7 @@ def pass2(trans):
 
         # Handle normal operations
         while current[1].typ not in [TokenType.EOL, TokenType.EOF]:
-            if current[1].typ == TokenType.LPAREN:
+            if current[1].typ == TokenType.LBRACKET:
                 current = next(iterator, None)
                 assert_token(current[1], TokenType.SYMBOL, TokenType.NUMBER)
 
@@ -845,7 +845,7 @@ def pass2(trans):
                     body.append(current[1].to(TokenType.IMEMORY))
 
                 current = next(iterator, None)
-                assert_token(current[1], TokenType.RPAREN)
+                assert_token(current[1], TokenType.RBRACKET)
             else:
                 body.append(current[1])
 
@@ -1229,7 +1229,7 @@ def compile_file(file, d, x, dce):
             print()
 
     end = time.time()
-    report_note(f"Success. {len(bytecode)} bytes {'with' if dce else 'without'} DCE. ({end - start:.2f} s)", (file, 0))
+    report_note(f"Success. {len(bytecode)} bytes {'with' if dce else 'without'} DCE. ({end - start:.2f}s)", (file, 0))
 
 
 def main():
@@ -1250,8 +1250,14 @@ def main():
         usage()
         exit(1)
 
+    start = time.time()
+
     for file in sys.argv[1:]:
         compile_file(file, d, x, dce)
+
+    end = time.time()
+
+    report_note(f"{end - start:.2f}s", None)
 
 
 if __name__ == "__main__":

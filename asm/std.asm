@@ -32,8 +32,8 @@ std_strcpy: # (r5 src, r6 dst)
   pusha
 
 std_strcpy_loop:
-  movb r1 (r5)
-  movb (r6) r1
+  movb r1 [r5]
+  movb [r6] r1
 
   cmp r1 0
   jeq std_strcpy_end
@@ -53,7 +53,7 @@ std_strtoi: # (r5 src)
   mov ac 0
 
 std_strtoi_loop:
-  movb r1 (r5)
+  movb r1 [r5]
 
   cmp r1 '\0
   jeq std_strtoi_end
@@ -95,7 +95,7 @@ std_itoa_loop:
   div r5 r5 10
 
   add ac ac '0
-  movb (r2) ac
+  movb [r2] ac
 
   jmp std_itoa_loop
 
@@ -112,22 +112,22 @@ std_itoa_reverse_loop:
   sub r1 r1 1
   add r4 r1 __std_itoa_buffer
 
-  movb (r3) (r4)
+  movb [r3] [r4]
 
   jmp std_itoa_reverse_loop
 
 std_itoa_reverse_end:
   add r3 r2 r6
-  movb (r3) '\0
+  movb [r3] '\0
 
   popa
   ret
 
 std_itoa_zero:
-  mov (r6) '0
+  mov [r6] '0
 
   add r6 r6 1
-  mov (r6) '\0
+  mov [r6] '\0
 
   popa
   ret
@@ -143,14 +143,14 @@ TTY_READER_ADDRESS = 0x3100
 
 tty_write = value
 {
-  movb (TTY_WRITER_ADDRESS) value
+  movb [TTY_WRITER_ADDRESS] value
 }
 
 tty_writes: # (r5 src)
   pusha
 
 tty_writes_loop:
-  movb r1 (r5)
+  movb r1 [r5]
 
   cmp r1 0
   jeq tty_writes_end
@@ -167,7 +167,7 @@ tty_writes_end:
 
 tty_read =
 {
-  movb ac (TTY_READER_ADDRESS)
+  movb ac [TTY_READER_ADDRESS]
 }
 
 tty_reads: # (r5 dst, r6 size)
@@ -188,14 +188,14 @@ tty_reads_loop:
   cmp r1 r6
   jge tty_reads_loop
 
-  movb (r5) ac
+  movb [r5] ac
 
   add r1 r1 1
   add r5 r5 1
   jmp tty_reads_loop
 
 tty_reads_end:
-  movb (r5) '\0
+  movb [r5] '\0
 
   popa
   ret
@@ -212,12 +212,12 @@ SDL_FLAG_END   = 0x9001
 
 sdl_begin =
 {
-  movb (SDL_FLAG_BEGIN) 1
+  movb [SDL_FLAG_BEGIN] 1
 }
 
 sdl_end =
 {
-  movb (SDL_FLAG_END) 1
+  movb [SDL_FLAG_END] 1
 }
 
 sdl_xy_to_address = x y
@@ -238,7 +238,7 @@ sdl_render_point: # (r5 x, r6 y, r7 color)
   push ac
 
   sdl_xy_to_address r5 r6
-  mov (ac) r7
+  mov [ac] r7
 
   pop ac
 
@@ -247,6 +247,8 @@ sdl_render_point_end:
 
 
 sdl_render_vline: # (r5 x, r6 y1, r7 y2, r8 color)
+  pusha
+
 sdl_render_vline_loop:
   cmp r6 r7
   jgt sdl_render_vline_end
@@ -262,6 +264,7 @@ sdl_render_vline_loop:
   jmp sdl_render_vline_loop
 
 sdl_render_vline_end:
+  popa
   ret
 
 
@@ -517,7 +520,7 @@ SDL_SCANCODE_AMOUNT = 512
 
 sdl_keyboard_down: # (r5 key)
   add ac r5 SDL_KEYBOARD_ADDRESS
-  movb ac (ac)
+  movb ac [ac]
   ret
 
 sdl_font: # 7x7
@@ -1288,7 +1291,7 @@ sdl_render_glyph: # (r5 x, r6 y, r7 color, r8 glyph)
   mov r1 0
 
 sdl_render_glyph_loop:
-  cmp r1 [7 * 7]
+  cmp r1 (7 * 7)
   jge sdl_render_glyph_end
 
   div r3 r1 7
@@ -1296,7 +1299,7 @@ sdl_render_glyph_loop:
 
   mov r4 r1
   add r4 r4 r8
-  movb r4 (r4)
+  movb r4 [r4]
 
   cmp r4 0
   jeq sdl_render_glyph_skip
@@ -1330,7 +1333,7 @@ sdl_render_char: # (r5 x, r6 y, r7 color, r8 char)
   jgt sdl_render_char_end
 
   sub r8 r8 32
-  mul r8 r8 [7 * 7]
+  mul r8 r8 (7 * 7)
   add r8 r8 sdl_font
 
   call sdl_render_glyph
@@ -1346,7 +1349,7 @@ sdl_render_str: # (r5 x, r6 y, r7 color, r8 buffer)
   mov r2 r5
 
 sdl_render_str_loop:
-  movb r1 (r8)
+  movb r1 [r8]
 
   cmp r1 0
   jeq sdl_render_str_end
