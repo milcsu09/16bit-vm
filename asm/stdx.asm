@@ -2,7 +2,7 @@
 # CALL CONVENTION : (r5, r6, r7, r8, .. stack) -> ac
 
 STDX_FBITS = 8
-STDX_FONE = [1 << STDX_FBITS]
+STDX_FONE = (1 << STDX_FBITS)
 
 stdx_itof = dst src
 {
