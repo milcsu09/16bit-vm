@@ -4,6 +4,8 @@ import time
 import os, sys
 from enum import IntEnum, auto, unique
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def report_message(typ, msg, loc=None, fd=sys.stderr):
     if loc:
