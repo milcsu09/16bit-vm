@@ -1,5 +1,5 @@
 entry:
-  # Do nothing 3 times!
+  ; Do nothing 3 times!
 
   mov r1 3
 

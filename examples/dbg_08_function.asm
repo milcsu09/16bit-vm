@@ -6,7 +6,7 @@ entry:
   halt
 
 square:
-  # Make r1 it's own square!
+  ; Make r1 it's own square!
 
   mul r1 r1 r1
 

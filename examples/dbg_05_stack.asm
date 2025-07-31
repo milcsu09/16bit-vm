@@ -1,5 +1,5 @@
 entry:
-  # Swap r1 and r2 with stack!
+  ; Swap r1 and r2 with stack!
 
   mov r1 10
   mov r2 20

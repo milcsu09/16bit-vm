@@ -1,8 +1,8 @@
-# STANDARD LIBRARY
-# CALL CONVENTION : (r5, r6, r7, r8, .. stack) -> ac
+; STANDARD LIBRARY
+; CALL CONVENTION : (r5, r6, r7, r8, .. stack) -> ac
 
 
-## STANDARD ##
+;; STANDARD ;;
 std_neg = value
 {
   push ac
@@ -28,7 +28,7 @@ std_lnot = dst value
   pop r1
 }
 
-std_strcpy: # (r5 src, r6 dst)
+std_strcpy: ; (r5 src, r6 dst)
   pusha
 
 std_strcpy_loop:
@@ -47,7 +47,7 @@ std_strcpy_end:
   ret
 
 
-std_strtoi: # (r5 src)
+std_strtoi: ; (r5 src)
   pusha
 
   mov ac 0
@@ -77,7 +77,7 @@ std_strtoi_end:
   ret
 
 
-std_itoa: # (r5 value, r6 buffer)
+std_itoa: ; (r5 value, r6 buffer)
   pusha
 
   cmp r5 0
@@ -133,11 +133,11 @@ std_itoa_zero:
   ret
 
 
-# Utility buffer to hold the temporary digits produced by 'std_itoa'.
+; Utility buffer to hold the temporary digits produced by 'std_itoa'.
 __std_itoa_buffer: resb 5
 
 
-## TTY ##
+;; TTY ;;
 TTY_WRITER_ADDRESS = 0x3000
 TTY_READER_ADDRESS = 0x3100
 
@@ -146,7 +146,7 @@ tty_write = value
   movb [TTY_WRITER_ADDRESS] value
 }
 
-tty_writes: # (r5 src)
+tty_writes: ; (r5 src)
   pusha
 
 tty_writes_loop:
@@ -170,7 +170,7 @@ tty_read =
   movb ac [TTY_READER_ADDRESS]
 }
 
-tty_reads: # (r5 dst, r6 size)
+tty_reads: ; (r5 dst, r6 size)
   pusha
 
   movb r1 0
@@ -201,7 +201,7 @@ tty_reads_end:
   ret
 
 
-## SDL ##
+;; SDL ;;
 SDL_SCREEN_SIZE = 128
 
 SDL_RENDERER_ADDRESS = 0x3000
@@ -228,7 +228,7 @@ sdl_xy_to_address = x y
   add ac ac SDL_RENDERER_ADDRESS
 }
 
-sdl_render_point: # (r5 x, r6 y, r7 color)
+sdl_render_point: ; (r5 x, r6 y, r7 color)
   cmp r5 SDL_SCREEN_SIZE
   jge sdl_render_point_end
 
@@ -246,7 +246,7 @@ sdl_render_point_end:
   ret
 
 
-sdl_render_vline: # (r5 x, r6 y1, r7 y2, r8 color)
+sdl_render_vline: ; (r5 x, r6 y1, r7 y2, r8 color)
   pusha
 
 sdl_render_vline_loop:
@@ -268,7 +268,7 @@ sdl_render_vline_end:
   ret
 
 
-# Values from `SDL2/SDL_scancode.h`.
+; Values from `SDL2/SDL_scancode.h`.
 SDL_SCANCODE_UNKNOWN = 0
 SDL_SCANCODE_A = 4
 SDL_SCANCODE_B = 5
@@ -518,12 +518,12 @@ SDL_SCANCODE_CALL = 289
 SDL_SCANCODE_ENDCALL = 290
 SDL_SCANCODE_AMOUNT = 512
 
-sdl_keyboard_down: # (r5 key)
+sdl_keyboard_down: ; (r5 key)
   add ac r5 SDL_KEYBOARD_ADDRESS
   movb ac [ac]
   ret
 
-sdl_font: # 7x7
+sdl_font: ; 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
@@ -531,7 +531,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # !
+  ; !
   defb 0 0 0 1 0 0 0
   defb 0 0 1 1 1 0 0
   defb 0 0 1 1 1 0 0
@@ -539,7 +539,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
-  # "
+  ; "
   defb 0 0 1 0 1 0 0
   defb 0 0 1 0 1 0 0
   defb 0 0 1 0 1 0 0
@@ -547,7 +547,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # #
+  ; ;
   defb 0 1 0 0 0 1 0
   defb 1 1 1 1 1 1 1
   defb 0 1 0 0 0 1 0
@@ -555,7 +555,7 @@ sdl_font: # 7x7
   defb 0 1 0 0 0 1 0
   defb 1 1 1 1 1 1 1
   defb 0 1 0 0 0 1 0
-  # $
+  ; $
   defb 0 0 0 1 0 0 0
   defb 0 1 1 1 1 1 1
   defb 1 0 0 1 0 0 0
@@ -563,7 +563,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 1
   defb 1 1 1 1 1 1 0
   defb 0 0 0 1 0 0 0
-  # %
+  ; %
   defb 0 1 0 0 0 0 1
   defb 1 0 1 0 0 1 0
   defb 0 1 0 0 1 0 0
@@ -571,7 +571,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 0 1 0
   defb 0 1 0 0 1 0 1
   defb 1 0 0 0 0 1 0
-  # &
+  ; &
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
@@ -579,7 +579,7 @@ sdl_font: # 7x7
   defb 0 1 0 0 0 1 0
   defb 1 0 0 0 0 0 1
   defb 0 0 0 0 0 0 0
-  # '
+  ; '
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -587,7 +587,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # (
+  ; (
   defb 0 0 0 1 0 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 1 0 0 0 0
@@ -595,7 +595,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 0 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 0 1 0 0 0
-  # )
+  ; )
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 1 0 0
@@ -603,7 +603,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 0 1 0 0 0
-  # *
+  ; *
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 1 0 1 0 0
@@ -611,7 +611,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 1 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # +
+  ; +
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
@@ -619,7 +619,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # ,
+  ; ,
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
@@ -627,7 +627,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # -
+  ; -
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
@@ -635,7 +635,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # .
+  ; .
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
@@ -643,7 +643,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
-  # /
+  ; /
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 1 0 0
@@ -651,7 +651,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # 0
+  ; 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 1 0 1
@@ -659,7 +659,7 @@ sdl_font: # 7x7
   defb 1 0 1 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # 1
+  ; 1
   defb 0 0 0 1 0 0 0
   defb 0 0 1 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -667,7 +667,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 1 1 1 1 1 1 1
-  # 2
+  ; 2
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
@@ -675,7 +675,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
-  # 3
+  ; 3
   defb 1 1 1 1 1 1 0
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
@@ -683,7 +683,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # 4
+  ; 4
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 1 0 0
@@ -691,7 +691,7 @@ sdl_font: # 7x7
   defb 0 1 1 1 1 1 1
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 1 0 0
-  # 5
+  ; 5
   defb 1 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -699,7 +699,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # 6
+  ; 6
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 0
@@ -707,7 +707,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # 7
+  ; 7
   defb 1 1 1 1 1 1 1
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 1 0
@@ -715,7 +715,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 1 0
   defb 0 0 0 0 0 1 0
   defb 0 0 0 0 0 1 0
-  # 8
+  ; 8
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -723,7 +723,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # 9
+  ; 9
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -731,7 +731,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # :
+  ; :
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
@@ -739,7 +739,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # ;
+  ; ;
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
@@ -747,7 +747,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # <
+  ; <
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 0 1 0 0 0
@@ -755,7 +755,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 0 0 0
-  # =
+  ; =
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 1 1 1 1 1 1 1
@@ -763,7 +763,7 @@ sdl_font: # 7x7
   defb 1 1 1 1 1 1 1
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # >
+  ; >
   defb 0 0 0 0 0 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 0 1 0 0 0
@@ -771,7 +771,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # ?
+  ; ?
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
@@ -779,7 +779,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
-  # @
+  ; @
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 1 1 1 0 1
@@ -787,7 +787,7 @@ sdl_font: # 7x7
   defb 1 0 0 1 1 1 0
   defb 1 0 0 0 0 0 0
   defb 0 1 1 1 0 0 0
-  # A
+  ; A
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -795,7 +795,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # B
+  ; B
   defb 1 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -803,7 +803,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # C
+  ; C
   defb 0 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -811,7 +811,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
-  # D
+  ; D
   defb 1 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -819,7 +819,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # E
+  ; E
   defb 1 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -827,7 +827,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 1 1 1 1 1 1
-  # F
+  ; F
   defb 1 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -835,7 +835,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
-  # G
+  ; G
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 0
@@ -843,7 +843,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # H
+  ; H
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -851,7 +851,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # I
+  ; I
   defb 1 1 1 1 1 1 1
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -859,7 +859,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 1 1 1 1 1 1 1
-  # J
+  ; J
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
@@ -867,7 +867,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # K
+  ; K
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -875,7 +875,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # L
+  ; L
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -883,7 +883,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 1 1 1 1 1 1
-  # M
+  ; M
   defb 1 0 0 0 0 0 1
   defb 1 1 0 0 0 1 1
   defb 1 0 1 0 1 0 1
@@ -891,7 +891,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # N
+  ; N
   defb 1 0 0 0 0 0 1
   defb 1 1 0 0 0 0 1
   defb 1 0 1 0 0 0 1
@@ -899,7 +899,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 1 0 1
   defb 1 0 0 0 0 1 1
   defb 1 0 0 0 0 0 1
-  # O
+  ; O
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -907,7 +907,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # P
+  ; P
   defb 1 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -915,7 +915,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
-  # Q
+  ; Q
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -923,7 +923,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 1 0 1
   defb 1 0 0 0 0 1 0
   defb 0 1 1 1 1 0 1
-  # R
+  ; R
   defb 1 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -931,7 +931,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # S
+  ; S
   defb 0 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -939,7 +939,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # T
+  ; T
   defb 1 1 1 1 1 1 1
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -947,7 +947,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # U
+  ; U
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -955,7 +955,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # V
+  ; V
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -963,7 +963,7 @@ sdl_font: # 7x7
   defb 0 1 0 0 0 1 0
   defb 0 0 1 0 1 0 0
   defb 0 0 0 1 0 0 0
-  # W
+  ; W
   defb 1 0 0 0 0 0 1
   defb 1 0 0 1 0 0 1
   defb 1 0 0 1 0 0 1
@@ -971,7 +971,7 @@ sdl_font: # 7x7
   defb 1 0 0 1 0 0 1
   defb 1 0 1 0 1 0 1
   defb 1 1 0 0 0 1 1
-  # X
+  ; X
   defb 1 0 0 0 0 0 1
   defb 0 1 0 0 0 1 0
   defb 0 0 1 0 1 0 0
@@ -979,7 +979,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 1 0 0
   defb 0 1 0 0 0 1 0
   defb 1 0 0 0 0 0 1
-  # Y
+  ; Y
   defb 1 0 0 0 0 0 1
   defb 0 1 0 0 0 1 0
   defb 0 0 1 0 1 0 0
@@ -987,7 +987,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # Z
+  ; Z
   defb 1 1 1 1 1 1 1
   defb 0 0 0 0 0 1 0
   defb 0 0 0 0 1 0 0
@@ -995,7 +995,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 0 0 0
   defb 0 1 0 0 0 0 0
   defb 1 1 1 1 1 1 1
-  # [
+  ; [
   defb 0 0 1 1 1 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 1 0 0 0 0
@@ -1003,7 +1003,7 @@ sdl_font: # 7x7
   defb 0 0 1 0 0 0 0
   defb 0 0 1 0 0 0 0
   defb 0 0 1 1 1 0 0
-  # \
+  ; \
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 1 0 0 0 0
@@ -1011,7 +1011,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # ]
+  ; ]
   defb 0 0 1 1 1 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 1 0 0
@@ -1019,7 +1019,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 1 0 0
   defb 0 0 0 0 1 0 0
   defb 0 0 1 1 1 0 0
-  # ^
+  ; ^
   defb 0 0 0 1 0 0 0
   defb 0 0 1 0 1 0 0
   defb 0 1 0 0 0 1 0
@@ -1027,7 +1027,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # _
+  ; _
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
@@ -1035,7 +1035,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 1 1 1 1 1 1 1
-  # `
+  ; `
   defb 0 0 1 0 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 1 0 0
@@ -1043,7 +1043,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
-  # a
+  ; a
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 0 0 0 0 0 0 1
@@ -1051,7 +1051,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # b
+  ; b
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 1 1 1 1 1 0
@@ -1059,7 +1059,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # c
+  ; c
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
@@ -1067,7 +1067,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
-  # d
+  ; d
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 1
   defb 0 1 1 1 1 1 1
@@ -1075,7 +1075,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 1
-  # e
+  ; e
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1083,7 +1083,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
-  # f
+  ; f
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 1 1 1
   defb 0 0 0 1 0 0 0
@@ -1091,7 +1091,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # g
+  ; g
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1099,7 +1099,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 1 1 0
-  # h
+  ; h
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
@@ -1107,7 +1107,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # i
+  ; i
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
@@ -1115,7 +1115,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 1 1 1 1 1 1 1
-  # j
+  ; j
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 0 0 0
@@ -1123,7 +1123,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # k
+  ; k
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
@@ -1131,7 +1131,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # l
+  ; l
   defb 0 0 0 0 0 0 0
   defb 0 0 1 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -1139,7 +1139,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 1 1 1 1 1 1 1
-  # m
+  ; m
   defb 0 0 0 0 0 0 0
   defb 0 1 1 0 1 1 0
   defb 1 0 0 1 0 0 1
@@ -1147,7 +1147,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # n
+  ; n
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1155,7 +1155,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
-  # o
+  ; o
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1163,7 +1163,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # p
+  ; p
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1171,7 +1171,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
   defb 1 0 0 0 0 0 0
-  # q
+  ; q
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 0
   defb 1 0 0 0 0 0 1
@@ -1179,7 +1179,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 1
   defb 0 0 0 0 0 0 1
-  # r
+  ; r
   defb 0 0 0 0 0 0 0
   defb 1 0 1 1 1 1 0
   defb 1 1 0 0 0 0 1
@@ -1187,7 +1187,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
   defb 1 0 0 0 0 0 0
-  # s
+  ; s
   defb 0 0 0 0 0 0 0
   defb 0 1 1 1 1 1 1
   defb 1 0 0 0 0 0 0
@@ -1195,7 +1195,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 1 1 1 1 1 1 0
-  # t
+  ; t
   defb 0 0 0 0 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -1203,7 +1203,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 1 1 1
-  # u
+  ; u
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -1211,7 +1211,7 @@ sdl_font: # 7x7
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
   defb 0 1 1 1 1 1 0
-  # v
+  ; v
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -1219,7 +1219,7 @@ sdl_font: # 7x7
   defb 0 1 0 0 0 1 0
   defb 0 0 1 0 1 0 0
   defb 0 0 0 1 0 0 0
-  # w
+  ; w
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 1 0 0 1
@@ -1227,7 +1227,7 @@ sdl_font: # 7x7
   defb 1 0 0 1 0 0 1
   defb 1 0 1 0 1 0 1
   defb 1 1 0 0 0 1 1
-  # x
+  ; x
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
   defb 0 1 0 0 0 1 0
@@ -1235,7 +1235,7 @@ sdl_font: # 7x7
   defb 0 0 1 1 1 0 0
   defb 0 1 0 0 0 1 0
   defb 1 0 0 0 0 0 1
-  # y
+  ; y
   defb 0 0 0 0 0 0 0
   defb 1 0 0 0 0 0 1
   defb 1 0 0 0 0 0 1
@@ -1243,7 +1243,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 0 0 1
   defb 0 0 0 0 1 1 0
-  # z
+  ; z
   defb 0 0 0 0 0 0 0
   defb 1 1 1 1 1 1 1
   defb 0 0 0 0 0 1 0
@@ -1251,7 +1251,7 @@ sdl_font: # 7x7
   defb 0 0 1 1 0 0 0
   defb 0 1 0 0 0 0 0
   defb 1 1 1 1 1 1 1
-  # {
+  ; {
   defb 0 0 0 0 1 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -1259,7 +1259,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 0 1 0 0
-  # |
+  ; |
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -1267,7 +1267,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
-  # }
+  ; }
   defb 0 0 1 0 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
@@ -1275,7 +1275,7 @@ sdl_font: # 7x7
   defb 0 0 0 1 0 0 0
   defb 0 0 0 1 0 0 0
   defb 0 0 1 0 0 0 0
-  # ~
+  ; ~
   defb 0 0 0 0 0 0 0
   defb 0 0 0 0 0 0 0
   defb 0 1 1 0 0 0 0
@@ -1285,7 +1285,7 @@ sdl_font: # 7x7
   defb 0 0 0 0 0 0 0
 
 
-sdl_render_glyph: # (r5 x, r6 y, r7 color, r8 glyph)
+sdl_render_glyph: ; (r5 x, r6 y, r7 color, r8 glyph)
   pusha
 
   mov r1 0
@@ -1323,7 +1323,7 @@ sdl_render_glyph_end:
   ret
 
 
-sdl_render_char: # (r5 x, r6 y, r7 color, r8 char)
+sdl_render_char: ; (r5 x, r6 y, r7 color, r8 char)
   pusha
 
   cmp r8 32
@@ -1343,7 +1343,7 @@ sdl_render_char_end:
   ret
 
 
-sdl_render_str: # (r5 x, r6 y, r7 color, r8 buffer)
+sdl_render_str: ; (r5 x, r6 y, r7 color, r8 buffer)
   pusha
 
   mov r2 r5

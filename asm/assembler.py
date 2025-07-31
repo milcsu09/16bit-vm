@@ -514,22 +514,22 @@ def lexer_tokenize_file(path, loc=None):
             if content[index] in [":",]:
                 yield Token(loc, TokenType.EOL, content[index])
 
-        elif content[index:index + 2] == "#[": # ]
-            stack = 1
-            while index < length and stack != 0:
-                index = index + 1
-                if content[index:index + 2] == "#[": # ]
-                    stack = stack + 1
-                    index = index + 1
-                if content[index:index + 2] == "]#":
-                    stack = stack - 1
-                    index = index + 1
+        # elif content[index:index + 2] == "#[": # ]
+        #     stack = 1
+        #     while index < length and stack != 0:
+        #         index = index + 1
+        #         if content[index:index + 2] == "#[": # ]
+        #             stack = stack + 1
+        #             index = index + 1
+        #         if content[index:index + 2] == "]#":
+        #             stack = stack - 1
+        #             index = index + 1
 
-            if index == length or stack != 0:
-                report_error(f"unbalanced comment blocks", loc)
-                exit(1)
+        #     if index == length or stack != 0:
+        #         report_error(f"unbalanced comment blocks", loc)
+        #         exit(1)
 
-        elif content[index] == "#":
+        elif content[index] == ";":
             index = lexer_find(content, lambda x: x == "\n", index + 1) - 1
 
         elif not content[index].isspace():

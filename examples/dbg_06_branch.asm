@@ -3,7 +3,7 @@ entry:
 
   jmp skip
 
-  # Instruction skipped!
+  ; Instruction skipped!
   mov r1 20
 
 skip:

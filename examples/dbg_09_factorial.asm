@@ -4,7 +4,7 @@ entry:
 
   halt
 
-factorial: # (r5 n) -> ac
+factorial: ; (r5 n) -> ac
   pusha
   mov ac 1
 

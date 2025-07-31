@@ -1,5 +1,5 @@
-# EXTENDED STANDARD LIBRARY
-# CALL CONVENTION : (r5, r6, r7, r8, .. stack) -> ac
+; EXTENDED STANDARD LIBRARY
+; CALL CONVENTION : (r5, r6, r7, r8, .. stack) -> ac
 
 STDX_FBITS = 8
 STDX_FONE = (1 << STDX_FBITS)
