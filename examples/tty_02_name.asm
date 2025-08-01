@@ -1,4 +1,3 @@
-
 attach "asm/std.asm"
 
 entry:
