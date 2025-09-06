@@ -900,6 +900,9 @@ def pass3_dce(ir):
 
         if inside_label:
             label_body.append((full, size, tokens))
+        else:
+            report_error("expected a label-definition", tokens[0].loc)
+            exit(1)
 
     if inside_label:
         labels[inside_label] = (label_body[:], None, inside_label == "entry", set())

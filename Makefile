@@ -2,7 +2,7 @@
 .PHONY: all vm-dbg vm-tty vm-sdl
 
 CC := cc
-CCFLAGS := -std=c11 -Wall -Wextra -Wpedantic
+CCFLAGS := -std=c11 -g3 -Wall -Wextra -Wpedantic
 
 VM_OBJ := vm/vm.o
 DBG_OBJ := frontend/dbg.o
