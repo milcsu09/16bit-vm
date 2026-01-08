@@ -25,7 +25,7 @@ static const char *const VM_REGISTER_NAME[] = {
 
 
 static const char *const VM_OPERATION_NAME[] = {
-  "NONE",
+  "NOP",
   "MOV_R_I",
   "MOV_R_R",
   "MOV_R_IM",
@@ -216,7 +216,7 @@ vm_load_file (VM *vm, const char *path)
       return false;
     }
 
-  rewind(file);
+  rewind (file);
 
   byte *memory = calloc (nmemory, sizeof (byte));
 
@@ -425,7 +425,7 @@ vm_execute (VM *vm, VM_Operation operation)
 {
   switch (operation)
     {
-    case VM_OPERATION_NONE:
+    case VM_OPERATION_NOP:
       break;
     case VM_OPERATION_MOV_R_I:
       {
@@ -944,6 +944,8 @@ vm_view_register (VM *vm, VM_Register index)
         printf("%d", (value >> i) & 1);
       if (isprint ((char) value))
         printf (" '%c'", value);
+      else
+        printf ("    ");
       printf (" %.8f", (value / (float)(1 << 8)));
     }
 
@@ -954,8 +956,8 @@ vm_view_register (VM *vm, VM_Register index)
 void
 vm_view_memory (VM *vm, word address, word b, word a, int decode)
 {
-  size_t above = (address <= vm->nmemory - 1 - a) ? a : vm->nmemory - 1 - address;
-  size_t below = (address >= b) ? b : address;
+  size_t below = address >= b ? b : address;
+  size_t above = address <= vm->nmemory - 1 - a ? a : vm->nmemory - 1 - address;
 
   printf (VM_FMT_WORD " ", address);
 
@@ -977,8 +979,6 @@ vm_view_memory (VM *vm, word address, word b, word a, int decode)
       {
         printf ("^");
         VM_Operation operation = vm->memory[address];
-        // byte full = operation & 0x80;
-        // byte data = operation & 0x7F;
         printf ("~ %s", vm_operation_name (operation));
       }
       break;

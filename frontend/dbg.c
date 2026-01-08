@@ -14,6 +14,7 @@ struct memory_region
   int decode;
 };
 
+
 int
 main (int argc, char **argv)
 {

@@ -1,7 +1,13 @@
+.cache
+
 *.o
 *.out
 *.bin
+
 vm-dbg
 vm-tty
 vm-sdl
+
 compile_commands.json
+
+test/

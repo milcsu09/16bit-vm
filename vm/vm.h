@@ -48,7 +48,7 @@ typedef enum
 
 typedef enum
 {
-  VM_OPERATION_NONE,
+  VM_OPERATION_NOP,
   VM_OPERATION_MOV_R_I,
   VM_OPERATION_MOV_R_R,
   VM_OPERATION_MOV_R_IM,

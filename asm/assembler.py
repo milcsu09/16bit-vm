@@ -18,15 +18,15 @@ def report_message(typ, msg, loc=None, fd=sys.stderr):
 
 
 def report_error(*args, **kwargs):
-    report_message("ERROR", *args, **kwargs)
+    report_message("\033[1;91merror\033[0m", *args, **kwargs)
 
 
 def report_warning(*args, **kwargs):
-    report_message("WARNING", *args, **kwargs)
+    report_message("\033[1;35mwarning\033[0m", *args, **kwargs)
 
 
 def report_note(*args, **kwargs):
-    report_message("NOTE", *args, **kwargs)
+    report_message("\033[1;94mnote\033[0m", *args, **kwargs)
 
 
 @unique
@@ -81,7 +81,7 @@ class Token:
     def __str__(self):
         # postfix = f":{repr(self.val)}" if self.val is not None else ""
         # return str(self.typ) + postfix
-        return repr(self.val)
+        return str(self.val)
 
     def __repr__(self):
         return str(self)
@@ -124,7 +124,7 @@ REGISTERS = {
 # Has to align with the VM's instruction set!
 @unique
 class OperationType(IntEnum):
-    NONE = 0
+    NOP = 0
     MOV_R_I = auto()
     MOV_R_R = auto()
     MOV_R_IM = auto()
@@ -221,7 +221,7 @@ class Operation:
 
 # Operation overloads.
 OPERATIONS = {
-    "none": OperationType.NONE,
+    "nop": OperationType.NOP,
 
     "mov": [
         ([TokenType.SYMBOL, TokenType.NUMBER], OperationType.MOV_R_I),
@@ -388,6 +388,98 @@ OPERATIONS = {
         ([TokenType.NUMBER], OperationType.PRINT_I),
         ([TokenType.SYMBOL], OperationType.PRINT_R),
     ],
+
+    "mov_r_i": [([TokenType.SYMBOL, TokenType.NUMBER], OperationType.MOV_R_I)],
+    "mov_r_r": [([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.MOV_R_R)],
+    "mov_r_im": [([TokenType.SYMBOL, TokenType.IMEMORY], OperationType.MOV_R_IM)],
+    "mov_r_rm": [([TokenType.SYMBOL, TokenType.RMEMORY], OperationType.MOV_R_RM)],
+
+    "mov_im_i": [([TokenType.IMEMORY, TokenType.NUMBER], OperationType.MOV_IM_I)],
+    "mov_im_r": [([TokenType.IMEMORY, TokenType.SYMBOL], OperationType.MOV_IM_R)],
+    "mov_im_im": [([TokenType.IMEMORY, TokenType.IMEMORY], OperationType.MOV_IM_IM)],
+    "mov_im_rm": [([TokenType.IMEMORY, TokenType.RMEMORY], OperationType.MOV_IM_RM)],
+
+    "mov_rm_i": [([TokenType.RMEMORY, TokenType.NUMBER], OperationType.MOV_RM_I)],
+    "mov_rm_r": [([TokenType.RMEMORY, TokenType.SYMBOL], OperationType.MOV_RM_R)],
+    "mov_rm_im": [([TokenType.RMEMORY, TokenType.IMEMORY], OperationType.MOV_RM_IM)],
+    "mov_rm_rm": [([TokenType.RMEMORY, TokenType.RMEMORY], OperationType.MOV_RM_RM)],
+
+    "movb_r_i": [([TokenType.SYMBOL, TokenType.NUMBER], OperationType.MOVB_R_I)],
+    "movb_r_r": [([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.MOVB_R_R)],
+    "movb_r_im": [([TokenType.SYMBOL, TokenType.IMEMORY], OperationType.MOVB_R_IM)],
+    "movb_r_rm": [([TokenType.SYMBOL, TokenType.RMEMORY], OperationType.MOVB_R_RM)],
+
+    "movb_im_i": [([TokenType.IMEMORY, TokenType.NUMBER], OperationType.MOVB_IM_I)],
+    "movb_im_r": [([TokenType.IMEMORY, TokenType.SYMBOL], OperationType.MOVB_IM_R)],
+    "movb_im_im": [([TokenType.IMEMORY, TokenType.IMEMORY], OperationType.MOVB_IM_IM)],
+    "movb_im_rm": [([TokenType.IMEMORY, TokenType.RMEMORY], OperationType.MOVB_IM_RM)],
+
+    "movb_rm_i": [([TokenType.RMEMORY, TokenType.NUMBER], OperationType.MOVB_RM_I)],
+    "movb_rm_r": [([TokenType.RMEMORY, TokenType.SYMBOL], OperationType.MOVB_RM_R)],
+    "movb_rm_im": [([TokenType.RMEMORY, TokenType.IMEMORY], OperationType.MOVB_RM_IM)],
+    "movb_rm_rm": [([TokenType.RMEMORY, TokenType.RMEMORY], OperationType.MOVB_RM_RM)],
+
+    "push_i": [([TokenType.NUMBER], OperationType.PUSH_I)],
+    "push_r": [([TokenType.SYMBOL], OperationType.PUSH_R)],
+
+    "add_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.ADD_I)],
+    "add_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.ADD_R)],
+
+    "sub_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.SUB_I)],
+    "sub_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.SUB_R)],
+
+    "mul_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.MUL_I)],
+    "mul_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.MUL_R)],
+
+    "div_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.DIV_I)],
+    "div_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.DIV_R)],
+
+    "and_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.AND_I)],
+    "and_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.AND_R)],
+
+    "or_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.OR_I)],
+    "or_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.OR_R)],
+
+    "xor_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.XOR_I)],
+    "xor_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.XOR_R)],
+
+    "not": [([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.NOT)],
+
+    "shl_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.SHL_I)],
+    "shl_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.SHL_R)],
+
+    "shr_i": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.NUMBER], OperationType.SHR_I)],
+    "shr_r": [([TokenType.SYMBOL, TokenType.SYMBOL, TokenType.SYMBOL], OperationType.SHR_R)],
+
+    "cmp_i": [([TokenType.SYMBOL, TokenType.NUMBER], OperationType.CMP_I)],
+    "cmp_r": [([TokenType.SYMBOL, TokenType.SYMBOL], OperationType.CMP_R)],
+
+    "jmp_i": [([TokenType.NUMBER], OperationType.JMP_I)],
+    "jmp_r": [([TokenType.SYMBOL], OperationType.JMP_R)],
+
+    "jeq_i": [([TokenType.NUMBER], OperationType.JEQ_I)],
+    "jeq_r": [([TokenType.SYMBOL], OperationType.JEQ_R)],
+
+    "jne_i": [([TokenType.NUMBER], OperationType.JNE_I)],
+    "jne_r": [([TokenType.SYMBOL], OperationType.JNE_R)],
+
+    "jlt_i": [([TokenType.NUMBER], OperationType.JLT_I)],
+    "jlt_r": [([TokenType.SYMBOL], OperationType.JLT_R)],
+
+    "jgt_i": [([TokenType.NUMBER], OperationType.JGT_I)],
+    "jgt_r": [([TokenType.SYMBOL], OperationType.JGT_R)],
+
+    "jle_i": [([TokenType.NUMBER], OperationType.JLE_I)],
+    "jle_r": [([TokenType.SYMBOL], OperationType.JLE_R)],
+
+    "jge_i": [([TokenType.NUMBER], OperationType.JGE_I)],
+    "jge_r": [([TokenType.SYMBOL], OperationType.JGE_R)],
+
+    "call_i": [([TokenType.NUMBER], OperationType.CALL_I)],
+    "call_r": [([TokenType.SYMBOL], OperationType.CALL_R)],
+
+    "print_i": [([TokenType.NUMBER], OperationType.PRINT_I)],
+    "print_r": [([TokenType.SYMBOL], OperationType.PRINT_R)],
 }
 
 
@@ -438,7 +530,7 @@ def lexer_number(content, loc):
     try:
       if '.' in content:
           float_value = float(content)
-          value = int(float_value * 256)
+          value = round(float_value * 256)
       else:
           value = int(content, 0)
     except ValueError:
@@ -1031,7 +1123,13 @@ def operation_find_overload(operation, operands, table):
             if operation_match_arguments(expected, operands):
                 return result
 
-    report_error(f"invalid overload for `{operation.val}`", operation.loc)
+    w = f" with {', '.join(map(str, [operand.typ for operand in operands]))}"
+    report_error(f"no matching overload for `{operation.val}`{w if operands else ''}", operation.loc)
+
+    if isinstance(overloads, list):
+        for expected, _ in overloads:
+            report_note(", ".join(map(str, expected)), operation.loc)
+
     exit(1)
 
 
@@ -1078,6 +1176,9 @@ def build_operand(operand, full, loc):
     result = bytearray()
 
     if operand.typ == TokenType.SYMBOL:
+        if operand.val not in REGISTERS:
+            report_error(f"invalid operand `{operand}`", operand.loc)
+            exit(1)
         result.append(REGISTERS[operand.val])
     elif operand.typ == TokenType.NUMBER:
         result.extend(build_get_width(operand.val, full, loc))
@@ -1138,6 +1239,7 @@ def usage():
     print(f"        -h --help       Display this message and exit")
     print(f"        -d              Display debug information")
     print(f"        -x              Display compiled bytecode")
+    print(f"        -v              Enable -d -x")
     print(f"        --dce           Perform dead code elimination")
 
 
@@ -1226,15 +1328,28 @@ def compile_file(file, d, x, dce):
                 print()
 
     if x:
+        xstart = 0
+
+        printable = lambda: ''.join([chr (b) if chr(b).isprintable() else '.' for b in bytecode[xstart:i + 1]])
+
         for i, byte in enumerate(bytecode):
-            print(f"0x{byte:02x}", end=", ")
+            if i % 16 == 0:
+                xstart = i
+                print(f"{i:04x}", end="  ")
+
+            print(f"{byte:02x}", end=" ")
             if (i + 1) % 16 == 0:
-                print()
+                print(f" |{printable()}|")
+
         if len(bytecode) % 16 != 0:
-            print()
+            print(("   " * (16 - len(bytecode) % 16)) + f" |{printable()}|")
+
+        print()
 
     end = time.time()
-    report_note(f"Success. {len(bytecode)} bytes {'with' if dce else 'without'} DCE. ({end - start:.2f}s)", (file, 0))
+
+    bs = len(bytecode)
+    report_note(f"Success. {bs} {'byte' if bs == 1 else 'bytes'} {'with' if dce else 'without'} DCE. ({end - start:.4f}s)", (file, 0))
 
 
 def main():
@@ -1248,8 +1363,13 @@ def main():
     if (x := "-x" in sys.argv):
         sys.argv.remove("-x")
 
-    if (dce := "--dce" in sys.argv):
-        sys.argv.remove("--dce")
+    if ("-v" in sys.argv):
+        sys.argv.remove("-v")
+        d = True
+        x = True
+
+    if (dce := "-dce" in sys.argv):
+        sys.argv.remove("-dce")
 
     if len(sys.argv) <= 1:
         usage()
@@ -1262,7 +1382,7 @@ def main():
 
     end = time.time()
 
-    report_note(f"{end - start:.2f}s", None)
+    report_note(f"{end - start:.4f}s", None)
 
 
 if __name__ == "__main__":
