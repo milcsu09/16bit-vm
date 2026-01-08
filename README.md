@@ -80,7 +80,7 @@ $ asm/assembler.py --help
 #### Operation table
 | Code   | Instruction  | Operands          | Description                                            |
 |--------|--------------|-------------------|--------------------------------------------------------|
-| `0x00` | `NONE`       | -                 | None                                                   |
+| `0x00` | `NOP`        | -                 | Performs no operation                                  |
 | `0x01` | `MOV_R_I`    | `R1`, `I1`        | Move `16` bits from `I1` to `R1`                       |
 | `0x02` | `MOV_R_R`    | `R1`, `R2`        | Move `16` bits from `R2` to `R1`                       |
 | `0x03` | `MOV_R_IM`   | `R1`, `IM1`       | Move `16` bits from `IM1` to `R1`                      |
